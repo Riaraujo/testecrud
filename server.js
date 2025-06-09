@@ -10,17 +10,24 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Conexão com o MongoDB usando SEUS DADOS
-const MONGODB_URI = 'mongodb://mongo:ceHWJohQxTyyQzrTCeDUHOJnEVjDMknx@switchback.proxy.rlwy.net:28016';
+// Conexão melhorada com MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:ceHWJohQxTyyQzrTCeDUHOJnEVjDMknx@switchback.proxy.rlwy.net:28016';
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000
 })
-.then(() => console.log('Conectado ao MongoDB com sucesso!'))
+.then(() => console.log('MongoDB conectado com sucesso!'))
 .catch(err => {
-    console.error('Erro na conexão com MongoDB:', err);
+    console.error('FALHA na conexão com MongoDB:', err);
     process.exit(1);
+});
+
+// Listeners de conexão
+mongoose.connection.on('disconnected', () => {
+    console.log('Mongoose desconectado!');
 });
 
 // Modelo do Item
