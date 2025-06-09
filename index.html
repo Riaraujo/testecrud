@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD com MongoDB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .actions {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>CRUD com MongoDB no Railway</h1>
+    
+    <form id="itemForm">
+        <input type="hidden" id="itemId">
+        <div>
+            <label for="name">Nome:</label>
+            <input type="text" id="name" required placeholder="Digite o nome">
+        </div>
+        <div>
+            <label for="description">Descrição:</label>
+            <input type="text" id="description" placeholder="Digite a descrição">
+        </div>
+        <button type="submit">Salvar</button>
+        <button type="button" onclick="resetForm()">Cancelar</button>
+    </form>
+    
+    <table id="itemsTable">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th class="actions">Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    
+    <script>
+        // URL da API - substitua pela URL do seu serviço Node.js no Railway
+        const API_URL = 'https://your-app-name.up.railway.app/api/items';
+        
+        // Elementos do DOM
+        const itemForm = document.getElementById('itemForm');
+        const itemsTable = document.getElementById('itemsTable').getElementsByTagName('tbody')[0];
+        
+        // Carregar itens quando a página carregar
+        document.addEventListener('DOMContentLoaded', loadItems);
+        
+        // Manipular envio do formulário
+        itemForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const item = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value
+            };
+            
+            const itemId = document.getElementById('itemId').value;
+            
+            try {
+                if (itemId) {
+                    await updateItem(itemId, item);
+                } else {
+                    await createItem(item);
+                }
+                resetForm();
+                await loadItems();
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro. Verifique o console para mais detalhes.');
+            }
+        });
+        
+        // Função para carregar itens
+        async function loadItems() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Erro ao carregar itens');
+                
+                const items = await response.json();
+                renderItems(items);
+            } catch (error) {
+                console.error('Erro ao carregar itens:', error);
+                alert('Erro ao carregar itens. Verifique o console.');
+            }
+        }
+        
+        // Função para renderizar itens na tabela
+        function renderItems(items) {
+            itemsTable.innerHTML = '';
+            items.forEach(item => {
+                const row = itemsTable.insertRow();
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.description || '-'}</td>
+                    <td class="actions">
+                        <button onclick="editItem('${item._id}')">Editar</button>
+                        <button onclick="deleteItem('${item._id}')">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+        
+        // Função para criar item
+        async function createItem(item) {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(item)
+            });
+            
+            if (!response.ok) throw new Error('Erro ao criar item');
+            return await response.json();
+        }
+        
+        // Função para editar item
+        async function editItem(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                if (!response.ok) throw new Error('Erro ao carregar item');
+                
+                const item = await response.json();
+                document.getElementById('itemId').value = item._id;
+                document.getElementById('name').value = item.name;
+                document.getElementById('description').value = item.description || '';
+            } catch (error) {
+                console.error('Erro ao editar item:', error);
+                alert('Erro ao carregar item para edição.');
+            }
+        }
+        
+        // Função para atualizar item
+        async function updateItem(id, item) {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(item)
+            });
+            
+            if (!response.ok) throw new Error('Erro ao atualizar item');
+            return await response.json();
+        }
+        
+        // Função para excluir item
+        async function deleteItem(id) {
+            if (!confirm('Tem certeza que deseja excluir este item?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Erro ao excluir item');
+                await loadItems();
+            } catch (error) {
+                console.error('Erro ao excluir item:', error);
+                alert('Erro ao excluir item. Verifique o console.');
+            }
+        }
+        
+        // Função para resetar o formulário
+        function resetForm() {
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemForm').reset();
+        }
+        
+        // Exportar funções para o escopo global
+        window.editItem = editItem;
+        window.deleteItem = deleteItem;
+        window.resetForm = resetForm;
+    </script>
+</body>
+</html>
