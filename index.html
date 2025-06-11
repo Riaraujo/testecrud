@@ -1,236 +1,1361 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD com MongoDB</title>
+    <title>Editor de Questões</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
+            background-color: #f5f5f5;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-        }
-        form {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background: #3498db;
+        
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
             color: white;
-            border: none;
-            padding: 10px 15px;
-            margin: 5px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
-        button:hover {
-            background: #2980b9;
+        
+        .sidebar-header {
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3d5166;
+            margin-bottom: 15px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
+        
+        .sidebar-subtitle {
+            font-size: 14px;
+            color: #a3b1c6;
         }
-        th {
+        
+        .sidebar-menu {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar-menu-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #a3b1c6;
+            text-transform: uppercase;
+        }
+        
+        .sidebar-button {
             background-color: #3498db;
             color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: left;
         }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
+        
+        .sidebar-button:hover {
+            background-color: #2980b9;
         }
-        .actions {
-            white-space: nowrap;
+        
+        .prova-list {
+            list-style: none;
+            margin-top: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        
+        .prova-item {
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background-color: #34495e;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .prova-item:hover {
+            background-color: #3d5166;
+        }
+        
+        .prova-item.active {
+            background-color: #3498db;
+        }
+        
+        .prova-item-count {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+        
+        /* Pasta styles */
+        .pasta-item {
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background-color: #8e44ad;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            min-height: 40px;
+        }
+        
+        .pasta-item:hover {
+            background-color: #9b59b6;
+        }
+        
+        .pasta-item.active {
+            background-color: #e74c3c;
+        }
+        
+        .pasta-icon {
+            margin-right: 8px;
+        }
+        
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            min-width: 150px;
+        }
+        
+        .context-menu-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .context-menu-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .context-menu-item.danger {
+            color: #dc3545;
+        }
+        
+        .context-menu-item.danger:hover {
+            background-color: #f8d7da;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .editor-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .editor-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .editor-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        select.form-control {
+            height: 36px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        /* Linhas e Blocos */
+        .linha {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .blocos-na-linha {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            min-height: 100px;
+            align-items: stretch;
+        }
+        
+        .bloco {
+            border-radius: 6px;
+            padding: 10px;
+            cursor: move;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .bloco-texto {
+            background: #f8ffff;
+            border: 1px solid #cce8f1;
+            flex: 3;
+            min-width: 300px;
+        }
+        
+        .bloco-imagem {
+            background: #fff8f8;
+            border: 1px solid #f1cccc;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .bloco-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .bloco-tipo {
+            font-weight: bold;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .controles-bloco button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .texto-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .texto-content textarea {
+            flex-grow: 1;
+            width: 100%;
+            min-height: 120px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .imagem-content input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .controles-texto {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        
+        .tipo-texto-select, .alinhamento-select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 13px;
+        }
+        
+        .controles-linha {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-add-bloco {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn-remover-linha {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        /* Alternativas */
+        .alternativas-container {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        
+        .alternativas-container h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .alternativa-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+        
+        .alternativa-letra {
+            font-weight: bold;
+            min-width: 25px;
+            text-align: center;
+        }
+        
+        .alternativa-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-remover-alternativa {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        /* Botões de ação */
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-add-linha {
+            background: #6f42c1;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-salvar {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .btn-voltar {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .preview-area {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        
+        #codigo-gerado {
+            color: #d4d4d4;
+            font-family: Consolas, monospace;
+            white-space: pre-wrap;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .btn-copiar {
+            background: #17a2b8;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+        }
+        
+        /* Estilos para tipos de texto (NOVOS) */
+        .enunciado {
+            display: flex;
+            align-items: center;
+            font-weight: 500 !important;
+        }
+        
+        .poema, .carta {
+            white-space: pre-line;
+            padding: 10px !important;
+        }
+        
+        .esquerda {
+            text-align: left;
+        }
+        
+        .centralizado {
+            text-align: center;
+        }
+        
+        .direita {
+            text-align: right;
+        }
+        
+        .referencia {
+            font-size: small;
+            font-style: italic !important;
+            color: #636e72 !important;
+            margin-top: -20px !important;
+            padding: 35px;
+            margin-left: -30px;
+        }
+        
+        .cabecalho {
+            font-weight: bold !important;
+            margin-bottom: 10px !important;
+            color: #cc1d75;
+        }
+        
+        /* Estilos para o modal de criar prova */
+        .modal-form {
+            margin-top: 15px;
+        }
+        
+        .modal-form-group {
+            margin-bottom: 15px;
+        }
+        
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .modal-form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn-cancelar {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-confirmar {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* Tabela de questões */
+        .questoes-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .questoes-table th {
+            background-color: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: bold;
+        }
+        
+        .questoes-table td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .questoes-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .btn-table {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+        
+        .btn-excluir {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-ver-sql {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .btn-editar {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .main-content {
+                padding: 10px;
+            }
+            
+            .blocos-na-linha {
+                flex-direction: column;
+            }
+            
+            .bloco {
+                min-width: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>CRUD com MongoDB no Railway</h1>
-    
-    <form id="itemForm">
-        <input type="hidden" id="itemId">
-        <div>
-            <label for="name">Nome:</label>
-            <input type="text" id="name" required placeholder="Digite o nome">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Editor de Questões</div>
+            <div class="sidebar-subtitle">Plataforma Educacional</div>
         </div>
-        <div>
-            <label for="description">Descrição:</label>
-            <input type="text" id="description" placeholder="Digite a descrição">
+        
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">Ações</div>
+            <button class="sidebar-button" onclick="criarNovaPasta()">Nova Pasta</button>
+            <button class="sidebar-button" onclick="criarNovaProva()">Nova Prova</button>
+            <button class="sidebar-button" onclick="criarNovaQuestao()">Nova Questão</button>
         </div>
-        <button type="submit">Salvar</button>
-        <button type="button" onclick="resetForm()">Cancelar</button>
-    </form>
-    
-    <table id="itemsTable">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Descrição</th>
-                <th class="actions">Ações</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    
+        
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">Pastas</div>
+            <ul class="prova-list" id="pasta-list">
+                <!-- Pastas serão carregadas aqui -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="editor-container" id="main-container">
+            <div class="editor-header">
+                <div>
+                    <div class="editor-title">Bem-vindo ao Editor de Questões</div>
+                    <div class="editor-subtitle">Selecione uma pasta ou prova para começar</div>
+                </div>
+            </div>
+            
+            <div id="content-area">
+                <p>Selecione uma pasta na barra lateral para visualizar suas provas, ou clique em "Nova Pasta" para começar.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para criar pasta -->
+    <div id="modal-pasta" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modal-pasta')">&times;</span>
+            <h2>Criar Nova Pasta</h2>
+            <div class="modal-form">
+                <div class="modal-form-group">
+                    <label for="nome-pasta">Nome da Pasta:</label>
+                    <input type="text" id="nome-pasta" placeholder="Digite o nome da pasta">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancelar" onclick="fecharModal('modal-pasta')">Cancelar</button>
+                    <button class="btn-confirmar" onclick="salvarPasta()">Criar Pasta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para criar prova -->
+    <div id="modal-prova" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modal-prova')">&times;</span>
+            <h2>Criar Nova Prova</h2>
+            <div class="modal-form">
+                <div class="modal-form-group">
+                    <label for="titulo-prova">Título da Prova:</label>
+                    <input type="text" id="titulo-prova" placeholder="Digite o título da prova">
+                </div>
+                <div class="modal-form-group">
+                    <label for="descricao-prova">Descrição:</label>
+                    <input type="text" id="descricao-prova" placeholder="Digite uma descrição (opcional)">
+                </div>
+                <div class="modal-form-group">
+                    <label for="pasta-prova">Pasta:</label>
+                    <select id="pasta-prova" class="form-control">
+                        <option value="">Selecione uma pasta</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancelar" onclick="fecharModal('modal-prova')">Cancelar</button>
+                    <button class="btn-confirmar" onclick="salvarProva()">Criar Prova</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para criar questão -->
+    <div id="modal-questao" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modal-questao')">&times;</span>
+            <h2>Criar Nova Questão</h2>
+            <div class="modal-form">
+                <div class="modal-form-group">
+                    <label for="texto-questao">Texto da Questão:</label>
+                    <textarea id="texto-questao" class="form-control" rows="4" placeholder="Digite o texto da questão"></textarea>
+                </div>
+                <div class="modal-form-group">
+                    <label for="tipo-questao">Tipo:</label>
+                    <select id="tipo-questao" class="form-control" onchange="toggleAlternativas()">
+                        <option value="multipla_escolha">Múltipla Escolha</option>
+                        <option value="aberta">Aberta</option>
+                    </select>
+                </div>
+                <div id="alternativas-section">
+                    <div class="modal-form-group">
+                        <label>Alternativas:</label>
+                        <div id="alternativas-container">
+                            <div class="alternativa-item">
+                                <span class="alternativa-letra">A)</span>
+                                <input type="text" class="alternativa-input" placeholder="Digite a alternativa A">
+                            </div>
+                            <div class="alternativa-item">
+                                <span class="alternativa-letra">B)</span>
+                                <input type="text" class="alternativa-input" placeholder="Digite a alternativa B">
+                            </div>
+                        </div>
+                        <button type="button" onclick="adicionarAlternativa()" style="margin-top: 10px; background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px;">Adicionar Alternativa</button>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="resposta-correta">Resposta Correta:</label>
+                        <input type="text" id="resposta-correta" placeholder="Digite a letra da resposta correta (ex: A)">
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label for="prova-questao">Prova:</label>
+                    <select id="prova-questao" class="form-control">
+                        <option value="">Selecione uma prova</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancelar" onclick="fecharModal('modal-questao')">Cancelar</button>
+                    <button class="btn-confirmar" onclick="salvarQuestao()">Criar Questão</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-item" onclick="editarItem()">Editar</div>
+        <div class="context-menu-item danger" onclick="excluirItem()">Excluir</div>
+    </div>
+
     <script>
         // URL da API - substitua pela URL do seu serviço Node.js no Railway
-        const API_URL = 'https://testecrud-production.up.railway.app/api/items';
+        const API_URL = 'https://testecrud-production.up.railway.app';
         
-        // Elementos do DOM
-        const itemForm = document.getElementById('itemForm');
-        const itemsTable = document.getElementById('itemsTable').getElementsByTagName('tbody')[0];
-        
-        // Carregar itens quando a página carregar
-        document.addEventListener('DOMContentLoaded', loadItems);
-        
-        // Manipular envio do formulário
-        itemForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const item = {
-                name: document.getElementById('name').value,
-                description: document.getElementById('description').value
-            };
-            
-            const itemId = document.getElementById('itemId').value;
-            
-            try {
-                if (itemId) {
-                    await updateItem(itemId, item);
-                } else {
-                    await createItem(item);
-                }
-                resetForm();
-                await loadItems();
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Ocorreu um erro. Verifique o console para mais detalhes.');
-            }
+        // Variáveis globais
+        let pastasData = [];
+        let provasData = [];
+        let questoesData = [];
+        let pastaAtiva = null;
+        let provaAtiva = null;
+        let contextMenuItem = null;
+        let contextMenuType = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarDados();
         });
-        
-        // Função para carregar itens
-        async function loadItems() {
+
+        // Funções de carregamento de dados
+        async function carregarDados() {
             try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error('Erro ao carregar itens');
-                
-                const items = await response.json();
-                renderItems(items);
+                await Promise.all([
+                    carregarPastas(),
+                    carregarProvas(),
+                    carregarQuestoes()
+                ]);
+                renderizarPastas();
             } catch (error) {
-                console.error('Erro ao carregar itens:', error);
-                alert('Erro ao carregar itens. Verifique o console.');
+                console.error('Erro ao carregar dados:', error);
+                alert('Erro ao carregar dados do servidor');
             }
         }
-        
-        // Função para renderizar itens na tabela
-        function renderItems(items) {
-            itemsTable.innerHTML = '';
-            items.forEach(item => {
-                const row = itemsTable.insertRow();
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>${item.description || '-'}</td>
-                    <td class="actions">
-                        <button onclick="editItem('${item._id}')">Editar</button>
-                        <button onclick="deleteItem('${item._id}')">Excluir</button>
-                    </td>
+
+        async function carregarPastas() {
+            const response = await fetch(`${API_URL}/api/pastas`);
+            if (!response.ok) throw new Error('Erro ao carregar pastas');
+            pastasData = await response.json();
+        }
+
+        async function carregarProvas() {
+            const response = await fetch(`${API_URL}/api/provas`);
+            if (!response.ok) throw new Error('Erro ao carregar provas');
+            provasData = await response.json();
+        }
+
+        async function carregarQuestoes() {
+            const response = await fetch(`${API_URL}/api/questoes`);
+            if (!response.ok) throw new Error('Erro ao carregar questões');
+            questoesData = await response.json();
+        }
+
+        // Funções de renderização
+        function renderizarPastas() {
+            const pastaList = document.getElementById('pasta-list');
+            pastaList.innerHTML = '';
+
+            pastasData.forEach(pasta => {
+                const provasDaPasta = provasData.filter(prova => prova.pasta && prova.pasta._id === pasta._id);
+                
+                const pastaElement = document.createElement('li');
+                pastaElement.className = 'pasta-item';
+                pastaElement.innerHTML = `
+                    <span><span class="pasta-icon">📁</span>${pasta.nome}</span>
+                    <span class="prova-item-count">${provasDaPasta.length}</span>
                 `;
-            });
-        }
-        
-        // Função para criar item
-        async function createItem(item) {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(item)
-            });
-            
-            if (!response.ok) throw new Error('Erro ao criar item');
-            return await response.json();
-        }
-        
-        // Função para editar item
-        async function editItem(id) {
-            try {
-                const response = await fetch(`${API_URL}/${id}`);
-                if (!response.ok) throw new Error('Erro ao carregar item');
                 
-                const item = await response.json();
-                document.getElementById('itemId').value = item._id;
-                document.getElementById('name').value = item.name;
-                document.getElementById('description').value = item.description || '';
+                pastaElement.addEventListener('click', () => selecionarPasta(pasta));
+                pastaElement.addEventListener('contextmenu', (e) => mostrarContextMenu(e, pasta, 'pasta'));
+                
+                pastaList.appendChild(pastaElement);
+            });
+        }
+
+        function selecionarPasta(pasta) {
+            pastaAtiva = pasta;
+            provaAtiva = null;
+            
+            // Atualizar visual da sidebar
+            document.querySelectorAll('.pasta-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            // Renderizar provas da pasta
+            renderizarProvasDaPasta(pasta);
+        }
+
+        function renderizarProvasDaPasta(pasta) {
+            const provasDaPasta = provasData.filter(prova => prova.pasta && prova.pasta._id === pasta._id);
+            
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = `
+                <h3>Pasta: ${pasta.nome}</h3>
+                <p>Provas nesta pasta: ${provasDaPasta.length}</p>
+                
+                <div style="margin: 20px 0;">
+                    <button class="btn-salvar" onclick="criarNovaProva()">Adicionar Nova Prova</button>
+                </div>
+                
+                <table class="questoes-table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Descrição</th>
+                            <th>Questões</th>
+                            <th>Data de Criação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${provasDaPasta.map(prova => `
+                            <tr>
+                                <td>${prova.titulo}</td>
+                                <td>${prova.descricao || 'Sem descrição'}</td>
+                                <td>${prova.questoes ? prova.questoes.length : 0}</td>
+                                <td>${new Date(prova.createdAt).toLocaleDateString('pt-BR')}</td>
+                                <td>
+                                    <button class="btn-table btn-editar" onclick="selecionarProva('${prova._id}')">Abrir</button>
+                                    <button class="btn-table btn-excluir" onclick="excluirProva('${prova._id}')">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function selecionarProva(provaId) {
+            try {
+                const response = await fetch(`${API_URL}/api/provas/${provaId}`);
+                if (!response.ok) throw new Error('Erro ao carregar prova');
+                
+                const prova = await response.json();
+                provaAtiva = prova;
+                
+                renderizarQuestoesDaProva(prova);
             } catch (error) {
-                console.error('Erro ao editar item:', error);
-                alert('Erro ao carregar item para edição.');
+                console.error('Erro ao carregar prova:', error);
+                alert('Erro ao carregar prova');
             }
         }
-        
-        // Função para atualizar item
-        async function updateItem(id, item) {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(item)
+
+        function renderizarQuestoesDaProva(prova) {
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3>Prova: ${prova.titulo}</h3>
+                        <p>${prova.descricao || 'Sem descrição'}</p>
+                        <p><strong>Pasta:</strong> ${prova.pasta ? prova.pasta.nome : 'Sem pasta'}</p>
+                    </div>
+                    <button class="btn-voltar" onclick="voltarParaPasta()">Voltar para Pasta</button>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <button class="btn-salvar" onclick="criarNovaQuestao()">Adicionar Nova Questão</button>
+                </div>
+                
+                <table class="questoes-table">
+                    <thead>
+                        <tr>
+                            <th>Texto da Questão</th>
+                            <th>Tipo</th>
+                            <th>Alternativas</th>
+                            <th>Resposta</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${prova.questoes ? prova.questoes.map(questao => `
+                            <tr>
+                                <td>${questao.texto.substring(0, 100)}${questao.texto.length > 100 ? '...' : ''}</td>
+                                <td>${questao.tipo === 'multipla_escolha' ? 'Múltipla Escolha' : 'Aberta'}</td>
+                                <td>${questao.alternativas ? questao.alternativas.length : 0}</td>
+                                <td>${questao.respostaCorreta || 'N/A'}</td>
+                                <td>
+                                    <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
+                                    <button class="btn-table btn-excluir" onclick="excluirQuestao('${questao._id}')">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="5">Nenhuma questão encontrada</td></tr>'}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function voltarParaPasta() {
+            if (pastaAtiva) {
+                renderizarProvasDaPasta(pastaAtiva);
+            }
+        }
+
+        // Funções de modal
+        function abrirModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function fecharModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            limparFormularios();
+        }
+
+        function limparFormularios() {
+            document.getElementById('nome-pasta').value = '';
+            document.getElementById('titulo-prova').value = '';
+            document.getElementById('descricao-prova').value = '';
+            document.getElementById('texto-questao').value = '';
+            document.getElementById('resposta-correta').value = '';
+        }
+
+        // Funções de criação
+        function criarNovaPasta() {
+            abrirModal('modal-pasta');
+        }
+
+        function criarNovaProva() {
+            // Carregar pastas no select
+            const selectPasta = document.getElementById('pasta-prova');
+            selectPasta.innerHTML = '<option value="">Selecione uma pasta</option>';
+            pastasData.forEach(pasta => {
+                selectPasta.innerHTML += `<option value="${pasta._id}">${pasta.nome}</option>`;
             });
             
-            if (!response.ok) throw new Error('Erro ao atualizar item');
-            return await response.json();
+            // Se há uma pasta ativa, selecioná-la
+            if (pastaAtiva) {
+                selectPasta.value = pastaAtiva._id;
+            }
+            
+            abrirModal('modal-prova');
         }
-        
-        // Função para excluir item
-        async function deleteItem(id) {
-            if (!confirm('Tem certeza que deseja excluir este item?')) return;
+
+        function criarNovaQuestao() {
+            // Carregar provas no select
+            const selectProva = document.getElementById('prova-questao');
+            selectProva.innerHTML = '<option value="">Selecione uma prova</option>';
+            provasData.forEach(prova => {
+                selectProva.innerHTML += `<option value="${prova._id}">${prova.titulo}</option>`;
+            });
+            
+            // Se há uma prova ativa, selecioná-la
+            if (provaAtiva) {
+                selectProva.value = provaAtiva._id;
+            }
+            
+            abrirModal('modal-questao');
+        }
+
+        // Funções de salvamento
+        async function salvarPasta() {
+            const nome = document.getElementById('nome-pasta').value.trim();
+            
+            if (!nome) {
+                alert('Por favor, digite um nome para a pasta');
+                return;
+            }
             
             try {
-                const response = await fetch(`${API_URL}/${id}`, {
+                const response = await fetch(`${API_URL}/api/pastas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nome })
+                });
+                
+                if (!response.ok) throw new Error('Erro ao criar pasta');
+                
+                fecharModal('modal-pasta');
+                await carregarDados();
+                alert('Pasta criada com sucesso!');
+            } catch (error) {
+                console.error('Erro ao criar pasta:', error);
+                alert('Erro ao criar pasta');
+            }
+        }
+
+        async function salvarProva() {
+            const titulo = document.getElementById('titulo-prova').value.trim();
+            const descricao = document.getElementById('descricao-prova').value.trim();
+            const pastaId = document.getElementById('pasta-prova').value;
+            
+            if (!titulo) {
+                alert('Por favor, digite um título para a prova');
+                return;
+            }
+            
+            try {
+                const dadosProva = { titulo, descricao };
+                if (pastaId) dadosProva.pasta = pastaId;
+                
+                const response = await fetch(`${API_URL}/api/provas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dadosProva)
+                });
+                
+                if (!response.ok) throw new Error('Erro ao criar prova');
+                
+                fecharModal('modal-prova');
+                await carregarDados();
+                alert('Prova criada com sucesso!');
+                
+                // Se foi criada na pasta ativa, atualizar a visualização
+                if (pastaAtiva && pastaId === pastaAtiva._id) {
+                    renderizarProvasDaPasta(pastaAtiva);
+                }
+            } catch (error) {
+                console.error('Erro ao criar prova:', error);
+                alert('Erro ao criar prova');
+            }
+        }
+
+        async function salvarQuestao() {
+            const texto = document.getElementById('texto-questao').value.trim();
+            const tipo = document.getElementById('tipo-questao').value;
+            const provaId = document.getElementById('prova-questao').value;
+            const respostaCorreta = document.getElementById('resposta-correta').value.trim();
+            
+            if (!texto) {
+                alert('Por favor, digite o texto da questão');
+                return;
+            }
+            
+            if (!provaId) {
+                alert('Por favor, selecione uma prova');
+                return;
+            }
+            
+            try {
+                const dadosQuestao = { texto, tipo };
+                if (provaId) dadosQuestao.prova = provaId;
+                if (respostaCorreta) dadosQuestao.respostaCorreta = respostaCorreta;
+                
+                // Coletar alternativas se for múltipla escolha
+                if (tipo === 'multipla_escolha') {
+                    const alternativas = [];
+                    const inputs = document.querySelectorAll('.alternativa-input');
+                    const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                    
+                    inputs.forEach((input, index) => {
+                        if (input.value.trim()) {
+                            alternativas.push({
+                                letra: letras[index],
+                                texto: input.value.trim()
+                            });
+                        }
+                    });
+                    
+                    dadosQuestao.alternativas = alternativas;
+                }
+                
+                const response = await fetch(`${API_URL}/api/questoes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dadosQuestao)
+                });
+                
+                if (!response.ok) throw new Error('Erro ao criar questão');
+                
+                fecharModal('modal-questao');
+                await carregarDados();
+                alert('Questão criada com sucesso!');
+                
+                // Se foi criada na prova ativa, atualizar a visualização
+                if (provaAtiva && provaId === provaAtiva._id) {
+                    await selecionarProva(provaAtiva._id);
+                }
+            } catch (error) {
+                console.error('Erro ao criar questão:', error);
+                alert('Erro ao criar questão');
+            }
+        }
+
+        // Funções de alternativas
+        function toggleAlternativas() {
+            const tipo = document.getElementById('tipo-questao').value;
+            const alternativasSection = document.getElementById('alternativas-section');
+            
+            if (tipo === 'multipla_escolha') {
+                alternativasSection.style.display = 'block';
+            } else {
+                alternativasSection.style.display = 'none';
+            }
+        }
+
+        function adicionarAlternativa() {
+            const container = document.getElementById('alternativas-container');
+            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            const currentCount = container.children.length;
+            
+            if (currentCount < letras.length) {
+                const novaAlternativa = document.createElement('div');
+                novaAlternativa.className = 'alternativa-item';
+                novaAlternativa.innerHTML = `
+                    <span class="alternativa-letra">${letras[currentCount]})</span>
+                    <input type="text" class="alternativa-input" placeholder="Digite a alternativa ${letras[currentCount]}">
+                    <button type="button" class="btn-remover-alternativa" onclick="removerAlternativa(this)">×</button>
+                `;
+                container.appendChild(novaAlternativa);
+            }
+        }
+
+        function removerAlternativa(button) {
+            const container = document.getElementById('alternativas-container');
+            if (container.children.length > 2) {
+                button.parentElement.remove();
+                
+                // Reordenar as letras
+                const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                const items = container.children;
+                for (let i = 0; i < items.length; i++) {
+                    const letra = items[i].querySelector('.alternativa-letra');
+                    const input = items[i].querySelector('.alternativa-input');
+                    letra.textContent = letras[i] + ')';
+                    input.placeholder = `Digite a alternativa ${letras[i]}`;
+                }
+            }
+        }
+
+        // Funções de exclusão
+        async function excluirProva(provaId) {
+            if (!confirm('Tem certeza que deseja excluir esta prova? Todas as questões associadas também serão excluídas.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/provas/${provaId}`, {
                     method: 'DELETE'
                 });
                 
-                if (!response.ok) throw new Error('Erro ao excluir item');
-                await loadItems();
+                if (!response.ok) throw new Error('Erro ao excluir prova');
+                
+                await carregarDados();
+                alert('Prova excluída com sucesso!');
+                
+                if (pastaAtiva) {
+                    renderizarProvasDaPasta(pastaAtiva);
+                }
             } catch (error) {
-                console.error('Erro ao excluir item:', error);
-                alert('Erro ao excluir item. Verifique o console.');
+                console.error('Erro ao excluir prova:', error);
+                alert('Erro ao excluir prova');
             }
         }
-        
-        // Função para resetar o formulário
-        function resetForm() {
-            document.getElementById('itemId').value = '';
-            document.getElementById('itemForm').reset();
+
+        async function excluirQuestao(questaoId) {
+            if (!confirm('Tem certeza que deseja excluir esta questão?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/questoes/${questaoId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Erro ao excluir questão');
+                
+                await carregarDados();
+                alert('Questão excluída com sucesso!');
+                
+                if (provaAtiva) {
+                    await selecionarProva(provaAtiva._id);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir questão:', error);
+                alert('Erro ao excluir questão');
+            }
         }
-        
-        // Exportar funções para o escopo global
-        window.editItem = editItem;
-        window.deleteItem = deleteItem;
-        window.resetForm = resetForm;
+
+        // Context menu
+        function mostrarContextMenu(e, item, type) {
+            e.preventDefault();
+            contextMenuItem = item;
+            contextMenuType = type;
+            
+            const contextMenu = document.getElementById('context-menu');
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = e.pageX + 'px';
+            contextMenu.style.top = e.pageY + 'px';
+        }
+
+        function editarItem() {
+            // Implementar edição
+            document.getElementById('context-menu').style.display = 'none';
+        }
+
+        async function excluirItem() {
+            document.getElementById('context-menu').style.display = 'none';
+            
+            if (contextMenuType === 'pasta') {
+                if (!confirm('Tem certeza que deseja excluir esta pasta? Todas as provas e questões associadas também serão excluídas.')) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${API_URL}/api/pastas/${contextMenuItem._id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) throw new Error('Erro ao excluir pasta');
+                    
+                    await carregarDados();
+                    alert('Pasta excluída com sucesso!');
+                    
+                    // Limpar área de conteúdo se a pasta ativa foi excluída
+                    if (pastaAtiva && pastaAtiva._id === contextMenuItem._id) {
+                        pastaAtiva = null;
+                        provaAtiva = null;
+                        document.getElementById('content-area').innerHTML = '<p>Selecione uma pasta na barra lateral para visualizar suas provas.</p>';
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir pasta:', error);
+                    alert('Erro ao excluir pasta');
+                }
+            }
+        }
+
+        // Fechar context menu ao clicar fora
+        document.addEventListener('click', function() {
+            document.getElementById('context-menu').style.display = 'none';
+        });
+
+        // Fechar modais ao clicar fora
+        window.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    limparFormularios();
+                }
+            });
+        });
     </script>
 </body>
 </html>
+
