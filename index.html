@@ -655,6 +655,114 @@
             color: #212529;
         }
         
+        .btn-abrir {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        /* Menu da prova - COR AZUL */
+        .prova-menu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .prova-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .prova-nome {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .prova-descricao {
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .prova-acoes {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-nova-questao {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-ver-sql-todas {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-voltar-pasta {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* Menu da pasta - COR ROXA */
+        .pasta-menu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .pasta-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pasta-nome {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .pasta-descricao {
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .pasta-acoes {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-excluir-pasta {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
         /* Responsividade */
         @media (max-width: 768px) {
             body {
@@ -664,10 +772,12 @@
             .sidebar {
                 width: 100%;
                 height: auto;
+                padding: 10px;
             }
             
-            .main-content {
-                padding: 10px;
+            .form-row {
+                flex-direction: column;
+                gap: 5px;
             }
             
             .blocos-na-linha {
@@ -675,685 +785,814 @@
             }
             
             .bloco {
-                min-width: auto;
+                min-width: 100% !important;
+            }
+            
+            .questoes-table {
+                display: block;
+                overflow-x: auto;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-item danger" onclick="removerProva()">Remover Prova</div>
+    </div>
+    
+    <!-- Context Menu para Pasta -->
+    <div id="context-menu-pasta" class="context-menu">
+        <div class="context-menu-item danger" onclick="removerPasta()">Remover Pasta</div>
+    </div>
+    
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-title">Editor de Questões</div>
-            <div class="sidebar-subtitle">Plataforma Educacional</div>
-        </div>
-        
-        <div class="sidebar-menu">
-            <div class="sidebar-menu-title">Ações</div>
-            <button class="sidebar-button" onclick="criarNovaPasta()">Nova Pasta</button>
-            <button class="sidebar-button" onclick="criarNovaProva()">Nova Prova</button>
-            <button class="sidebar-button" onclick="criarNovaQuestao()">Nova Questão</button>
+            <div class="sidebar-subtitle">Banco de Dados</div>
         </div>
         
         <div class="sidebar-menu">
             <div class="sidebar-menu-title">Pastas</div>
-            <ul class="prova-list" id="pasta-list">
-                <!-- Pastas serão carregadas aqui -->
-            </ul>
+            <button id="btn-criar-pasta" class="sidebar-button">📁 Criar Pasta</button>
         </div>
+        
+        <ul id="prova-list" class="prova-list">
+            <!-- Pastas serão adicionadas aqui dinamicamente -->
+        </ul>
     </div>
-
+    
     <!-- Main Content -->
     <div class="main-content">
-        <div class="editor-container" id="main-container">
-            <div class="editor-header">
-                <div>
-                    <div class="editor-title">Bem-vindo ao Editor de Questões</div>
-                    <div class="editor-subtitle">Selecione uma pasta ou prova para começar</div>
+        <!-- Tela de Pasta (Lista de Provas na Pasta) -->
+        <div id="tela-pasta" class="editor-container" style="display: none;">
+            <div class="pasta-menu">
+                <div class="pasta-info">
+                    <div class="pasta-nome" id="pasta-nome-titulo"></div>
+                    <div class="pasta-descricao" id="pasta-descricao-titulo"></div>
+                </div>
+                <div class="pasta-acoes">
+                    <button id="btn-nova-prova-pasta" class="btn-nova-questao">+ Nova Prova</button>
+                    <button id="btn-excluir-pasta" class="btn-excluir-pasta">Excluir Pasta</button>
                 </div>
             </div>
             
-            <div id="content-area">
-                <p>Selecione uma pasta na barra lateral para visualizar suas provas, ou clique em "Nova Pasta" para começar.</p>
+            <table class="questoes-table">
+                <thead>
+                    <tr>
+                        <th width="5%">#</th>
+                        <th width="35%">Nome da Prova</th>
+                        <th width="25%">Descrição</th>
+                        <th width="10%">Questões</th>
+                        <th width="25%">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="provas-pasta-lista">
+                    <!-- Provas da pasta serão adicionadas aqui dinamicamente -->
+                </tbody>
+            </table>
+            
+            <div id="sem-provas-pasta" style="text-align: center; padding: 20px; color: #666;">
+                Nenhuma prova adicionada nesta pasta ainda.
+            </div>
+        </div>
+        
+        <!-- Tela de Prova (Lista de Questões) -->
+        <div id="tela-prova" class="editor-container" style="display: none;">
+            <div class="prova-menu">
+                <div class="prova-info">
+                    <div class="prova-nome" id="prova-nome-titulo"></div>
+                    <div class="prova-descricao" id="prova-descricao-titulo"></div>
+                </div>
+                <div class="prova-acoes">
+                    <button id="btn-voltar-pasta" class="btn-voltar-pasta">← Voltar para a Pasta</button>
+                    <button id="btn-nova-questao" class="btn-nova-questao">+ Nova Questão</button>
+                    <button id="btn-ver-sql-todas" class="btn-ver-sql-todas">Ver SQL da Prova</button>
+                </div>
+            </div>
+            
+            <table class="questoes-table">
+                <thead>
+                    <tr>
+                        <th width="5%">#</th>
+                        <th width="20%">Disciplina</th>
+                        <th width="20%">Matéria</th>
+                        <th width="20%">Assunto</th>
+                        <th width="10%">Resposta</th>
+                        <th width="25%">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="questoes-lista">
+                    <!-- Questões serão adicionadas aqui dinamicamente -->
+                </tbody>
+            </table>
+            
+            <div id="sem-questoes" style="text-align: center; padding: 20px; color: #666;">
+                Nenhuma questão adicionada ainda.
+            </div>
+        </div>
+        
+        <!-- Tela de Edição de Questão -->
+        <div id="tela-questao" class="editor-container">
+            <div class="editor-header">
+                <div>
+                    <div class="editor-title" id="titulo-questao">Adicionar Questão</div>
+                    <div class="editor-subtitle">Prova: <span id="prova-selecionada">Nenhuma</span></div>
+                </div>
+                <div class="action-buttons">
+                    <button id="btn-voltar-prova" class="btn-voltar">Voltar para Prova</button>
+                    <button onclick="adicionarLinha()" class="btn-add-linha">+ Adicionar Nova Linha</button>
+                    <button onclick="salvarQuestao()" class="btn-salvar" id="btn-salvar-questao">Salvar Questão</button>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="disciplina">Disciplina:</label>
+                        <input type="text" id="disciplina" class="form-control" placeholder="Ex: Biologia">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="materia">Matéria:</label>
+                        <input type="text" id="materia" class="form-control" placeholder="Ex: Citologia">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="assunto">Assunto:</label>
+                        <input type="text" id="assunto" class="form-control" placeholder="Ex: Organelas">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="conteudo">Conteúdo (opcional):</label>
+                        <input type="text" id="conteudo" class="form-control" placeholder="Ex: Vacúolo">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="topico">Tópico (opcional):</label>
+                        <input type="text" id="topico" class="form-control" placeholder="Ex: Funções">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="ano">Ano (opcional):</label>
+                        <input type="number" id="ano" class="form-control" placeholder="Ex: 2023">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="instituicao">Instituição (opcional):</label>
+                        <input type="text" id="instituicao" class="form-control" placeholder="Ex: ENEM">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="resposta">Resposta Correta:</label>
+                        <select id="resposta" class="form-control">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="linhas-container" class="linhas-container"></div>
+            
+            <!-- Alternativas serão adicionadas aqui -->
+        </div>
+    </div>
+    
+    <!-- Modal de Visualização SQL -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Código SQL para Inserção</h2>
+            <div class="preview-area">
+                <pre id="codigo-gerado"></pre>
+            </div>
+            <button onclick="copiarCodigo()" class="btn-copiar">Copiar Código</button>
+        </div>
+    </div>
+    
+    <!-- Modal de Criar Prova -->
+    <div id="criar-prova-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-criar-prova">&times;</span>
+            <h2>Criar Nova Prova</h2>
+            <div class="modal-form">
+                <div class="modal-form-group">
+                    <label for="nome-prova">Nome da Prova:</label>
+                    <input type="text" id="nome-prova" placeholder="Ex: ENEM 2023 - Biologia">
+                </div>
+                <div class="modal-form-group">
+                    <label for="descricao-prova">Descrição (opcional):</label>
+                    <input type="text" id="descricao-prova" placeholder="Ex: Questões de biologia do ENEM 2023">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancelar" id="cancelar-criar-prova">Cancelar</button>
+                    <button class="btn-confirmar" id="confirmar-criar-prova">Criar Prova</button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Modal para criar pasta -->
-    <div id="modal-pasta" class="modal">
+    
+    <!-- Modal de Criar Pasta -->
+    <div id="criar-pasta-modal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="fecharModal('modal-pasta')">&times;</span>
+            <span class="close" id="close-criar-pasta">&times;</span>
             <h2>Criar Nova Pasta</h2>
             <div class="modal-form">
                 <div class="modal-form-group">
                     <label for="nome-pasta">Nome da Pasta:</label>
-                    <input type="text" id="nome-pasta" placeholder="Digite o nome da pasta">
+                    <input type="text" id="nome-pasta" placeholder="Ex: ENEM 2023">
+                </div>
+                <div class="modal-form-group">
+                    <label for="descricao-pasta">Descrição (opcional):</label>
+                    <input type="text" id="descricao-pasta" placeholder="Ex: Provas do ENEM 2023">
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn-cancelar" onclick="fecharModal('modal-pasta')">Cancelar</button>
-                    <button class="btn-confirmar" onclick="salvarPasta()">Criar Pasta</button>
+                    <button class="btn-cancelar" id="cancelar-criar-pasta">Cancelar</button>
+                    <button class="btn-confirmar" id="confirmar-criar-pasta">Criar Pasta</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Modal para criar prova -->
-    <div id="modal-prova" class="modal">
+    
+    <!-- Modal de Visualizar SQL da Prova -->
+    <div id="questoes-prova-modal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="fecharModal('modal-prova')">&times;</span>
-            <h2>Criar Nova Prova</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="titulo-prova">Título da Prova:</label>
-                    <input type="text" id="titulo-prova" placeholder="Digite o título da prova">
-                </div>
-                <div class="modal-form-group">
-                    <label for="descricao-prova">Descrição:</label>
-                    <input type="text" id="descricao-prova" placeholder="Digite uma descrição (opcional)">
-                </div>
-                <div class="modal-form-group">
-                    <label for="pasta-prova">Pasta:</label>
-                    <select id="pasta-prova" class="form-control">
-                        <option value="">Selecione uma pasta</option>
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn-cancelar" onclick="fecharModal('modal-prova')">Cancelar</button>
-                    <button class="btn-confirmar" onclick="salvarProva()">Criar Prova</button>
-                </div>
+            <span class="close" id="close-questoes-prova">&times;</span>
+            <h2>SQL da Prova: <span id="nome-prova-questoes"></span></h2>
+            <div class="preview-area">
+                <pre id="sql-questoes-prova"></pre>
             </div>
+            <button onclick="copiarSQLProva()" class="btn-copiar">Copiar Todos os SQLs</button>
         </div>
     </div>
-
-    <!-- Modal para criar questão -->
-    <div id="modal-questao" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="fecharModal('modal-questao')">&times;</span>
-            <h2>Criar Nova Questão</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="texto-questao">Texto da Questão:</label>
-                    <textarea id="texto-questao" class="form-control" rows="4" placeholder="Digite o texto da questão"></textarea>
-                </div>
-                <div class="modal-form-group">
-                    <label for="tipo-questao">Tipo:</label>
-                    <select id="tipo-questao" class="form-control" onchange="toggleAlternativas()">
-                        <option value="multipla_escolha">Múltipla Escolha</option>
-                        <option value="aberta">Aberta</option>
-                    </select>
-                </div>
-                <div id="alternativas-section">
-                    <div class="modal-form-group">
-                        <label>Alternativas:</label>
-                        <div id="alternativas-container">
-                            <div class="alternativa-item">
-                                <span class="alternativa-letra">A)</span>
-                                <input type="text" class="alternativa-input" placeholder="Digite a alternativa A">
-                            </div>
-                            <div class="alternativa-item">
-                                <span class="alternativa-letra">B)</span>
-                                <input type="text" class="alternativa-input" placeholder="Digite a alternativa B">
-                            </div>
-                        </div>
-                        <button type="button" onclick="adicionarAlternativa()" style="margin-top: 10px; background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px;">Adicionar Alternativa</button>
-                    </div>
-                    <div class="modal-form-group">
-                        <label for="resposta-correta">Resposta Correta:</label>
-                        <input type="text" id="resposta-correta" placeholder="Digite a letra da resposta correta (ex: A)">
-                    </div>
-                </div>
-                <div class="modal-form-group">
-                    <label for="prova-questao">Prova:</label>
-                    <select id="prova-questao" class="form-control">
-                        <option value="">Selecione uma prova</option>
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn-cancelar" onclick="fecharModal('modal-questao')">Cancelar</button>
-                    <button class="btn-confirmar" onclick="salvarQuestao()">Criar Questão</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Context Menu -->
-    <div id="context-menu" class="context-menu">
-        <div class="context-menu-item" onclick="editarItem()">Editar</div>
-        <div class="context-menu-item danger" onclick="excluirItem()">Excluir</div>
-    </div>
-
+    
     <script>
         // URL da API - substitua pela URL do seu serviço Node.js no Railway
-        const API_URL = 'https://testecrud-production.up.railway.app';
-        
-        // Variáveis globais
-        let pastasData = [];
-        let provasData = [];
-        let questoesData = [];
-        let pastaAtiva = null;
-        let provaAtiva = null;
-        let contextMenuItem = null;
-        let contextMenuType = null;
+        const API_URL = 'https://testecrud-production.up.railway.app'; // Base URL
 
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            carregarDados();
-        });
+        let currentPastaId = null;
+        let currentProvaId = null;
+        let currentQuestaoId = null;
 
-        // Funções de carregamento de dados
-        async function carregarDados() {
-            try {
-                await Promise.all([
-                    carregarPastas(),
-                    carregarProvas(),
-                    carregarQuestoes()
-                ]);
-                renderizarPastas();
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                alert('Erro ao carregar dados do servidor');
-            }
-        }
-
+        // --- Funções de Carregamento de Dados --- (Atualizadas para usar fetch)
         async function carregarPastas() {
-            const response = await fetch(`${API_URL}/api/pastas`);
-            if (!response.ok) throw new Error('Erro ao carregar pastas');
-            pastasData = await response.json();
-        }
-
-        async function carregarProvas() {
-            const response = await fetch(`${API_URL}/api/provas`);
-            if (!response.ok) throw new Error('Erro ao carregar provas');
-            provasData = await response.json();
-        }
-
-        async function carregarQuestoes() {
-            const response = await fetch(`${API_URL}/api/questoes`);
-            if (!response.ok) throw new Error('Erro ao carregar questões');
-            questoesData = await response.json();
-        }
-
-        // Funções de renderização
-        function renderizarPastas() {
-            const pastaList = document.getElementById('pasta-list');
-            pastaList.innerHTML = '';
-
-            pastasData.forEach(pasta => {
-                const provasDaPasta = provasData.filter(prova => prova.pasta && prova.pasta._id === pasta._id);
-                
-                const pastaElement = document.createElement('li');
-                pastaElement.className = 'pasta-item';
-                pastaElement.innerHTML = `
-                    <span><span class="pasta-icon">📁</span>${pasta.nome}</span>
-                    <span class="prova-item-count">${provasDaPasta.length}</span>
-                `;
-                
-                pastaElement.addEventListener('click', () => selecionarPasta(pasta));
-                pastaElement.addEventListener('contextmenu', (e) => mostrarContextMenu(e, pasta, 'pasta'));
-                
-                pastaList.appendChild(pastaElement);
-            });
-        }
-
-        function selecionarPasta(pasta) {
-            pastaAtiva = pasta;
-            provaAtiva = null;
-            
-            // Atualizar visual da sidebar
-            document.querySelectorAll('.pasta-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            
-            // Renderizar provas da pasta
-            renderizarProvasDaPasta(pasta);
-        }
-
-        function renderizarProvasDaPasta(pasta) {
-            const provasDaPasta = provasData.filter(prova => prova.pasta && prova.pasta._id === pasta._id);
-            
-            const contentArea = document.getElementById('content-area');
-            contentArea.innerHTML = `
-                <h3>Pasta: ${pasta.nome}</h3>
-                <p>Provas nesta pasta: ${provasDaPasta.length}</p>
-                
-                <div style="margin: 20px 0;">
-                    <button class="btn-salvar" onclick="criarNovaProva()">Adicionar Nova Prova</button>
-                </div>
-                
-                <table class="questoes-table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Descrição</th>
-                            <th>Questões</th>
-                            <th>Data de Criação</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${provasDaPasta.map(prova => `
-                            <tr>
-                                <td>${prova.titulo}</td>
-                                <td>${prova.descricao || 'Sem descrição'}</td>
-                                <td>${prova.questoes ? prova.questoes.length : 0}</td>
-                                <td>${new Date(prova.createdAt).toLocaleDateString('pt-BR')}</td>
-                                <td>
-                                    <button class="btn-table btn-editar" onclick="selecionarProva('${prova._id}')">Abrir</button>
-                                    <button class="btn-table btn-excluir" onclick="excluirProva('${prova._id}')">Excluir</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
-
-        async function selecionarProva(provaId) {
             try {
-                const response = await fetch(`${API_URL}/api/provas/${provaId}`);
-                if (!response.ok) throw new Error('Erro ao carregar prova');
-                
-                const prova = await response.json();
-                provaAtiva = prova;
-                
-                renderizarQuestoesDaProva(prova);
-            } catch (error) {
-                console.error('Erro ao carregar prova:', error);
-                alert('Erro ao carregar prova');
-            }
-        }
-
-        function renderizarQuestoesDaProva(prova) {
-            const contentArea = document.getElementById('content-area');
-            contentArea.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <div>
-                        <h3>Prova: ${prova.titulo}</h3>
-                        <p>${prova.descricao || 'Sem descrição'}</p>
-                        <p><strong>Pasta:</strong> ${prova.pasta ? prova.pasta.nome : 'Sem pasta'}</p>
-                    </div>
-                    <button class="btn-voltar" onclick="voltarParaPasta()">Voltar para Pasta</button>
-                </div>
-                
-                <div style="margin: 20px 0;">
-                    <button class="btn-salvar" onclick="criarNovaQuestao()">Adicionar Nova Questão</button>
-                </div>
-                
-                <table class="questoes-table">
-                    <thead>
-                        <tr>
-                            <th>Texto da Questão</th>
-                            <th>Tipo</th>
-                            <th>Alternativas</th>
-                            <th>Resposta</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${prova.questoes ? prova.questoes.map(questao => `
-                            <tr>
-                                <td>${questao.texto.substring(0, 100)}${questao.texto.length > 100 ? '...' : ''}</td>
-                                <td>${questao.tipo === 'multipla_escolha' ? 'Múltipla Escolha' : 'Aberta'}</td>
-                                <td>${questao.alternativas ? questao.alternativas.length : 0}</td>
-                                <td>${questao.respostaCorreta || 'N/A'}</td>
-                                <td>
-                                    <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
-                                    <button class="btn-table btn-excluir" onclick="excluirQuestao('${questao._id}')">Excluir</button>
-                                </td>
-                            </tr>
-                        `).join('') : '<tr><td colspan="5">Nenhuma questão encontrada</td></tr>'}
-                    </tbody>
-                </table>
-            `;
-        }
-
-        function voltarParaPasta() {
-            if (pastaAtiva) {
-                renderizarProvasDaPasta(pastaAtiva);
-            }
-        }
-
-        // Funções de modal
-        function abrirModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
-        }
-
-        function fecharModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            limparFormularios();
-        }
-
-        function limparFormularios() {
-            document.getElementById('nome-pasta').value = '';
-            document.getElementById('titulo-prova').value = '';
-            document.getElementById('descricao-prova').value = '';
-            document.getElementById('texto-questao').value = '';
-            document.getElementById('resposta-correta').value = '';
-        }
-
-        // Funções de criação
-        function criarNovaPasta() {
-            abrirModal('modal-pasta');
-        }
-
-        function criarNovaProva() {
-            // Carregar pastas no select
-            const selectPasta = document.getElementById('pasta-prova');
-            selectPasta.innerHTML = '<option value="">Selecione uma pasta</option>';
-            pastasData.forEach(pasta => {
-                selectPasta.innerHTML += `<option value="${pasta._id}">${pasta.nome}</option>`;
-            });
-            
-            // Se há uma pasta ativa, selecioná-la
-            if (pastaAtiva) {
-                selectPasta.value = pastaAtiva._id;
-            }
-            
-            abrirModal('modal-prova');
-        }
-
-        function criarNovaQuestao() {
-            // Carregar provas no select
-            const selectProva = document.getElementById('prova-questao');
-            selectProva.innerHTML = '<option value="">Selecione uma prova</option>';
-            provasData.forEach(prova => {
-                selectProva.innerHTML += `<option value="${prova._id}">${prova.titulo}</option>`;
-            });
-            
-            // Se há uma prova ativa, selecioná-la
-            if (provaAtiva) {
-                selectProva.value = provaAtiva._id;
-            }
-            
-            abrirModal('modal-questao');
-        }
-
-        // Funções de salvamento
-        async function salvarPasta() {
-            const nome = document.getElementById('nome-pasta').value.trim();
-            
-            if (!nome) {
-                alert('Por favor, digite um nome para a pasta');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_URL}/api/pastas`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ nome })
+                const response = await fetch(`${API_URL}/api/pastas`);
+                if (!response.ok) throw new Error('Erro ao carregar pastas');
+                const pastas = await response.json();
+                const pastaList = document.getElementById('pasta-list');
+                pastaList.innerHTML = '';
+                pastas.forEach(pasta => {
+                    const li = document.createElement('li');
+                    li.className = 'pasta-item';
+                    li.dataset.id = pasta._id;
+                    li.innerHTML = `
+                        <span class="pasta-icon">📁</span>
+                        <span>${pasta.nome}</span>
+                        <div class="pasta-actions">
+                            <button onclick="editarPasta('${pasta._id}', '${pasta.nome}')">✏️</button>
+                            <button onclick="removerPasta('${pasta._id}')">🗑️</button>
+                        </div>
+                    `;
+                    li.onclick = () => selecionarPasta(pasta._id, pasta.nome);
+                    pastaList.appendChild(li);
                 });
-                
-                if (!response.ok) throw new Error('Erro ao criar pasta');
-                
-                fecharModal('modal-pasta');
-                await carregarDados();
-                alert('Pasta criada com sucesso!');
             } catch (error) {
-                console.error('Erro ao criar pasta:', error);
-                alert('Erro ao criar pasta');
+                console.error('Erro ao carregar pastas:', error);
+                alert('Erro ao carregar pastas: ' + error.message);
             }
         }
 
-        async function salvarProva() {
-            const titulo = document.getElementById('titulo-prova').value.trim();
-            const descricao = document.getElementById('descricao-prova').value.trim();
-            const pastaId = document.getElementById('pasta-prova').value;
-            
-            if (!titulo) {
-                alert('Por favor, digite um título para a prova');
-                return;
-            }
-            
+        async function carregarProvas(pastaId) {
             try {
-                const dadosProva = { titulo, descricao };
-                if (pastaId) dadosProva.pasta = pastaId;
-                
-                const response = await fetch(`${API_URL}/api/provas`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dadosProva)
+                const response = await fetch(`${API_URL}/api/pastas/${pastaId}/provas`);
+                if (!response.ok) throw new Error('Erro ao carregar provas');
+                const provas = await response.json();
+                const provaList = document.getElementById('prova-list');
+                provaList.innerHTML = '';
+                provas.forEach(prova => {
+                    const li = document.createElement('li');
+                    li.className = 'prova-item';
+                    li.dataset.id = prova._id;
+                    li.innerHTML = `
+                        <span>${prova.titulo}</span>
+                        <div class="prova-actions">
+                            <button onclick="editarProva('${prova._id}', '${prova.titulo}')">✏️</button>
+                            <button onclick="removerProva('${prova._id}')">🗑️</button>
+                        </div>
+                    `;
+                    li.onclick = () => selecionarProva(prova._id, prova.titulo);
+                    provaList.appendChild(li);
                 });
-                
-                if (!response.ok) throw new Error('Erro ao criar prova');
-                
-                fecharModal('modal-prova');
-                await carregarDados();
-                alert('Prova criada com sucesso!');
-                
-                // Se foi criada na pasta ativa, atualizar a visualização
-                if (pastaAtiva && pastaId === pastaAtiva._id) {
-                    renderizarProvasDaPasta(pastaAtiva);
-                }
             } catch (error) {
-                console.error('Erro ao criar prova:', error);
-                alert('Erro ao criar prova');
+                console.error('Erro ao carregar provas:', error);
+                alert('Erro ao carregar provas: ' + error.message);
             }
         }
 
-        async function salvarQuestao() {
-            const texto = document.getElementById('texto-questao').value.trim();
-            const tipo = document.getElementById('tipo-questao').value;
-            const provaId = document.getElementById('prova-questao').value;
-            const respostaCorreta = document.getElementById('resposta-correta').value.trim();
-            
-            if (!texto) {
-                alert('Por favor, digite o texto da questão');
-                return;
-            }
-            
-            if (!provaId) {
-                alert('Por favor, selecione uma prova');
-                return;
-            }
-            
+        async function carregarQuestoes(provaId) {
             try {
-                const dadosQuestao = { texto, tipo };
-                if (provaId) dadosQuestao.prova = provaId;
-                if (respostaCorreta) dadosQuestao.respostaCorreta = respostaCorreta;
-                
-                // Coletar alternativas se for múltipla escolha
-                if (tipo === 'multipla_escolha') {
-                    const alternativas = [];
-                    const inputs = document.querySelectorAll('.alternativa-input');
-                    const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-                    
-                    inputs.forEach((input, index) => {
-                        if (input.value.trim()) {
-                            alternativas.push({
-                                letra: letras[index],
-                                texto: input.value.trim()
-                            });
-                        }
-                    });
-                    
-                    dadosQuestao.alternativas = alternativas;
-                }
-                
-                const response = await fetch(`${API_URL}/api/questoes`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dadosQuestao)
+                const response = await fetch(`${API_URL}/api/provas/${provaId}/questoes`);
+                if (!response.ok) throw new Error('Erro ao carregar questões');
+                const questoes = await response.json();
+                const questoesTableBody = document.getElementById('questoes-table-body');
+                questoesTableBody.innerHTML = '';
+                questoes.forEach(questao => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.id = questao._id;
+                    tr.innerHTML = `
+                        <td>${questao.tipo}</td>
+                        <td>${questao.enunciado.substring(0, 50)}...</td>
+                        <td>
+                            <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
+                            <button class="btn-table btn-excluir" onclick="removerQuestao('${questao._id}')">Excluir</button>
+                        </td>
+                    `;
+                    questoesTableBody.appendChild(tr);
                 });
-                
-                if (!response.ok) throw new Error('Erro ao criar questão');
-                
-                fecharModal('modal-questao');
-                await carregarDados();
-                alert('Questão criada com sucesso!');
-                
-                // Se foi criada na prova ativa, atualizar a visualização
-                if (provaAtiva && provaId === provaAtiva._id) {
-                    await selecionarProva(provaAtiva._id);
-                }
             } catch (error) {
-                console.error('Erro ao criar questão:', error);
-                alert('Erro ao criar questão');
+                console.error('Erro ao carregar questões:', error);
+                alert('Erro ao carregar questões: ' + error.message);
             }
         }
 
-        // Funções de alternativas
-        function toggleAlternativas() {
-            const tipo = document.getElementById('tipo-questao').value;
-            const alternativasSection = document.getElementById('alternativas-section');
-            
-            if (tipo === 'multipla_escolha') {
-                alternativasSection.style.display = 'block';
-            } else {
-                alternativasSection.style.display = 'none';
-            }
-        }
-
-        function adicionarAlternativa() {
-            const container = document.getElementById('alternativas-container');
-            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-            const currentCount = container.children.length;
-            
-            if (currentCount < letras.length) {
-                const novaAlternativa = document.createElement('div');
-                novaAlternativa.className = 'alternativa-item';
-                novaAlternativa.innerHTML = `
-                    <span class="alternativa-letra">${letras[currentCount]})</span>
-                    <input type="text" class="alternativa-input" placeholder="Digite a alternativa ${letras[currentCount]}">
-                    <button type="button" class="btn-remover-alternativa" onclick="removerAlternativa(this)">×</button>
-                `;
-                container.appendChild(novaAlternativa);
-            }
-        }
-
-        function removerAlternativa(button) {
-            const container = document.getElementById('alternativas-container');
-            if (container.children.length > 2) {
-                button.parentElement.remove();
-                
-                // Reordenar as letras
-                const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-                const items = container.children;
-                for (let i = 0; i < items.length; i++) {
-                    const letra = items[i].querySelector('.alternativa-letra');
-                    const input = items[i].querySelector('.alternativa-input');
-                    letra.textContent = letras[i] + ')';
-                    input.placeholder = `Digite a alternativa ${letras[i]}`;
-                }
-            }
-        }
-
-        // Funções de exclusão
-        async function excluirProva(provaId) {
-            if (!confirm('Tem certeza que deseja excluir esta prova? Todas as questões associadas também serão excluídas.')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_URL}/api/provas/${provaId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) throw new Error('Erro ao excluir prova');
-                
-                await carregarDados();
-                alert('Prova excluída com sucesso!');
-                
-                if (pastaAtiva) {
-                    renderizarProvasDaPasta(pastaAtiva);
-                }
-            } catch (error) {
-                console.error('Erro ao excluir prova:', error);
-                alert('Erro ao excluir prova');
-            }
-        }
-
-        async function excluirQuestao(questaoId) {
-            if (!confirm('Tem certeza que deseja excluir esta questão?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_URL}/api/questoes/${questaoId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) throw new Error('Erro ao excluir questão');
-                
-                await carregarDados();
-                alert('Questão excluída com sucesso!');
-                
-                if (provaAtiva) {
-                    await selecionarProva(provaAtiva._id);
-                }
-            } catch (error) {
-                console.error('Erro ao excluir questão:', error);
-                alert('Erro ao excluir questão');
-            }
-        }
-
-        // Context menu
-        function mostrarContextMenu(e, item, type) {
-            e.preventDefault();
-            contextMenuItem = item;
-            contextMenuType = type;
-            
-            const contextMenu = document.getElementById('context-menu');
-            contextMenu.style.display = 'block';
-            contextMenu.style.left = e.pageX + 'px';
-            contextMenu.style.top = e.pageY + 'px';
-        }
-
-        function editarItem() {
-            // Implementar edição
-            document.getElementById('context-menu').style.display = 'none';
-        }
-
-        async function excluirItem() {
-            document.getElementById('context-menu').style.display = 'none';
-            
-            if (contextMenuType === 'pasta') {
-                if (!confirm('Tem certeza que deseja excluir esta pasta? Todas as provas e questões associadas também serão excluídas.')) {
-                    return;
-                }
-                
+        // --- Funções CRUD para Pastas --- (Atualizadas para usar fetch)
+        async function criarPasta() {
+            const nomePasta = prompt('Digite o nome da nova pasta:');
+            if (nomePasta) {
                 try {
-                    const response = await fetch(`${API_URL}/api/pastas/${contextMenuItem._id}`, {
+                    const response = await fetch(`${API_URL}/api/pastas`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nome: nomePasta })
+                    });
+                    if (!response.ok) throw new Error('Erro ao criar pasta');
+                    alert('Pasta criada com sucesso!');
+                    carregarPastas();
+                } catch (error) {
+                    console.error('Erro ao criar pasta:', error);
+                    alert('Erro ao criar pasta: ' + error.message);
+                }
+            }
+        }
+
+        async function editarPasta(id, nomeAtual) {
+            const novoNome = prompt('Digite o novo nome para a pasta:', nomeAtual);
+            if (novoNome && novoNome !== nomeAtual) {
+                try {
+                    const response = await fetch(`${API_URL}/api/pastas/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nome: novoNome })
+                    });
+                    if (!response.ok) throw new Error('Erro ao editar pasta');
+                    alert('Pasta editada com sucesso!');
+                    carregarPastas();
+                } catch (error) {
+                    console.error('Erro ao editar pasta:', error);
+                    alert('Erro ao editar pasta: ' + error.message);
+                }
+            }
+        }
+
+        async function removerPasta(id) {
+            if (confirm('Tem certeza que deseja remover esta pasta e todo o seu conteúdo?')) {
+                try {
+                    const response = await fetch(`${API_URL}/api/pastas/${id}`, {
                         method: 'DELETE'
                     });
-                    
-                    if (!response.ok) throw new Error('Erro ao excluir pasta');
-                    
-                    await carregarDados();
-                    alert('Pasta excluída com sucesso!');
-                    
-                    // Limpar área de conteúdo se a pasta ativa foi excluída
-                    if (pastaAtiva && pastaAtiva._id === contextMenuItem._id) {
-                        pastaAtiva = null;
-                        provaAtiva = null;
-                        document.getElementById('content-area').innerHTML = '<p>Selecione uma pasta na barra lateral para visualizar suas provas.</p>';
+                    if (!response.ok) throw new Error('Erro ao remover pasta');
+                    alert('Pasta removida com sucesso!');
+                    carregarPastas();
+                    // Limpar provas e questões se a pasta atual for removida
+                    if (currentPastaId === id) {
+                        currentPastaId = null;
+                        currentProvaId = null;
+                        document.getElementById('prova-list').innerHTML = '';
+                        document.getElementById('questoes-table-body').innerHTML = '';
+                        document.getElementById('editor-area').style.display = 'none';
                     }
                 } catch (error) {
-                    console.error('Erro ao excluir pasta:', error);
-                    alert('Erro ao excluir pasta');
+                    console.error('Erro ao remover pasta:', error);
+                    alert('Erro ao remover pasta: ' + error.message);
                 }
             }
         }
 
-        // Fechar context menu ao clicar fora
-        document.addEventListener('click', function() {
-            document.getElementById('context-menu').style.display = 'none';
-        });
+        // --- Funções CRUD para Provas --- (Atualizadas para usar fetch)
+        async function criarProva() {
+            if (!currentPastaId) {
+                alert('Selecione uma pasta primeiro para criar uma prova.');
+                return;
+            }
+            const tituloProva = prompt('Digite o título da nova prova:');
+            if (tituloProva) {
+                try {
+                    const response = await fetch(`${API_URL}/api/pastas/${currentPastaId}/provas`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ titulo: tituloProva, pastaId: currentPastaId })
+                    });
+                    if (!response.ok) throw new Error('Erro ao criar prova');
+                    alert('Prova criada com sucesso!');
+                    carregarProvas(currentPastaId);
+                } catch (error) {
+                    console.error('Erro ao criar prova:', error);
+                    alert('Erro ao criar prova: ' + error.message);
+                }
+            }
+        }
 
-        // Fechar modais ao clicar fora
-        window.addEventListener('click', function(event) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                    limparFormularios();
+        async function editarProva(id, tituloAtual) {
+            const novoTitulo = prompt('Digite o novo título para a prova:', tituloAtual);
+            if (novoTitulo && novoTitulo !== tituloAtual) {
+                try {
+                    const response = await fetch(`${API_URL}/api/provas/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ titulo: novoTitulo })
+                    });
+                    if (!response.ok) throw new Error('Erro ao editar prova');
+                    alert('Prova editada com sucesso!');
+                    carregarProvas(currentPastaId);
+                } catch (error) {
+                    console.error('Erro ao editar prova:', error);
+                    alert('Erro ao editar prova: ' + error.message);
+                }
+            }
+        }
+
+        async function removerProva(id) {
+            if (confirm('Tem certeza que deseja remover esta prova e todas as suas questões?')) {
+                try {
+                    const response = await fetch(`${API_URL}/api/provas/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) throw new Error('Erro ao remover prova');
+                    alert('Prova removida com sucesso!');
+                    carregarProvas(currentPastaId);
+                    // Limpar questões se a prova atual for removida
+                    if (currentProvaId === id) {
+                        currentProvaId = null;
+                        document.getElementById('questoes-table-body').innerHTML = '';
+                        document.getElementById('editor-area').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Erro ao remover prova:', error);
+                    alert('Erro ao remover prova: ' + error.message);
+                }
+            }
+        }
+
+        // --- Funções CRUD para Questões --- (Atualizadas para usar fetch)
+        async function salvarQuestao() {
+            if (!currentProvaId) {
+                alert('Selecione uma prova primeiro para salvar a questão.');
+                return;
+            }
+
+            const tipoQuestao = document.getElementById('tipo-questao').value;
+            const enunciado = document.getElementById('enunciado-questao').value;
+            const linhas = [];
+            document.querySelectorAll('.linha').forEach(linhaDiv => {
+                const blocos = [];
+                linhaDiv.querySelectorAll('.bloco').forEach(blocoDiv => {
+                    const tipoBloco = blocoDiv.classList.contains('bloco-texto') ? 'texto' : 'imagem';
+                    if (tipoBloco === 'texto') {
+                        blocos.push({
+                            tipo: tipoBloco,
+                            conteudo: blocoDiv.querySelector('textarea').value,
+                            estilo: blocoDiv.querySelector('.tipo-texto-select').value,
+                            alinhamento: blocoDiv.querySelector('.alinhamento-select').value
+                        });
+                    } else {
+                        blocos.push({
+                            tipo: tipoBloco,
+                            url: blocoDiv.querySelector('input[type="text"]').value
+                        });
+                    }
+                });
+                linhas.push({ blocos });
+            });
+
+            const alternativas = [];
+            if (tipoQuestao === 'multipla-escolha') {
+                document.querySelectorAll('.alternativa-input').forEach((input, index) => {
+                    alternativas.push({
+                        letra: String.fromCharCode(65 + index),
+                        texto: input.value,
+                        correta: false // A lógica para marcar a correta precisaria ser adicionada na UI
+                    });
+                });
+            }
+
+            const questaoData = {
+                provaId: currentProvaId,
+                tipo: tipoQuestao,
+                enunciado: enunciado,
+                linhas: linhas,
+                alternativas: alternativas
+            };
+
+            try {
+                let response;
+                if (currentQuestaoId) { // Editar questão existente
+                    response = await fetch(`${API_URL}/api/questoes/${currentQuestaoId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(questaoData)
+                    });
+                } else { // Criar nova questão
+                    response = await fetch(`${API_URL}/api/provas/${currentProvaId}/questoes`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(questaoData)
+                    });
+                }
+
+                if (!response.ok) throw new Error('Erro ao salvar questão');
+                alert('Questão salva com sucesso!');
+                carregarQuestoes(currentProvaId);
+                voltarParaListaQuestoes();
+            } catch (error) {
+                console.error('Erro ao salvar questão:', error);
+                alert('Erro ao salvar questão: ' + error.message);
+            }
+        }
+
+        async function editarQuestao(id) {
+            try {
+                const response = await fetch(`${API_URL}/api/questoes/${id}`);
+                if (!response.ok) throw new Error('Erro ao carregar questão para edição');
+                const questao = await response.json();
+
+                currentQuestaoId = questao._id;
+                document.getElementById('tipo-questao').value = questao.tipo;
+                document.getElementById('enunciado-questao').value = questao.enunciado;
+
+                // Carregar linhas e blocos
+                const linhasContainer = document.getElementById('linhas-container');
+                linhasContainer.innerHTML = '';
+                questao.linhas.forEach(linhaData => {
+                    const linhaDiv = criarLinha(); // Assume que esta função cria a estrutura básica da linha
+                    linhaData.blocos.forEach(blocoData => {
+                        if (blocoData.tipo === 'texto') {
+                            adicionarBlocoTexto(linhaDiv, blocoData.conteudo, blocoData.estilo, blocoData.alinhamento);
+                        } else if (blocoData.tipo === 'imagem') {
+                            adicionarBlocoImagem(linhaDiv, blocoData.url);
+                        }
+                    });
+                    linhasContainer.appendChild(linhaDiv);
+                });
+
+                // Carregar alternativas
+                const alternativasContainer = document.getElementById('alternativas-list'); // Corrigido para 'alternativas-list'
+                alternativasContainer.innerHTML = '';
+                if (questao.tipo === 'multipla-escolha' && questao.alternativas) {
+                    questao.alternativas.forEach(alt => {
+                        adicionarAlternativa(alt.texto); // Assume que esta função adiciona a alternativa na UI
+                    });
+                }
+
+                document.getElementById('editor-area').style.display = 'block';
+                document.getElementById('lista-questoes-area').style.display = 'none';
+            } catch (error) {
+                console.error('Erro ao editar questão:', error);
+                alert('Erro ao editar questão: ' + error.message);
+            }
+        }
+
+        async function removerQuestao(id) {
+            if (confirm('Tem certeza que deseja remover esta questão?')) {
+                try {
+                    const response = await fetch(`${API_URL}/api/questoes/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) throw new Error('Erro ao remover questão');
+                    alert('Questão removida com sucesso!');
+                    carregarQuestoes(currentProvaId);
+                } catch (error) {
+                    console.error('Erro ao remover questão:', error);
+                    alert('Erro ao remover questão: ' + error.message);
+                }
+            }
+        }
+
+        // --- Funções de Seleção e Navegação (mantidas intactas, apenas chamam as funções de carregamento) ---
+        function selecionarPasta(id, nome) {
+            currentPastaId = id;
+            document.querySelectorAll('.pasta-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.pasta-item[data-id="${id}"]`).classList.add('active');
+            document.getElementById('provas-section').style.display = 'block';
+            document.getElementById('questoes-section').style.display = 'none';
+            document.getElementById('editor-area').style.display = 'none';
+            document.getElementById('lista-questoes-area').style.display = 'none';
+            document.getElementById('provas-header-title').textContent = `Provas em "${nome}"`;
+            carregarProvas(id);
+        }
+
+        function selecionarProva(id, titulo) {
+            currentProvaId = id;
+            document.querySelectorAll('.prova-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.prova-item[data-id="${id}"]`).classList.add('active');
+            document.getElementById('questoes-section').style.display = 'block';
+            document.getElementById('lista-questoes-area').style.display = 'block';
+            document.getElementById('editor-area').style.display = 'none';
+            document.getElementById('questoes-header-title').textContent = `Questões em "${titulo}"`;
+            carregarQuestoes(id);
+        }
+
+        function novaQuestao() {
+            currentQuestaoId = null; // Limpa o ID para indicar nova questão
+            document.getElementById('tipo-questao').value = 'texto';
+            document.getElementById('enunciado-questao').value = '';
+            document.getElementById('linhas-container').innerHTML = '';
+            document.getElementById('alternativas-list').innerHTML = ''; // Corrigido para 'alternativas-list'
+            document.getElementById('editor-area').style.display = 'block';
+            document.getElementById('lista-questoes-area').style.display = 'none';
+            // Adicionar uma linha inicial vazia
+            adicionarLinha();
+        }
+
+        function voltarParaListaQuestoes() {
+            document.getElementById('editor-area').style.display = 'none';
+            document.getElementById('lista-questoes-area').style.display = 'block';
+            currentQuestaoId = null; // Garante que ao voltar, não estamos editando
+        }
+
+        // --- Funções de Manipulação da UI (mantidas intactas) ---
+        function adicionarLinha() {
+            const linhasContainer = document.getElementById('linhas-container');
+            const linhaDiv = document.createElement('div');
+            linhaDiv.className = 'linha';
+            linhaDiv.innerHTML = `
+                <div class="blocos-na-linha"></div>
+                <div class="controles-linha">
+                    <button class="btn-add-bloco" onclick="adicionarBlocoTexto(this.closest('.linha'))">Adicionar Bloco de Texto</button>
+                    <button class="btn-add-bloco" onclick="adicionarBlocoImagem(this.closest('.linha'))">Adicionar Bloco de Imagem</button>
+                    <button class="btn-remover-linha" onclick="removerLinha(this.closest('.linha'))">Remover Linha</button>
+                </div>
+            `;
+            linhasContainer.appendChild(linhaDiv);
+            new Sortable(linhaDiv.querySelector('.blocos-na-linha'), {
+                animation: 150,
+                group: 'blocos',
+                handle: '.bloco-header'
+            });
+        }
+
+        function removerLinha(linhaDiv) {
+            linhaDiv.remove();
+        }
+
+        function adicionarBlocoTexto(linhaDiv, conteudo = '', estilo = 'normal', alinhamento = 'esquerda') {
+            const blocosContainer = linhaDiv.querySelector('.blocos-na-linha');
+            const blocoDiv = document.createElement('div');
+            blocoDiv.className = 'bloco bloco-texto';
+            blocoDiv.innerHTML = `
+                <div class="bloco-header">
+                    <span class="bloco-tipo">Texto</span>
+                    <div class="controles-bloco">
+                        <button onclick="removerBloco(this.closest('.bloco'))">✖️</button>
+                    </div>
+                </div>
+                <div class="texto-content">
+                    <div class="controles-texto">
+                        <select class="tipo-texto-select" onchange="aplicarEstiloTexto(this.closest('.bloco-texto'))">
+                            <option value="normal">Normal</option>
+                            <option value="enunciado">Enunciado</option>
+                            <option value="poema">Poema</option>
+                            <option value="carta">Carta</option>
+                            <option value="referencia">Referência</option>
+                            <option value="cabecalho">Cabeçalho</option>
+                        </select>
+                        <select class="alinhamento-select" onchange="aplicarAlinhamentoTexto(this.closest('.bloco-texto'))">
+                            <option value="esquerda">Esquerda</option>
+                            <option value="centralizado">Centralizado</option>
+                            <option value="direita">Direita</option>
+                        </select>
+                    </div>
+                    <textarea placeholder="Digite o texto aqui..."></textarea>
+                </div>
+            `;
+            blocosContainer.appendChild(blocoDiv);
+
+            // Set initial values if provided
+            blocoDiv.querySelector('textarea').value = conteudo;
+            blocoDiv.querySelector('.tipo-texto-select').value = estilo;
+            blocoDiv.querySelector('.alinhamento-select').value = alinhamento;
+            aplicarEstiloTexto(blocoDiv);
+            aplicarAlinhamentoTexto(blocoDiv);
+        }
+
+        function adicionarBlocoImagem(linhaDiv, url = '') {
+            const blocosContainer = linhaDiv.querySelector('.blocos-na-linha');
+            const blocoDiv = document.createElement('div');
+            blocoDiv.className = 'bloco bloco-imagem';
+            blocoDiv.innerHTML = `
+                <div class="bloco-header">
+                    <span class="bloco-tipo">Imagem</span>
+                    <div class="controles-bloco">
+                        <button onclick="removerBloco(this.closest('.bloco'))">✖️</button>
+                    </div>
+                </div>
+                <div class="imagem-content">
+                    <input type="text" placeholder="URL da imagem" value="${url}">
+                </div>
+            `;
+            blocosContainer.appendChild(blocoDiv);
+        }
+
+        function removerBloco(blocoDiv) {
+            blocoDiv.remove();
+        }
+
+        function aplicarEstiloTexto(blocoTextoDiv) {
+            const textarea = blocoTextoDiv.querySelector('textarea');
+            const select = blocoTextoDiv.querySelector('.tipo-texto-select');
+            textarea.className = ''; // Reset classes
+            textarea.classList.add(select.value);
+        }
+
+        function aplicarAlinhamentoTexto(blocoTextoDiv) {
+            const textarea = blocoTextoDiv.querySelector('textarea');
+            const select = blocoTextoDiv.querySelector('.alinhamento-select');
+            textarea.classList.remove('esquerda', 'centralizado', 'direita'); // Remove previous alignment
+            textarea.classList.add(select.value);
+        }
+
+        function adicionarAlternativa(texto = '') {
+            const alternativasContainer = document.getElementById('alternativas-list');
+            const alternativaDiv = document.createElement('div');
+            alternativaDiv.className = 'alternativa-item';
+            alternativaDiv.innerHTML = `
+                <span class="alternativa-letra"></span>
+                <input type="text" class="alternativa-input" placeholder="Texto da alternativa" value="${texto}">
+                <button class="btn-remover-alternativa" onclick="removerAlternativa(this.closest('.alternativa-item'))">✖️</button>
+            `;
+            alternativasContainer.appendChild(alternativaDiv);
+            atualizarLetrasAlternativas();
+        }
+
+        function removerAlternativa(alternativaDiv) {
+            alternativaDiv.remove();
+            atualizarLetrasAlternativas();
+        }
+
+        function atualizarLetrasAlternativas() {
+            document.querySelectorAll('.alternativa-item').forEach((item, index) => {
+                item.querySelector('.alternativa-letra').textContent = String.fromCharCode(65 + index) + ')';
+            });
+        }
+
+        // --- Event Listeners e Inicialização ---
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarPastas();
+
+            document.getElementById('btn-criar-pasta').addEventListener('click', criarPasta);
+            document.getElementById('btn-criar-prova').addEventListener('click', criarProva);
+            document.getElementById('btn-nova-questao').addEventListener('click', novaQuestao);
+            document.getElementById('btn-salvar-questao').addEventListener('click', salvarQuestao);
+            document.getElementById('btn-voltar-lista').addEventListener('click', voltarParaListaQuestoes);
+            document.getElementById('btn-add-alternativa').addEventListener('click', () => adicionarAlternativa());
+
+            // Toggle alternativas section based on question type
+            document.getElementById('tipo-questao').addEventListener('change', function() {
+                const alternativasSection = document.getElementById('alternativas-section');
+                if (this.value === 'multipla-escolha') {
+                    alternativasSection.style.display = 'block';
+                    if (document.querySelectorAll('.alternativa-item').length === 0) {
+                        adicionarAlternativa(); // Add a default alternative if none exist
+                    }
+                } else {
+                    alternativasSection.style.display = 'none';
                 }
             });
+
+            // Initial check for alternatives section visibility
+            if (document.getElementById('tipo-questao').value === 'multipla-escolha') {
+                document.getElementById('alternativas-section').style.display = 'block';
+            } else {
+                document.getElementById('alternativas-section').style.display = 'none';
+            }
         });
     </script>
 </body>
