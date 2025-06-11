@@ -651,399 +651,99 @@
         }
         
         .btn-editar {
-            background-color: #ffc107;
-            color: #212529;
-        }
-        
-        .btn-abrir {
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
-        }
-        
-        /* Menu da prova - COR AZUL */
-        .prova-menu {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            padding: 15px;
-            border-radius: 8px;
-            color: white;
-        }
-        
-        .prova-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .prova-nome {
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
-        }
-        
-        .prova-descricao {
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
-        }
-        
-        .prova-acoes {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-nova-questao {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .btn-ver-sql-todas {
-            background-color: #17a2b8;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .btn-voltar-pasta {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        /* Menu da pasta - COR ROXA */
-        .pasta-menu {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #8e44ad, #9b59b6);
-            padding: 15px;
-            border-radius: 8px;
-            color: white;
-        }
-        
-        .pasta-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .pasta-nome {
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
-        }
-        
-        .pasta-descricao {
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
-        }
-        
-        .pasta-acoes {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-excluir-pasta {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        /* Responsividade */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                height: auto;
-                padding: 10px;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .blocos-na-linha {
-                flex-direction: column;
-            }
-            
-            .bloco {
-                min-width: 100% !important;
-            }
-            
-            .questoes-table {
-                display: block;
-                overflow-x: auto;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Context Menu -->
-    <div id="context-menu" class="context-menu">
-        <div class="context-menu-item danger" onclick="removerProva()">Remover Prova</div>
-    </div>
-    
-    <!-- Context Menu para Pasta -->
-    <div id="context-menu-pasta" class="context-menu">
-        <div class="context-menu-item danger" onclick="removerPasta()">Remover Pasta</div>
-    </div>
-    
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-title">Editor de Questões</div>
-            <div class="sidebar-subtitle">Banco de Dados</div>
+            <div class="sidebar-title">Meu Projeto</div>
+            <div class="sidebar-subtitle">Editor de Conteúdo</div>
         </div>
-        
         <div class="sidebar-menu">
             <div class="sidebar-menu-title">Pastas</div>
-            <button id="btn-criar-pasta" class="sidebar-button">📁 Criar Pasta</button>
+            <button class="sidebar-button" id="btn-criar-pasta">Criar Nova Pasta</button>
+            <ul id="pasta-list" class="prova-list">
+                <!-- Pastas serão carregadas aqui -->
+            </ul>
         </div>
-        
-        <ul id="prova-list" class="prova-list">
-            <!-- Pastas serão adicionadas aqui dinamicamente -->
-        </ul>
+        <div class="sidebar-menu" id="provas-section" style="display: none;">
+            <div class="sidebar-menu-title" id="provas-header-title">Provas</div>
+            <button class="sidebar-button" id="btn-criar-prova">Criar Nova Prova</button>
+            <ul id="prova-list" class="prova-list">
+                <!-- Provas serão carregadas aqui -->
+            </ul>
+        </div>
     </div>
-    
-    <!-- Main Content -->
+
     <div class="main-content">
-        <!-- Tela de Pasta (Lista de Provas na Pasta) -->
-        <div id="tela-pasta" class="editor-container" style="display: none;">
-            <div class="pasta-menu">
-                <div class="pasta-info">
-                    <div class="pasta-nome" id="pasta-nome-titulo"></div>
-                    <div class="pasta-descricao" id="pasta-descricao-titulo"></div>
-                </div>
-                <div class="pasta-acoes">
-                    <button id="btn-nova-prova-pasta" class="btn-nova-questao">+ Nova Prova</button>
-                    <button id="btn-excluir-pasta" class="btn-excluir-pasta">Excluir Pasta</button>
-                </div>
-            </div>
-            
-            <table class="questoes-table">
-                <thead>
-                    <tr>
-                        <th width="5%">#</th>
-                        <th width="35%">Nome da Prova</th>
-                        <th width="25%">Descrição</th>
-                        <th width="10%">Questões</th>
-                        <th width="25%">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="provas-pasta-lista">
-                    <!-- Provas da pasta serão adicionadas aqui dinamicamente -->
-                </tbody>
-            </table>
-            
-            <div id="sem-provas-pasta" style="text-align: center; padding: 20px; color: #666;">
-                Nenhuma prova adicionada nesta pasta ainda.
-            </div>
-        </div>
-        
-        <!-- Tela de Prova (Lista de Questões) -->
-        <div id="tela-prova" class="editor-container" style="display: none;">
-            <div class="prova-menu">
-                <div class="prova-info">
-                    <div class="prova-nome" id="prova-nome-titulo"></div>
-                    <div class="prova-descricao" id="prova-descricao-titulo"></div>
-                </div>
-                <div class="prova-acoes">
-                    <button id="btn-voltar-pasta" class="btn-voltar-pasta">← Voltar para a Pasta</button>
-                    <button id="btn-nova-questao" class="btn-nova-questao">+ Nova Questão</button>
-                    <button id="btn-ver-sql-todas" class="btn-ver-sql-todas">Ver SQL da Prova</button>
-                </div>
-            </div>
-            
-            <table class="questoes-table">
-                <thead>
-                    <tr>
-                        <th width="5%">#</th>
-                        <th width="20%">Disciplina</th>
-                        <th width="20%">Matéria</th>
-                        <th width="20%">Assunto</th>
-                        <th width="10%">Resposta</th>
-                        <th width="25%">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="questoes-lista">
-                    <!-- Questões serão adicionadas aqui dinamicamente -->
-                </tbody>
-            </table>
-            
-            <div id="sem-questoes" style="text-align: center; padding: 20px; color: #666;">
-                Nenhuma questão adicionada ainda.
-            </div>
-        </div>
-        
-        <!-- Tela de Edição de Questão -->
-        <div id="tela-questao" class="editor-container">
+        <div class="editor-container" id="lista-questoes-area" style="display: none;">
             <div class="editor-header">
                 <div>
-                    <div class="editor-title" id="titulo-questao">Adicionar Questão</div>
-                    <div class="editor-subtitle">Prova: <span id="prova-selecionada">Nenhuma</span></div>
+                    <div class="editor-title" id="questoes-header-title">Questões</div>
+                    <div class="editor-subtitle">Gerencie as questões da prova selecionada.</div>
+                </div>
+                <button class="btn-salvar" id="btn-nova-questao">Nova Questão</button>
+            </div>
+            <table class="questoes-table">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Enunciado</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="questoes-table-body">
+                    <!-- Questões serão carregadas aqui -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="editor-container" id="editor-area" style="display: none;">
+            <div class="editor-header">
+                <div>
+                    <div class="editor-title">Editor de Questão</div>
+                    <div class="editor-subtitle">Crie ou edite o conteúdo da questão.</div>
                 </div>
                 <div class="action-buttons">
-                    <button id="btn-voltar-prova" class="btn-voltar">Voltar para Prova</button>
-                    <button onclick="adicionarLinha()" class="btn-add-linha">+ Adicionar Nova Linha</button>
-                    <button onclick="salvarQuestao()" class="btn-salvar" id="btn-salvar-questao">Salvar Questão</button>
+                    <button class="btn-voltar" id="btn-voltar-lista">Voltar</button>
+                    <button class="btn-salvar" id="btn-salvar-questao">Salvar Questão</button>
                 </div>
             </div>
-            
-            <div class="form-row">
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="disciplina">Disciplina:</label>
-                        <input type="text" id="disciplina" class="form-control" placeholder="Ex: Biologia">
-                    </div>
-                </div>
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="materia">Matéria:</label>
-                        <input type="text" id="materia" class="form-control" placeholder="Ex: Citologia">
-                    </div>
-                </div>
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="assunto">Assunto:</label>
-                        <input type="text" id="assunto" class="form-control" placeholder="Ex: Organelas">
-                    </div>
-                </div>
+
+            <div class="form-group">
+                <label for="tipo-questao">Tipo de Questão:</label>
+                <select id="tipo-questao" class="form-control">
+                    <option value="texto">Texto</option>
+                    <option value="multipla-escolha">Múltipla Escolha</option>
+                </select>
             </div>
-            
-            <div class="form-row">
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="conteudo">Conteúdo (opcional):</label>
-                        <input type="text" id="conteudo" class="form-control" placeholder="Ex: Vacúolo">
-                    </div>
-                </div>
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="topico">Tópico (opcional):</label>
-                        <input type="text" id="topico" class="form-control" placeholder="Ex: Funções">
-                    </div>
-                </div>
+
+            <div class="form-group">
+                <label for="enunciado-questao">Enunciado da Questão:</label>
+                <textarea id="enunciado-questao" class="form-control" rows="3" placeholder="Digite o enunciado geral da questão..."></textarea>
             </div>
-            
-            <div class="form-row">
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="ano">Ano (opcional):</label>
-                        <input type="number" id="ano" class="form-control" placeholder="Ex: 2023">
-                    </div>
-                </div>
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="instituicao">Instituição (opcional):</label>
-                        <input type="text" id="instituicao" class="form-control" placeholder="Ex: ENEM">
-                    </div>
-                </div>
-                <div class="form-col">
-                    <div class="form-group">
-                        <label for="resposta">Resposta Correta:</label>
-                        <select id="resposta" class="form-control">
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
-                            <option value="E">E</option>
-                        </select>
-                    </div>
-                </div>
+
+            <div id="linhas-container">
+                <!-- Linhas e blocos de conteúdo serão adicionados aqui -->
             </div>
-            
-            <div id="linhas-container" class="linhas-container"></div>
-            
-            <!-- Alternativas serão adicionadas aqui -->
-        </div>
-    </div>
-    
-    <!-- Modal de Visualização SQL -->
-    <div id="preview-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Código SQL para Inserção</h2>
-            <div class="preview-area">
-                <pre id="codigo-gerado"></pre>
-            </div>
-            <button onclick="copiarCodigo()" class="btn-copiar">Copiar Código</button>
-        </div>
-    </div>
-    
-    <!-- Modal de Criar Prova -->
-    <div id="criar-prova-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-criar-prova">&times;</span>
-            <h2>Criar Nova Prova</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="nome-prova">Nome da Prova:</label>
-                    <input type="text" id="nome-prova" placeholder="Ex: ENEM 2023 - Biologia">
-                </div>
-                <div class="modal-form-group">
-                    <label for="descricao-prova">Descrição (opcional):</label>
-                    <input type="text" id="descricao-prova" placeholder="Ex: Questões de biologia do ENEM 2023">
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn-cancelar" id="cancelar-criar-prova">Cancelar</button>
-                    <button class="btn-confirmar" id="confirmar-criar-prova">Criar Prova</button>
+
+            <button class="btn-add-linha" id="btn-add-linha">Adicionar Nova Linha</button>
+
+            <div id="alternativas-section" style="display: none;">
+                <div class="alternativas-container">
+                    <h3>Alternativas</h3>
+                    <div id="alternativas-list">
+                        <!-- Alternativas serão adicionadas aqui -->
+                    </div>
+                    <button class="btn-add-linha" id="btn-add-alternativa">Adicionar Alternativa</button>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Modal de Criar Pasta -->
-    <div id="criar-pasta-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-criar-pasta">&times;</span>
-            <h2>Criar Nova Pasta</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="nome-pasta">Nome da Pasta:</label>
-                    <input type="text" id="nome-pasta" placeholder="Ex: ENEM 2023">
-                </div>
-                <div class="modal-form-group">
-                    <label for="descricao-pasta">Descrição (opcional):</label>
-                    <input type="text" id="descricao-pasta" placeholder="Ex: Provas do ENEM 2023">
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn-cancelar" id="cancelar-criar-pasta">Cancelar</button>
-                    <button class="btn-confirmar" id="confirmar-criar-pasta">Criar Pasta</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Visualizar SQL da Prova -->
-    <div id="questoes-prova-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-questoes-prova">&times;</span>
-            <h2>SQL da Prova: <span id="nome-prova-questoes"></span></h2>
-            <div class="preview-area">
-                <pre id="sql-questoes-prova"></pre>
-            </div>
-            <button onclick="copiarSQLProva()" class="btn-copiar">Copiar Todos os SQLs</button>
-        </div>
-    </div>
-    
+
     <script>
         // URL da API - substitua pela URL do seu serviço Node.js no Railway
         const API_URL = 'https://testecrud-production.up.railway.app'; // Base URL
