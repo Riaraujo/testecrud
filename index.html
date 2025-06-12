@@ -2025,17 +2025,25 @@
             }
             
             const questao = {
-                disciplina: document.getElementById('disciplina').value,
-                materia: document.getElementById('materia').value,
-                assunto: document.getElementById('assunto').value,
-                conteudo: document.getElementById('conteudo').value || undefined,
-                topico: document.getElementById('topico').value || undefined,
-                ano: document.getElementById('ano').value || undefined,
-                instituicao: document.getElementById('instituicao').value || undefined,
-                resposta: document.getElementById('resposta').value,
-                prova: provaSelecionada._id,
-                linhas: linhas,
-                alternativas: alternativas
+        disciplina: document.getElementById('disciplina').value.trim(),
+        materia: document.getElementById('materia').value.trim(),
+        assunto: document.getElementById('assunto').value.trim(),
+        resposta_correta: document.getElementById('resposta').value,
+        prova: provaSelecionada._id,
+        enunciado: enunciadoHTML,  // HTML formatado
+        alternativas: alternativasText  // String formatada "A) texto\nB) texto..."
+    };
+
+    // Campos opcionais
+    const conteudo = document.getElementById('conteudo').value.trim();
+    const topico = document.getElementById('topico').value.trim();
+    const ano = document.getElementById('ano').value.trim();
+    const instituicao = document.getElementById('instituicao').value.trim();
+
+    if (conteudo) questao.conteudo = conteudo;
+    if (topico) questao.topico = topico;
+    if (ano) questao.ano = ano;
+    if (instituicao) questao.instituicao = instituicao;
             };
             
             if (!questao.disciplina || !questao.materia || !questao.assunto) {
