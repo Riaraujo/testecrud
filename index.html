@@ -2018,7 +2018,7 @@
             renderizarEditor();
         }
         
-        async function salvarQuestao() {
+       async function salvarQuestao() {
     if (!provaSelecionada) {
         alert('Selecione uma prova primeiro.');
         return;
@@ -2075,7 +2075,7 @@
         return;
     }
 
-    // Preparar objeto para envio
+    // Preparar objeto para envio (ajustado para o formato desejado)
     const questao = {
         disciplina: disciplina,
         materia: materia,
@@ -2083,19 +2083,12 @@
         resposta_correta: resposta,
         enunciado: enunciadoHTML,
         alternativas: alternativasText,
-        prova: provaSelecionada._id
+        prova: provaSelecionada._id,  // Isso será convertido para texto no SQL
+        // Campos adicionais
+        conteudo: document.getElementById('conteudo').value.trim() || null,
+        topico: document.getElementById('topico').value.trim() || null,
+        ano: document.getElementById('ano').value ? parseInt(document.getElementById('ano').value) : null
     };
-
-    // Adicionar campos opcionais se preenchidos
-    const conteudo = document.getElementById('conteudo').value.trim();
-    const topico = document.getElementById('topico').value.trim();
-    const ano = document.getElementById('ano').value.trim();
-    const instituicao = document.getElementById('instituicao').value.trim();
-
-    if (conteudo) questao.conteudo = conteudo;
-    if (topico) questao.topico = topico;
-    if (ano) questao.ano = parseInt(ano);
-    if (instituicao) questao.instituicao = instituicao;
 
     try {
         const method = modoEdicao ? 'PUT' : 'POST';
@@ -2120,22 +2113,20 @@
         }
 
         const questaoSalva = await response.json();
-
-        // Atualizar lista local
-        if (!questoesPorProva[provaSelecionada._id]) {
-            questoesPorProva[provaSelecionada._id] = [];
-        }
-
+        
+        // Atualizar lista e limpar formulário
         if (modoEdicao) {
             const index = questoesPorProva[provaSelecionada._id].findIndex(q => q._id === questaoEditando._id);
             if (index !== -1) {
                 questoesPorProva[provaSelecionada._id][index] = questaoSalva;
             }
         } else {
+            if (!questoesPorProva[provaSelecionada._id]) {
+                questoesPorProva[provaSelecionada._id] = [];
+            }
             questoesPorProva[provaSelecionada._id].push(questaoSalva);
         }
 
-        // Limpar e voltar
         limparFormulario();
         mostrarTelaProva();
     } catch (error) {
@@ -2145,75 +2136,52 @@
 }
         
         function gerarSQL(questao) {
-            let enunciado = '';
-            
-            questao.linhas.forEach(linha => {
-                linha.blocos.forEach(bloco => {
-                    if (bloco.tipo === 'texto' && bloco.texto) {
-                        let textoFormatado = bloco.texto;
-                        
-                        // Aplicar formatação baseada no tipo
-                        switch (bloco.tipoTexto) {
-                            case 'enunciado':
-                                textoFormatado = `<div class="enunciado ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'poema':
-                                textoFormatado = `<div class="poema ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'carta':
-                                textoFormatado = `<div class="carta ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'referencia':
-                                textoFormatado = `<div class="referencia ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'cabecalho':
-                                textoFormatado = `<div class="cabecalho ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            default:
-                                textoFormatado = `<div class="${bloco.alinhamento}">${textoFormatado}</div>`;
-                        }
-                        
-                        enunciado += textoFormatado;
-                    } else if (bloco.tipo === 'imagem' && bloco.url) {
-                        enunciado += `<img src="${bloco.url}" alt="Imagem da questão">`;
-                    }
-                });
-            });
-            
-            // Gerar alternativas
-            let alternativasSQL = '';
-            questao.alternativas.forEach(alt => {
-                if (alt.texto) {
-                    alternativasSQL += `${alt.letra}) ${alt.texto}\\n`;
-                }
-            });
-            
-            const sql = `INSERT INTO questoes (
+    // Processar campos opcionais
+    const camposOpcionais = [];
+    const valoresOpcionais = [];
+    
+    if (questao.conteudo) {
+        camposOpcionais.push('conteudo');
+        valoresOpcionais.push(`'${questao.conteudo.replace(/'/g, "''")}'`);
+    }
+    if (questao.topico) {
+        camposOpcionais.push('topico');
+        valoresOpcionais.push(`'${questao.topico.replace(/'/g, "''")}'`);
+    }
+    if (questao.ano) {
+        camposOpcionais.push('ano');
+        valoresOpcionais.push(questao.ano);
+    }
+    if (questao.instituicao) {
+        camposOpcionais.push('instituicao');
+        valoresOpcionais.push(`'${questao.instituicao.replace(/'/g, "''")}'`);
+    }
+
+    // Obter nome da prova (para o SQL)
+    const provaNome = provaSelecionada ? provaSelecionada.titulo : 'N/A';
+
+    const sql = `INSERT INTO questoes (
     disciplina, 
     materia, 
     assunto, 
-    ${questao.conteudo ? 'conteudo, ' : ''}
-    ${questao.topico ? 'topico, ' : ''}
-    ${questao.ano ? 'ano, ' : ''}
-    ${questao.instituicao ? 'instituicao, ' : ''}
+    ${camposOpcionais.join(', ')}${camposOpcionais.length > 0 ? ', ' : ''}
+    prova,
     enunciado, 
     alternativas, 
     resposta_correta
 ) VALUES (
-    '${questao.disciplina}',
-    '${questao.materia}',
-    '${questao.assunto}',
-    ${questao.conteudo ? `'${questao.conteudo}',` : ''}
-    ${questao.topico ? `'${questao.topico}',` : ''}
-    ${questao.ano ? `${questao.ano},` : ''}
-    ${questao.instituicao ? `'${questao.instituicao}',` : ''}
-    '${enunciado.replace(/'/g, "''")}',
-    '${alternativasSQL.replace(/'/g, "''")}',
-    '${questao.resposta}'
+    '${questao.disciplina.replace(/'/g, "''")}',
+    '${questao.materia.replace(/'/g, "''")}',
+    '${questao.assunto.replace(/'/g, "''")}',
+    ${valoresOpcionais.join(', ')}${valoresOpcionais.length > 0 ? ', ' : ''}
+    '${provaNome.replace(/'/g, "''")}',
+    '${questao.enunciado.replace(/'/g, "''")}',
+    '${questao.alternativas.replace(/'/g, "''")}',
+    '${questao.resposta_correta}'
 );`;
-            
-            return sql;
-        }
+    
+    return sql;
+}
         
         function copiarCodigo() {
             const codigo = document.getElementById('codigo-gerado').textContent;
