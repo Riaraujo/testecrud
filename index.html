@@ -2019,70 +2019,130 @@
         }
         
         async function salvarQuestao() {
-            if (!provaSelecionada) {
-                alert('Selecione uma prova primeiro.');
-                return;
-            }
-            
-            const questao = {
-                disciplina: document.getElementById('disciplina').value,
-                materia: document.getElementById('materia').value,
-                assunto: document.getElementById('assunto').value,
-                conteudo: document.getElementById('conteudo').value || undefined,
-                topico: document.getElementById('topico').value || undefined,
-                ano: document.getElementById('ano').value || undefined,
-                instituicao: document.getElementById('instituicao').value || undefined,
-                resposta: document.getElementById('resposta').value,
-                prova: provaSelecionada._id,
-                linhas: linhas,
-                alternativas: alternativas
-            };
-            
-            if (!questao.disciplina || !questao.materia || !questao.assunto) {
-                alert('Por favor, preencha pelo menos Disciplina, Matéria e Assunto.');
-                return;
-            }
-            
-            try {
-                const method = modoEdicao ? 'PUT' : 'POST';
-                const url = modoEdicao ? 
-                    `${API_URL}/api/questoes/${questaoEditando._id}` : 
-                    `${API_URL}/api/questoes`;
+    if (!provaSelecionada) {
+        alert('Selecione uma prova primeiro.');
+        return;
+    }
+
+    // Validar campos obrigatórios
+    const disciplina = document.getElementById('disciplina').value.trim();
+    const materia = document.getElementById('materia').value.trim();
+    const assunto = document.getElementById('assunto').value.trim();
+    const resposta = document.getElementById('resposta').value;
+
+    if (!disciplina || !materia || !assunto) {
+        alert('Por favor, preencha Disciplina, Matéria e Assunto.');
+        return;
+    }
+
+    // Converter blocos para HTML do enunciado
+    let enunciadoHTML = '';
+    linhas.forEach(linha => {
+        linha.blocos.forEach(bloco => {
+            if (bloco.tipo === 'texto' && bloco.texto.trim() !== '') {
+                let texto = bloco.texto.trim();
+                let classe = '';
                 
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(questao)
-                });
-                
-                if (!response.ok) throw new Error('Erro ao salvar questão');
-                
-                const questaoSalva = await response.json();
-                
-                // Atualizar lista local de questões
-                if (!questoesPorProva[provaSelecionada._id]) {
-                    questoesPorProva[provaSelecionada._id] = [];
+                if (bloco.tipoTexto !== 'normal') {
+                    classe = bloco.tipoTexto;
+                }
+                if (bloco.alinhamento !== 'esquerda') {
+                    classe += (classe ? ' ' : '') + bloco.alinhamento;
                 }
                 
-                if (modoEdicao) {
-                    const index = questoesPorProva[provaSelecionada._id].findIndex(q => q._id === questaoEditando._id);
-                    if (index !== -1) {
-                        questoesPorProva[provaSelecionada._id][index] = questaoSalva;
-                    }
-                } else {
-                    questoesPorProva[provaSelecionada._id].push(questaoSalva);
-                }
-                
-                // Limpar e voltar
-                limparFormulario();
-                mostrarTelaProva();
-            } catch (error) {
-                console.error('Erro ao salvar questão:', error);
-                alert('Erro ao salvar questão');
+                enunciadoHTML += `<div${classe ? ` class="${classe}"` : ''}>${texto}</div>\n`;
+            } else if (bloco.tipo === 'imagem' && bloco.url.trim() !== '') {
+                enunciadoHTML += `<img src="${bloco.url.trim()}" alt="Imagem">\n`;
             }
+        });
+    });
+
+    if (enunciadoHTML === '') {
+        alert('Por favor, adicione conteúdo ao enunciado.');
+        return;
+    }
+
+    // Formatar alternativas
+    let alternativasText = '';
+    alternativas.forEach(alt => {
+        if (alt.texto.trim() !== '') {
+            alternativasText += `${alt.letra}) ${alt.texto.trim()}\n`;
         }
+    });
+
+    if (alternativasText.split('\n').filter(line => line.trim() !== '').length < 2) {
+        alert('Por favor, preencha pelo menos duas alternativas.');
+        return;
+    }
+
+    // Preparar objeto para envio
+    const questao = {
+        disciplina: disciplina,
+        materia: materia,
+        assunto: assunto,
+        resposta_correta: resposta,
+        enunciado: enunciadoHTML,
+        alternativas: alternativasText,
+        prova: provaSelecionada._id
+    };
+
+    // Adicionar campos opcionais se preenchidos
+    const conteudo = document.getElementById('conteudo').value.trim();
+    const topico = document.getElementById('topico').value.trim();
+    const ano = document.getElementById('ano').value.trim();
+    const instituicao = document.getElementById('instituicao').value.trim();
+
+    if (conteudo) questao.conteudo = conteudo;
+    if (topico) questao.topico = topico;
+    if (ano) questao.ano = parseInt(ano);
+    if (instituicao) questao.instituicao = instituicao;
+
+    try {
+        const method = modoEdicao ? 'PUT' : 'POST';
+        const url = modoEdicao ? 
+            `${API_URL}/api/questoes/${questaoEditando._id}` : 
+            `${API_URL}/api/questoes`;
+
+        console.log('Enviando questão:', questao);
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(questao)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Erro detalhado:', errorData);
+            throw new Error(errorData.error || 'Erro ao salvar questão');
+        }
+
+        const questaoSalva = await response.json();
+
+        // Atualizar lista local
+        if (!questoesPorProva[provaSelecionada._id]) {
+            questoesPorProva[provaSelecionada._id] = [];
+        }
+
+        if (modoEdicao) {
+            const index = questoesPorProva[provaSelecionada._id].findIndex(q => q._id === questaoEditando._id);
+            if (index !== -1) {
+                questoesPorProva[provaSelecionada._id][index] = questaoSalva;
+            }
+        } else {
+            questoesPorProva[provaSelecionada._id].push(questaoSalva);
+        }
+
+        // Limpar e voltar
+        limparFormulario();
+        mostrarTelaProva();
+    } catch (error) {
+        console.error('Erro ao salvar questão:', error);
+        alert(`Erro ao salvar questão: ${error.message}`);
+    }
+}
         
         function gerarSQL(questao) {
             let enunciado = '';
