@@ -1654,10 +1654,6 @@
             navigator.clipboard.writeText(sql).then(() => {
                 alert('SQL copiado para a área de transferência!');
             });
-            
-            // Salvar SQL em arquivo de texto
-            const nomeArquivo = `prova_${provaSelecionada.nome.replace(/[^a-zA-Z0-9]/g, '_')}_sql.txt`;
-            salvarSQLEmArquivo(sql, nomeArquivo);
         }
         
         // Resto das funções do editor (adicionarLinha, renderizarEditor, etc.)
@@ -1871,10 +1867,10 @@
         }
         
         function adicionarAlternativa() {
-            const proximaLetra = String.fromCharCode(65 + alternativas.length); // A=65, B=66, etc.
-            if (proximaLetra <= 'Z') {
+            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            if (alternativas.length < letras.length) {
                 alternativas.push({
-                    letra: proximaLetra,
+                    letra: letras[alternativas.length],
                     texto: ''
                 });
                 renderizarEditor();
@@ -1882,13 +1878,17 @@
         }
         
         function removerAlternativa(letra) {
-            if (alternativas.length <= 2) {
-                alert('Deve haver pelo menos duas alternativas.');
-                return;
+            if (alternativas.length > 2) {
+                alternativas = alternativas.filter(alt => alt.letra !== letra);
+                
+                // Reordenar letras
+                const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                alternativas.forEach((alt, index) => {
+                    alt.letra = letras[index];
+                });
+                
+                renderizarEditor();
             }
-            
-            alternativas = alternativas.filter(alt => alt.letra !== letra);
-            renderizarEditor();
         }
         
         async function salvarQuestao() {
@@ -1897,26 +1897,23 @@
                 return;
             }
             
-            const questao = {
-                disciplina: document.getElementById('disciplina').value,
-                materia: document.getElementById('materia').value,
-                assunto: document.getElementById('assunto').value,
-                conteudo: document.getElementById('conteudo').value,
-                topico: document.getElementById('topico').value,
-                ano: document.getElementById('ano').value,
-                instituicao: document.getElementById('instituicao').value,
-                resposta: document.getElementById('resposta').value,
-                linhas: linhas,
-                alternativas: alternativas
-            };
+            const disciplina = document.getElementById('disciplina').value.trim();
+            const materia = document.getElementById('materia').value.trim();
+            const assunto = document.getElementById('assunto').value.trim();
+            const conteudo = document.getElementById('conteudo').value.trim();
+            const topico = document.getElementById('topico').value.trim();
+            const ano = document.getElementById('ano').value.trim();
+            const instituicao = document.getElementById('instituicao').value.trim();
+            const resposta = document.getElementById('resposta').value;
             
-            if (!questao.disciplina || !questao.materia || !questao.assunto) {
-                alert('Por favor, preencha pelo menos Disciplina, Matéria e Assunto.');
+            if (!disciplina || !materia || !assunto) {
+                alert('Por favor, preencha pelo menos disciplina, matéria e assunto.');
                 return;
             }
             
-            if (!questoesPorProva[provaSelecionada.id]) {
-                questoesPorProva[provaSelecionada.id] = [];
+            if (linhas.length === 0) {
+                alert('Adicione pelo menos uma linha com conteúdo.');
+                return;
             }
             
             try {
@@ -1934,27 +1931,28 @@
                     texto: textoQuestao,
                     tipo: 'multipla_escolha',
                     prova: provaSelecionada.id,
-                    respostaCorreta: questao.resposta,
-                    alternativas: questao.alternativas.filter(alt => alt.texto.trim()).map(alt => ({
+                    respostaCorreta: resposta,
+                    alternativas: alternativas.filter(alt => alt.texto.trim()).map(alt => ({
                         letra: alt.letra,
                         texto: alt.texto
                     })),
                     metadados: {
-                        disciplina: questao.disciplina,
-                        materia: questao.materia,
-                        assunto: questao.assunto,
-                        conteudo: questao.conteudo,
-                        topico: questao.topico,
-                        ano: questao.ano,
-                        instituicao: questao.instituicao,
-                        linhas: questao.linhas
+                        disciplina,
+                        materia,
+                        assunto,
+                        conteudo,
+                        topico,
+                        ano,
+                        instituicao,
+                        linhas: linhas
                     }
                 };
                 
                 let response;
                 if (modoEdicao && questaoEditando !== null) {
                     // Atualizar questão existente
-                    const questaoId = questoesPorProva[provaSelecionada.id][questaoEditando].id;
+                    const questoes = questoesPorProva[provaSelecionada.id] || [];
+                    const questaoId = questoes[questaoEditando].id;
                     
                     response = await fetch(`${API_URL}/api/questoes/${questaoId}`, {
                         method: 'PUT',
@@ -1963,12 +1961,6 @@
                         },
                         body: JSON.stringify(dadosQuestao)
                     });
-                    
-                    if (response.ok) {
-                        // Atualizar localmente
-                        questoesPorProva[provaSelecionada.id][questaoEditando] = questao;
-                        alert('Questão atualizada com sucesso!');
-                    }
                 } else {
                     // Criar nova questão
                     response = await fetch(`${API_URL}/api/questoes`, {
@@ -1978,26 +1970,17 @@
                         },
                         body: JSON.stringify(dadosQuestao)
                     });
-                    
-                    if (response.ok) {
-                        const novaQuestao = await response.json();
-                        questao.id = novaQuestao._id;
-                        
-                        // Adicionar localmente
-                        questoesPorProva[provaSelecionada.id].push(questao);
-                        alert('Questão salva com sucesso!');
-                    }
                 }
                 
                 if (!response.ok) throw new Error('Erro ao salvar questão');
                 
-                // Atualizar interface
-                atualizarListaProvas();
+                // Recarregar dados
+                await carregarDados();
                 
-                // Limpar formulário e voltar para modo de adição
-                limparFormulario();
+                alert(modoEdicao ? 'Questão atualizada com sucesso!' : 'Questão criada com sucesso!');
+                
+                // Voltar para a tela da prova
                 mostrarTelaProva();
-                
             } catch (error) {
                 console.error('Erro ao salvar questão:', error);
                 alert('Erro ao salvar questão');
@@ -2026,35 +2009,31 @@
         function gerarSQL(questao) {
             let enunciado = '';
             
+            // Gerar enunciado a partir das linhas
             questao.linhas.forEach(linha => {
                 linha.blocos.forEach(bloco => {
                     if (bloco.tipo === 'texto' && bloco.texto) {
                         let textoFormatado = bloco.texto;
                         
                         // Aplicar formatação baseada no tipo
-                        switch (bloco.tipoTexto) {
-                            case 'enunciado':
-                                textoFormatado = `<div class="enunciado ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'poema':
-                                textoFormatado = `<div class="poema ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'carta':
-                                textoFormatado = `<div class="carta ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'referencia':
-                                textoFormatado = `<div class="referencia ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            case 'cabecalho':
-                                textoFormatado = `<div class="cabecalho ${bloco.alinhamento}">${textoFormatado}</div>`;
-                                break;
-                            default:
-                                textoFormatado = `<div class="${bloco.alinhamento}">${textoFormatado}</div>`;
+                        if (bloco.tipoTexto === 'enunciado') {
+                            textoFormatado = `<strong>${textoFormatado}</strong>`;
+                        } else if (bloco.tipoTexto === 'referencia') {
+                            textoFormatado = `<em>${textoFormatado}</em>`;
+                        } else if (bloco.tipoTexto === 'cabecalho') {
+                            textoFormatado = `<h3>${textoFormatado}</h3>`;
                         }
                         
-                        enunciado += textoFormatado;
+                        // Aplicar alinhamento
+                        if (bloco.alinhamento === 'centralizado') {
+                            textoFormatado = `<div style="text-align: center;">${textoFormatado}</div>`;
+                        } else if (bloco.alinhamento === 'direita') {
+                            textoFormatado = `<div style="text-align: right;">${textoFormatado}</div>`;
+                        }
+                        
+                        enunciado += textoFormatado + '\\n';
                     } else if (bloco.tipo === 'imagem' && bloco.url) {
-                        enunciado += `<img src="${bloco.url}" alt="Imagem da questão">`;
+                        enunciado += `<img src="${bloco.url}" alt="Imagem da questão" />\\n`;
                     }
                 });
             });
@@ -2062,23 +2041,12 @@
             // Gerar alternativas
             let alternativasSQL = '';
             questao.alternativas.forEach(alt => {
-                if (alt.texto) {
+                if (alt.texto.trim()) {
                     alternativasSQL += `${alt.letra}) ${alt.texto}\\n`;
                 }
             });
             
-            const sql = `INSERT INTO questoes (
-    disciplina, 
-    materia, 
-    assunto, 
-    ${questao.conteudo ? 'conteudo, ' : ''}
-    ${questao.topico ? 'topico, ' : ''}
-    ${questao.ano ? 'ano, ' : ''}
-    ${questao.instituicao ? 'instituicao, ' : ''}
-    enunciado, 
-    alternativas, 
-    resposta_correta
-) VALUES (
+            const sql = `INSERT INTO questoes (disciplina, materia, assunto, conteudo, topico, ano, instituicao, enunciado, alternativas, resposta_correta) VALUES (
     '${questao.disciplina}',
     '${questao.materia}',
     '${questao.assunto}',
@@ -2099,25 +2067,6 @@
             navigator.clipboard.writeText(codigo).then(() => {
                 alert('Código copiado para a área de transferência!');
             });
-            
-            // Salvar SQL em arquivo de texto
-            salvarSQLEmArquivo(codigo, 'questao_sql.txt');
-        }
-        
-        function salvarSQLEmArquivo(conteudo, nomeArquivo) {
-            try {
-                const blob = new Blob([conteudo], { type: 'text/plain' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = nomeArquivo;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            } catch (error) {
-                console.error('Erro ao salvar arquivo:', error);
-            }
         }
     </script>
 </body>
