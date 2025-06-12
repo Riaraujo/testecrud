@@ -38,25 +38,50 @@ mongoose.connection.on('disconnected', () => {
 
 // --- Novos Modelos de Dados para a Plataforma Educacional ---
 
-// Esquema para Questões
+// Atualizar o esquema de Questão
 const questaoSchema = new mongoose.Schema({
-    texto: {
+    disciplina: {
         type: String,
-        required: [true, 'O texto da questão é obrigatório'],
+        required: true,
         trim: true
     },
-    tipo: {
+    materia: {
         type: String,
-        enum: ['multipla_escolha', 'aberta'],
-        required: [true, 'O tipo da questão é obrigatório']
+        required: true,
+        trim: true
     },
-    alternativas: [{
-        letra: { type: String, trim: true },
-        texto: { type: String, trim: true }
-    }],
-    respostaCorreta: {
+    assunto: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    conteudo: {
         type: String,
         trim: true
+    },
+    topico: {
+        type: String,
+        trim: true
+    },
+    ano: {
+        type: Number
+    },
+    instituicao: {
+        type: String,
+        trim: true
+    },
+    enunciado: {  // Alterado de 'texto' para 'enunciado'
+        type: String,
+        required: true
+    },
+    alternativas: {
+        type: String,  // Agora aceita string formatada
+        required: true
+    },
+    resposta_correta: {  // Alterado para combinar com frontend
+        type: String,
+        required: true,
+        enum: ['A', 'B', 'C', 'D', 'E']
     },
     prova: {
         type: mongoose.Schema.Types.ObjectId,
@@ -265,16 +290,49 @@ app.delete('/api/provas/:id', async (req, res) => {
 // --- Rotas da API para Questões ---
 
 // Criar Questão
+// Atualizar a rota POST de questões
 app.post('/api/questoes', async (req, res) => {
     try {
-        const questao = new Questao(req.body);
-        await questao.save();
-        if (questao.prova) {
-            await Prova.findByIdAndUpdate(questao.prova, { $push: { questoes: questao._id } });
+        // Verificar campos obrigatórios
+        const requiredFields = ['disciplina', 'materia', 'assunto', 'enunciado', 'alternativas', 'resposta_correta', 'prova'];
+        for (const field of requiredFields) {
+            if (!req.body[field]) {
+                return res.status(400).json({ error: `O campo ${field} é obrigatório` });
+            }
         }
+
+        // Criar questão com os dados formatados
+        const questaoData = {
+            disciplina: req.body.disciplina,
+            materia: req.body.materia,
+            assunto: req.body.assunto,
+            enunciado: req.body.enunciado,
+            alternativas: req.body.alternativas,
+            resposta_correta: req.body.resposta_correta,
+            prova: req.body.prova
+        };
+
+        // Adicionar campos opcionais se existirem
+        if (req.body.conteudo) questaoData.conteudo = req.body.conteudo;
+        if (req.body.topico) questaoData.topico = req.body.topico;
+        if (req.body.ano) questaoData.ano = req.body.ano;
+        if (req.body.instituicao) questaoData.instituicao = req.body.instituicao;
+
+        const questao = new Questao(questaoData);
+        await questao.save();
+
+        // Atualizar a prova com a nova questão
+        await Prova.findByIdAndUpdate(req.body.prova, { 
+            $push: { questoes: questao._id } 
+        });
+
         res.status(201).json(questao);
     } catch (error) {
-        res.status(400).json({ error: error.message, details: error.errors });
+        console.error('Erro detalhado:', error);
+        res.status(400).json({ 
+            error: error.message,
+            details: error.errors 
+        });
     }
 });
 
@@ -369,5 +427,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
 
