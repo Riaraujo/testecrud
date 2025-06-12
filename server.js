@@ -6,17 +6,17 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware para CORS
+// Configuração do CORS
 const corsOptions = {
-    origin: 'https://riaraujo.github.io', // Permite apenas requisições desta origem
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Métodos HTTP permitidos
-    credentials: true, // Permite o envio de cookies de credenciais
-    optionsSuccessStatus: 204 // Para requisições OPTIONS pré-voo
+    origin: 'https://riaraujo.github.io',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204
 };
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Conexão melhorada com MongoDB
+// Conexão com MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:ceHWJohQxTyyQzrTCeDUHOJnEVjDMknx@switchback.proxy.rlwy.net:28016';
 
 mongoose.connect(MONGODB_URI, {
@@ -27,40 +27,59 @@ mongoose.connect(MONGODB_URI, {
 })
 .then(() => console.log('MongoDB conectado com sucesso!'))
 .catch(err => {
-    console.error('FALHA na conexão com MongoDB:', err);
+    console.error('Falha na conexão com MongoDB:', err);
     process.exit(1);
 });
 
-// Listeners de conexão
-mongoose.connection.on('disconnected', () => {
-    console.log('Mongoose desconectado!');
-});
-
-// --- Novos Modelos de Dados para a Plataforma Educacional ---
-
-// Esquema para Questões
+// Modelos de Dados
 const questaoSchema = new mongoose.Schema({
-    texto: {
+    disciplina: {
         type: String,
-        required: [true, 'O texto da questão é obrigatório'],
+        required: [true, 'O campo disciplina é obrigatório'],
         trim: true
     },
-    tipo: {
+    materia: {
         type: String,
-        enum: ['multipla_escolha', 'aberta'],
-        required: [true, 'O tipo da questão é obrigatório']
+        required: [true, 'O campo matéria é obrigatório'],
+        trim: true
     },
-    alternativas: [{
-        letra: { type: String, trim: true },
-        texto: { type: String, trim: true }
-    }],
-    respostaCorreta: {
+    assunto: {
+        type: String,
+        required: [true, 'O campo assunto é obrigatório'],
+        trim: true
+    },
+    conteudo: {
         type: String,
         trim: true
+    },
+    topico: {
+        type: String,
+        trim: true
+    },
+    ano: {
+        type: Number
+    },
+    instituicao: {
+        type: String,
+        trim: true
+    },
+    enunciado: {
+        type: String,
+        required: [true, 'O campo enunciado é obrigatório']
+    },
+    alternativas: {
+        type: String,
+        required: [true, 'O campo alternativas é obrigatório']
+    },
+    resposta_correta: {
+        type: String,
+        required: [true, 'O campo resposta_correta é obrigatório'],
+        enum: ['A', 'B', 'C', 'D', 'E']
     },
     prova: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Prova'
+        ref: 'Prova',
+        required: [true, 'O campo prova é obrigatório']
     },
     createdAt: {
         type: Date,
@@ -70,7 +89,6 @@ const questaoSchema = new mongoose.Schema({
 
 const Questao = mongoose.model('Questao', questaoSchema);
 
-// Esquema para Provas
 const provaSchema = new mongoose.Schema({
     titulo: {
         type: String,
@@ -99,13 +117,16 @@ const provaSchema = new mongoose.Schema({
 
 const Prova = mongoose.model('Prova', provaSchema);
 
-// Esquema para Pastas
 const pastaSchema = new mongoose.Schema({
     nome: {
         type: String,
         required: [true, 'O nome da pasta é obrigatório'],
         trim: true,
         maxlength: [100, 'O nome não pode ter mais que 100 caracteres']
+    },
+    descricao: {
+        type: String,
+        trim: true
     },
     provas: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -119,9 +140,7 @@ const pastaSchema = new mongoose.Schema({
 
 const Pasta = mongoose.model('Pasta', pastaSchema);
 
-// --- Rotas da API para Pastas ---
-
-// Criar Pasta
+// Rotas da API para Pastas
 app.post('/api/pastas', async (req, res) => {
     try {
         const pasta = new Pasta(req.body);
@@ -132,7 +151,6 @@ app.post('/api/pastas', async (req, res) => {
     }
 });
 
-// Listar todas as Pastas
 app.get('/api/pastas', async (req, res) => {
     try {
         const pastas = await Pasta.find().populate('provas').sort({ createdAt: -1 });
@@ -142,7 +160,6 @@ app.get('/api/pastas', async (req, res) => {
     }
 });
 
-// Obter uma Pasta específica
 app.get('/api/pastas/:id', async (req, res) => {
     try {
         const pasta = await Pasta.findById(req.params.id).populate({path: 'provas', populate: {path: 'questoes'}});
@@ -155,7 +172,6 @@ app.get('/api/pastas/:id', async (req, res) => {
     }
 });
 
-// Atualizar Pasta
 app.put('/api/pastas/:id', async (req, res) => {
     try {
         const pasta = await Pasta.findByIdAndUpdate(
@@ -172,14 +188,12 @@ app.put('/api/pastas/:id', async (req, res) => {
     }
 });
 
-// Excluir Pasta
 app.delete('/api/pastas/:id', async (req, res) => {
     try {
         const pasta = await Pasta.findByIdAndDelete(req.params.id);
         if (!pasta) {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
-        // Opcional: remover provas e questões associadas
         await Prova.deleteMany({ pasta: req.params.id });
         res.json({ message: 'Pasta excluída com sucesso' });
     } catch (error) {
@@ -187,9 +201,7 @@ app.delete('/api/pastas/:id', async (req, res) => {
     }
 });
 
-// --- Rotas da API para Provas ---
-
-// Criar Prova
+// Rotas da API para Provas
 app.post('/api/provas', async (req, res) => {
     try {
         const prova = new Prova(req.body);
@@ -203,7 +215,6 @@ app.post('/api/provas', async (req, res) => {
     }
 });
 
-// Listar todas as Provas
 app.get('/api/provas', async (req, res) => {
     try {
         const provas = await Prova.find().populate('questoes').populate('pasta').sort({ createdAt: -1 });
@@ -213,7 +224,6 @@ app.get('/api/provas', async (req, res) => {
     }
 });
 
-// Obter uma Prova específica
 app.get('/api/provas/:id', async (req, res) => {
     try {
         const prova = await Prova.findById(req.params.id).populate('questoes').populate('pasta');
@@ -226,7 +236,6 @@ app.get('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Atualizar Prova
 app.put('/api/provas/:id', async (req, res) => {
     try {
         const prova = await Prova.findByIdAndUpdate(
@@ -243,18 +252,15 @@ app.put('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Excluir Prova
 app.delete('/api/provas/:id', async (req, res) => {
     try {
         const prova = await Prova.findByIdAndDelete(req.params.id);
         if (!prova) {
             return res.status(404).json({ error: 'Prova não encontrada' });
         }
-        // Remover referência da prova na pasta
         if (prova.pasta) {
             await Pasta.findByIdAndUpdate(prova.pasta, { $pull: { provas: prova._id } });
         }
-        // Opcional: remover questões associadas
         await Questao.deleteMany({ prova: req.params.id });
         res.json({ message: 'Prova excluída com sucesso' });
     } catch (error) {
@@ -262,23 +268,38 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// --- Rotas da API para Questões ---
-
-// Criar Questão
+// Rotas da API para Questões
 app.post('/api/questoes', async (req, res) => {
     try {
+        console.log('Dados recebidos:', req.body);
+        
+        const requiredFields = ['disciplina', 'materia', 'assunto', 'enunciado', 'alternativas', 'resposta_correta', 'prova'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                error: 'Campos obrigatórios faltando',
+                missingFields: missingFields
+            });
+        }
+
         const questao = new Questao(req.body);
         await questao.save();
-        if (questao.prova) {
-            await Prova.findByIdAndUpdate(questao.prova, { $push: { questoes: questao._id } });
-        }
+
+        await Prova.findByIdAndUpdate(req.body.prova, {
+            $push: { questoes: questao._id }
+        });
+
         res.status(201).json(questao);
     } catch (error) {
-        res.status(400).json({ error: error.message, details: error.errors });
+        console.error('Erro ao criar questão:', error);
+        res.status(400).json({
+            error: error.message,
+            details: error.errors
+        });
     }
 });
 
-// Listar todas as Questões
 app.get('/api/questoes', async (req, res) => {
     try {
         const questoes = await Questao.find().populate('prova').sort({ createdAt: -1 });
@@ -288,7 +309,6 @@ app.get('/api/questoes', async (req, res) => {
     }
 });
 
-// Obter uma Questão específica
 app.get('/api/questoes/:id', async (req, res) => {
     try {
         const questao = await Questao.findById(req.params.id).populate('prova');
@@ -301,7 +321,6 @@ app.get('/api/questoes/:id', async (req, res) => {
     }
 });
 
-// Atualizar Questão
 app.put('/api/questoes/:id', async (req, res) => {
     try {
         const questao = await Questao.findByIdAndUpdate(
@@ -318,14 +337,12 @@ app.put('/api/questoes/:id', async (req, res) => {
     }
 });
 
-// Excluir Questão
 app.delete('/api/questoes/:id', async (req, res) => {
     try {
         const questao = await Questao.findByIdAndDelete(req.params.id);
         if (!questao) {
             return res.status(404).json({ error: 'Questão não encontrada' });
         }
-        // Remover referência da questão na prova
         if (questao.prova) {
             await Prova.findByIdAndUpdate(questao.prova, { $pull: { questoes: questao._id } });
         }
@@ -335,9 +352,7 @@ app.delete('/api/questoes/:id', async (req, res) => {
     }
 });
 
-// --- Rotas de Status e Raiz (mantidas) ---
-
-// Rota de status
+// Rotas de Status e Raiz
 app.get('/api/status', (req, res) => {
     res.json({
         status: 'online',
@@ -346,7 +361,6 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-// Rota raiz
 app.get('/', (req, res) => {
     res.send(`
         <h1>API CRUD com MongoDB para Plataforma Educacional</h1>
@@ -369,4 +383,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
