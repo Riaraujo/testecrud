@@ -1186,15 +1186,20 @@
                 }
             });
             
-            document.getElementById('btn-nova-questao').addEventListener('click', () => {
-                if (provaSelecionada) {
-                    mostrarTelaQuestao();
-                }
-            });
             
-            document.getElementById('btn-ver-sql-todas').addEventListener('click', () => {
+            
+             document.getElementById('btn-nova-questao').addEventListener('click', () => {
                 if (provaSelecionada) {
-                    mostrarSQLProva();
+                    // Limpar o formulário e entrar em modo de criação
+                    limparFormulario();
+                    document.getElementById('prova-selecionada').textContent = provaSelecionada.titulo;
+                    
+                    // Mostrar a tela de questão
+                    document.getElementById('tela-pasta').style.display = 'none';
+                    document.getElementById('tela-prova').style.display = 'none';
+                    document.getElementById('tela-questao').style.display = 'block';
+                } else {
+                    alert('Selecione uma prova primeiro.');
                 }
             });
             
@@ -1579,55 +1584,55 @@
                 document.getElementById('prova-nome-titulo').textContent = provaSelecionada.titulo;
                 document.getElementById('prova-descricao-titulo').textContent = provaSelecionada.descricao || 'Sem descrição';
                 
+                // Atualizar a lista de questões apenas da prova selecionada
                 atualizarListaQuestoes();
             }
         }
         
-        async function atualizarListaQuestoes() {
+         async function atualizarListaQuestoes() {
             const lista = document.getElementById('questoes-lista');
             const semQuestoes = document.getElementById('sem-questoes');
             
             lista.innerHTML = '';
             
-            // Carregar questões da prova se necessário
-            if (!questoesPorProva[provaSelecionada._id]) {
-                try {
-                    const response = await fetch(`${API_URL}/api/questoes?prova=${provaSelecionada._id}`);
-                    if (!response.ok) throw new Error('Erro ao carregar questões');
-                    questoesPorProva[provaSelecionada._id] = await response.json();
-                } catch (error) {
-                    console.error('Erro ao carregar questões:', error);
-                    alert('Erro ao carregar questões');
+            try {
+                // Carregar questões específicas da prova selecionada
+                const response = await fetch(`${API_URL}/api/questoes?prova=${provaSelecionada._id}`);
+                if (!response.ok) throw new Error('Erro ao carregar questões');
+                
+                const questoes = await response.json();
+                
+                if (questoes.length === 0) {
+                    semQuestoes.style.display = 'block';
                     return;
                 }
-            }
-            
-            const questoes = questoesPorProva[provaSelecionada._id] || [];
-            
-            if (questoes.length === 0) {
-                semQuestoes.style.display = 'block';
-                return;
-            }
-            
-            semQuestoes.style.display = 'none';
-            
-            questoes.forEach((questao, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${questao.disciplina}</td>
-                    <td>${questao.materia}</td>
-                    <td>${questao.assunto}</td>
-                    <td>${questao.resposta}</td>
-                    <td>
-                        <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
-                        <button class="btn-table btn-ver-sql" onclick="mostrarSQL('${questao._id}')">Ver SQL</button>
-                        <button class="btn-table btn-excluir" onclick="excluirQuestaoUI('${questao._id}')">Excluir</button>
-                    </td>
-                `;
                 
-                lista.appendChild(tr);
-            });
+                semQuestoes.style.display = 'none';
+                
+                questoes.forEach((questao, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${questao.disciplina}</td>
+                        <td>${questao.materia}</td>
+                        <td>${questao.assunto}</td>
+                        <td>${questao.resposta}</td>
+                        <td>
+                            <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
+                            <button class="btn-table btn-ver-sql" onclick="mostrarSQL('${questao._id}')">Ver SQL</button>
+                            <button class="btn-table btn-excluir" onclick="excluirQuestaoUI('${questao._id}')">Excluir</button>
+                        </td>
+                    `;
+                    
+                    lista.appendChild(tr);
+                });
+                
+                // Atualizar o cache local
+                questoesPorProva[provaSelecionada._id] = questoes;
+            } catch (error) {
+                console.error('Erro ao carregar questões:', error);
+                alert('Erro ao carregar questões');
+            }
         }
         
         async function editarQuestao(questaoId) {
