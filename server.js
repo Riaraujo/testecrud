@@ -31,7 +31,7 @@ mongoose.connect(MONGODB_URI, {
     process.exit(1);
 });
 
-// Modelos de Dados
+// Modelo ajustado
 const questaoSchema = new mongoose.Schema({
     disciplina: {
         type: String,
@@ -269,11 +269,17 @@ app.delete('/api/provas/:id', async (req, res) => {
 });
 
 // Rotas da API para Questões
+// Rota POST ajustada
 app.post('/api/questoes', async (req, res) => {
     try {
         console.log('Dados recebidos:', req.body);
         
-        const requiredFields = ['disciplina', 'materia', 'assunto', 'enunciado', 'alternativas', 'resposta_correta', 'prova'];
+        const requiredFields = [
+            'disciplina', 'materia', 'assunto', 
+            'enunciado', 'alternativas', 
+            'resposta_correta', 'prova'
+        ];
+        
         const missingFields = requiredFields.filter(field => !req.body[field]);
         
         if (missingFields.length > 0) {
@@ -283,9 +289,23 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        const questao = new Questao(req.body);
+        const questao = new Questao({
+            disciplina: req.body.disciplina,
+            materia: req.body.materia,
+            assunto: req.body.assunto,
+            conteudo: req.body.conteudo || undefined,
+            topico: req.body.topico || undefined,
+            ano: req.body.ano ? parseInt(req.body.ano) : undefined,
+            instituicao: req.body.instituicao || undefined,
+            enunciado: req.body.enunciado,
+            alternativas: req.body.alternativas,
+            resposta_correta: req.body.resposta_correta,
+            prova: req.body.prova
+        });
+
         await questao.save();
 
+        // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(req.body.prova, {
             $push: { questoes: questao._id }
         });
