@@ -6,49 +6,6 @@
     <title>Editor de Questões</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        /* Todos os estilos CSS originais do index.html permanecem aqui */
-
-
- /* Adicione estes novos estilos */
-        .breadcrumb {
-            font-size: 14px;
-            color: #a3b1c6;
-            margin-bottom: 5px;
-        }
-        
-        .breadcrumb a {
-            color: #3498db;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        
-        .breadcrumb span {
-            color: #ecf0f1;
-        }
-        
-        .breadcrumb-container {
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #34495e;
-            border-radius: 4px;
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -806,6 +763,30 @@
             cursor: pointer;
         }
         
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 14px;
+            color: #a3b1c6;
+            margin-bottom: 15px;
+            padding: 8px;
+            background-color: #34495e;
+            border-radius: 4px;
+        }
+        
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .breadcrumb span {
+            color: #ecf0f1;
+        }
+        
         /* Responsividade */
         @media (max-width: 768px) {
             body {
@@ -868,14 +849,10 @@
     
     <!-- Main Content -->
     <div class="main-content">
-
-         <div class="breadcrumb-container">
-            <div id="breadcrumb" class="breadcrumb"></div>
-        </div>
-
-
         <!-- Tela de Pasta (Lista de Provas na Pasta) -->
         <div id="tela-pasta" class="editor-container" style="display: none;">
+            <div class="breadcrumb" id="breadcrumb-pasta"></div>
+            
             <div class="pasta-menu">
                 <div class="pasta-info">
                     <div class="pasta-nome" id="pasta-nome-titulo"></div>
@@ -909,6 +886,8 @@
         
         <!-- Tela de Prova (Lista de Questões) -->
         <div id="tela-prova" class="editor-container" style="display: none;">
+            <div class="breadcrumb" id="breadcrumb-prova"></div>
+            
             <div class="prova-menu">
                 <div class="prova-info">
                     <div class="prova-nome" id="prova-nome-titulo"></div>
@@ -944,6 +923,8 @@
         
         <!-- Tela de Edição de Questão -->
         <div id="tela-questao" class="editor-container">
+            <div class="breadcrumb" id="breadcrumb-questao"></div>
+            
             <div class="editor-header">
                 <div>
                     <div class="editor-title" id="titulo-questao">Adicionar Questão</div>
@@ -1092,40 +1073,6 @@
     </div>
     
     <script>
-
-
- // Função para atualizar o breadcrumb
-        function atualizarBreadcrumb() {
-            const breadcrumb = document.getElementById('breadcrumb');
-            let html = '';
-            
-            if (pastaSelecionada) {
-                html += `<a onclick="mostrarTelaInicial()">Pasta</a> > `;
-                html += `<span>${pastaSelecionada.nome}</span>`;
-                
-                if (provaSelecionada) {
-                    html += ` > <span>${provaSelecionada.titulo}</span>`;
-                }
-            } else {
-                html += '<span>Pasta</span>';
-            }
-            
-            breadcrumb.innerHTML = html;
-        }
-
-
-        function mostrarTelaQuestao() {
-            document.getElementById('tela-pasta').style.display = 'none';
-            document.getElementById('tela-prova').style.display = 'none';
-            document.getElementById('tela-questao').style.display = 'block';
-            atualizarBreadcrumb();
-        }
-
-
-
-
-
-
         // URL da API - substitua pela URL do seu serviço Node.js
         const API_URL = 'https://testecrud-production.up.railway.app';
         
@@ -1168,14 +1115,39 @@
             mostrarTelaInicial();
         });
         
+        // Função para atualizar o breadcrumb
+        function atualizarBreadcrumb() {
+            let breadcrumb;
+            let html = '';
+            
+            if (pastaSelecionada) {
+                html += `<a onclick="mostrarTelaInicial()">Pastas</a> > `;
+                html += `<span>${pastaSelecionada.nome}</span>`;
+                
+                if (provaSelecionada) {
+                    html += ` > <span>${provaSelecionada.titulo}</span>`;
+                    breadcrumb = document.getElementById('breadcrumb-prova');
+                } else {
+                    breadcrumb = document.getElementById('breadcrumb-pasta');
+                }
+            } else {
+                html += '<span>Pastas</span>';
+                breadcrumb = document.getElementById('breadcrumb-questao');
+            }
+            
+            if (breadcrumb) {
+                breadcrumb.innerHTML = html;
+            }
+        }
+
         // Funções de carregamento de dados da API
         async function carregarDados() {
             try {
                 await Promise.all([
                     carregarPastas(),
-                    carregarProvas(),
-                    carregarQuestoes()
+                    carregarProvas()
                 ]);
+                questoesPorProva = {}; // Inicializa vazio
                 atualizarListaProvas();
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
@@ -1204,13 +1176,6 @@
                     provasPorPasta[prova.pasta._id].push(prova._id);
                 }
             });
-        }
-
-            // Corrija o carregamento de questões
-        async function carregarQuestoes() {
-            // Não carregamos mais todas as questões aqui
-            // Em vez disso, carregaremos por demanda quando necessário
-            questoesPorProva = {};
         }
         
         function setupEventListeners() {
@@ -1257,9 +1222,7 @@
                 }
             });
             
-            
-            
-             document.getElementById('btn-nova-questao').addEventListener('click', () => {
+            document.getElementById('btn-nova-questao').addEventListener('click', () => {
                 if (provaSelecionada) {
                     // Limpar o formulário e entrar em modo de criação
                     limparFormulario();
@@ -1529,7 +1492,7 @@
             mostrarTelaPasta();
         }
         
-         function mostrarTelaPasta() {
+        function mostrarTelaPasta() {
             document.getElementById('tela-prova').style.display = 'none';
             document.getElementById('tela-questao').style.display = 'none';
             document.getElementById('tela-pasta').style.display = 'block';
@@ -1657,20 +1620,24 @@
                 document.getElementById('prova-nome-titulo').textContent = provaSelecionada.titulo;
                 document.getElementById('prova-descricao-titulo').textContent = provaSelecionada.descricao || 'Sem descrição';
                 
+                // Atualizar a lista de questões apenas da prova selecionada
                 atualizarListaQuestoes();
             }
             
             atualizarBreadcrumb();
         }
         
-         async function atualizarListaQuestoes() {
+        async function atualizarListaQuestoes() {
             const lista = document.getElementById('questoes-lista');
             const semQuestoes = document.getElementById('sem-questoes');
             
             lista.innerHTML = '';
+            semQuestoes.style.display = 'block'; // Mostrar mensagem inicialmente
+            
+            if (!provaSelecionada) return;
             
             try {
-                // Carregar questões APENAS da prova selecionada
+                // Buscar questões APENAS da prova selecionada
                 const response = await fetch(`${API_URL}/api/questoes?prova=${provaSelecionada._id}`);
                 if (!response.ok) throw new Error('Erro ao carregar questões');
                 
@@ -1752,6 +1719,13 @@
                 console.error('Erro ao carregar questão:', error);
                 alert('Erro ao carregar questão');
             }
+        }
+        
+        function mostrarTelaQuestao() {
+            document.getElementById('tela-pasta').style.display = 'none';
+            document.getElementById('tela-prova').style.display = 'none';
+            document.getElementById('tela-questao').style.display = 'block';
+            atualizarBreadcrumb();
         }
         
         function limparFormulario() {
