@@ -7,6 +7,48 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* Todos os estilos CSS originais do index.html permanecem aqui */
+
+
+ /* Adicione estes novos estilos */
+        .breadcrumb {
+            font-size: 14px;
+            color: #a3b1c6;
+            margin-bottom: 5px;
+        }
+        
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .breadcrumb span {
+            color: #ecf0f1;
+        }
+        
+        .breadcrumb-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #34495e;
+            border-radius: 4px;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -826,6 +868,12 @@
     
     <!-- Main Content -->
     <div class="main-content">
+
+         <div class="breadcrumb-container">
+            <div id="breadcrumb" class="breadcrumb"></div>
+        </div>
+
+
         <!-- Tela de Pasta (Lista de Provas na Pasta) -->
         <div id="tela-pasta" class="editor-container" style="display: none;">
             <div class="pasta-menu">
@@ -1044,6 +1092,40 @@
     </div>
     
     <script>
+
+
+ // Função para atualizar o breadcrumb
+        function atualizarBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            let html = '';
+            
+            if (pastaSelecionada) {
+                html += `<a onclick="mostrarTelaInicial()">Pasta</a> > `;
+                html += `<span>${pastaSelecionada.nome}</span>`;
+                
+                if (provaSelecionada) {
+                    html += ` > <span>${provaSelecionada.titulo}</span>`;
+                }
+            } else {
+                html += '<span>Pasta</span>';
+            }
+            
+            breadcrumb.innerHTML = html;
+        }
+
+
+        function mostrarTelaQuestao() {
+            document.getElementById('tela-pasta').style.display = 'none';
+            document.getElementById('tela-prova').style.display = 'none';
+            document.getElementById('tela-questao').style.display = 'block';
+            atualizarBreadcrumb();
+        }
+
+
+
+
+
+
         // URL da API - substitua pela URL do seu serviço Node.js
         const API_URL = 'https://testecrud-production.up.railway.app';
         
@@ -1124,22 +1206,11 @@
             });
         }
 
+            // Corrija o carregamento de questões
         async function carregarQuestoes() {
-            const response = await fetch(`${API_URL}/api/questoes`);
-            if (!response.ok) throw new Error('Erro ao carregar questões');
-            const todasQuestoes = await response.json();
-            
-            // Organizar questões por prova
+            // Não carregamos mais todas as questões aqui
+            // Em vez disso, carregaremos por demanda quando necessário
             questoesPorProva = {};
-            todasQuestoes.forEach(questao => {
-                if (questao.prova && questao.prova._id) {
-                    const provaId = questao.prova._id;
-                    if (!questoesPorProva[provaId]) {
-                        questoesPorProva[provaId] = [];
-                    }
-                    questoesPorProva[provaId].push(questao);
-                }
-            });
         }
         
         function setupEventListeners() {
@@ -1458,7 +1529,7 @@
             mostrarTelaPasta();
         }
         
-        function mostrarTelaPasta() {
+         function mostrarTelaPasta() {
             document.getElementById('tela-prova').style.display = 'none';
             document.getElementById('tela-questao').style.display = 'none';
             document.getElementById('tela-pasta').style.display = 'block';
@@ -1469,6 +1540,8 @@
                 
                 atualizarListaProvasPasta();
             }
+            
+            atualizarBreadcrumb();
         }
         
         function atualizarListaProvasPasta() {
@@ -1524,7 +1597,7 @@
             const prova = provas.find(p => p._id === provaId);
             if (!prova) return;
             
-            // Carregar questões da prova se necessário
+            // Carregar questões APENAS desta prova se necessário
             if (!questoesPorProva[provaId]) {
                 try {
                     const response = await fetch(`${API_URL}/api/questoes?prova=${provaId}`);
@@ -1584,9 +1657,10 @@
                 document.getElementById('prova-nome-titulo').textContent = provaSelecionada.titulo;
                 document.getElementById('prova-descricao-titulo').textContent = provaSelecionada.descricao || 'Sem descrição';
                 
-                // Atualizar a lista de questões apenas da prova selecionada
                 atualizarListaQuestoes();
             }
+            
+            atualizarBreadcrumb();
         }
         
          async function atualizarListaQuestoes() {
@@ -1596,7 +1670,7 @@
             lista.innerHTML = '';
             
             try {
-                // Carregar questões específicas da prova selecionada
+                // Carregar questões APENAS da prova selecionada
                 const response = await fetch(`${API_URL}/api/questoes?prova=${provaSelecionada._id}`);
                 if (!response.ok) throw new Error('Erro ao carregar questões');
                 
@@ -1627,7 +1701,7 @@
                     lista.appendChild(tr);
                 });
                 
-                // Atualizar o cache local
+                // Atualizar o cache local APENAS para esta prova
                 questoesPorProva[provaSelecionada._id] = questoes;
             } catch (error) {
                 console.error('Erro ao carregar questões:', error);
@@ -2190,6 +2264,7 @@
             });
         }
         
+        // Modifique estas funções para chamar atualizarBreadcrumb
         function mostrarTelaInicial() {
             document.getElementById('tela-pasta').style.display = 'none';
             document.getElementById('tela-prova').style.display = 'none';
@@ -2206,6 +2281,8 @@
             document.querySelectorAll('.pasta-item').forEach(item => {
                 item.classList.remove('active');
             });
+            
+            atualizarBreadcrumb();
         }
     </script>
 </body>
