@@ -74,11 +74,11 @@ const questaoSchema = new mongoose.Schema({
         required: [true, 'O campo enunciado é obrigatório']
     },
     alternativas: {
-        type: [String], // Alterado para array de strings
+        type: [String],
         required: [true, 'O campo alternativas é obrigatório'],
         validate: {
             validator: function(v) {
-                return v.length >= 2; // Pelo menos 2 alternativas
+                return v.length >= 2;
             },
             message: 'Deve haver pelo menos duas alternativas'
         }
@@ -106,21 +106,25 @@ const questaoSchema = new mongoose.Schema({
     conhecimento1: {
         type: String,
         trim: true,
+        lowercase: true,
         maxlength: 100
     },
     conhecimento2: {
         type: String,
         trim: true,
+        lowercase: true,
         maxlength: 100
     },
     conhecimento3: {
         type: String,
         trim: true,
+        lowercase: true,
         maxlength: 100
     },
     conhecimento4: {
         type: String,
         trim: true,
+        lowercase: true,
         maxlength: 100
     },
     prova: {
