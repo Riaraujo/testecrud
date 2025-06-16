@@ -2230,17 +2230,18 @@
 }
 
 function gerarSQL(questao) {
-    // Processar campos opcionais
-    const camposOpcionais = [];
-    const valoresOpcionais = [];
-    
-    // Campos padrão que sempre existem
-    const camposPadrao = [
-        'texto', 'alternativas', 'resposta', 'disciplina', 'materia', 'assunto'
+    // Campos obrigatórios que sempre existem
+    const camposBase = [
+        'texto',
+        'alternativas',
+        'resposta_correta',
+        'disciplina',
+        'materia',
+        'assunto'
     ];
-    
-    // Campos adicionais que podem ser incluídos
-    const camposAdicionais = [
+
+    // Campos opcionais que podem ser incluídos
+    const camposOpcionais = [
         { nome: 'conteudo', valor: questao.conteudo },
         { nome: 'topico', valor: questao.topico },
         { nome: 'ano', valor: questao.ano },
@@ -2253,14 +2254,20 @@ function gerarSQL(questao) {
         { nome: 'conhecimento3', valor: questao.conhecimento3 },
         { nome: 'conhecimento4', valor: questao.conhecimento4 }
     ];
-    
-    // Adicionar campos adicionais apenas se tiverem valor
-    camposAdicionais.forEach(campo => {
-        if (campo.valor !== undefined && campo.valor !== null && campo.valor !== '') {
-            camposPadrao.push(campo.nome);
-        }
-    });
-    
+
+    // Filtrar apenas os campos opcionais que têm valor
+    const camposComValor = camposOpcionais.filter(campo => 
+        campo.valor !== undefined && 
+        campo.valor !== null && 
+        campo.valor !== ''
+    );
+
+    // Juntar todos os campos que serão incluídos no SQL
+    const todosCampos = [
+        ...camposBase,
+        ...camposComValor.map(campo => campo.nome)
+    ];
+
     // Função para formatar valores para SQL
     const formatarValor = (valor) => {
         if (valor === null || valor === undefined) return 'NULL';
@@ -2270,26 +2277,25 @@ function gerarSQL(questao) {
         }
         return `'${valor.replace(/'/g, "''")}'`;
     };
-    
-    // Obter valores na ordem correta
-    const valores = [
-        formatarValor(questao.enunciado), // texto
-        formatarValor(questao.alternativas), // alternativas (como array)
-        formatarValor(questao.resposta_correta), // resposta
+
+    // Obter todos os valores na ordem correta
+    const todosValores = [
+        formatarValor(questao.enunciado),
+        formatarValor(questao.alternativas),
+        formatarValor(questao.resposta_correta),
         formatarValor(questao.disciplina),
         formatarValor(questao.materia),
         formatarValor(questao.assunto),
-        ...camposAdicionais
-            .filter(campo => camposPadrao.includes(campo.nome))
-            .map(campo => formatarValor(campo.valor))
+        ...camposComValor.map(campo => formatarValor(campo.valor))
     ];
-    
-    const sql = `INSERT INTO public.questoes (
-    ${camposPadrao.join(',\n    ')}
+
+    // Gerar o SQL
+    const sql = `INSERT INTO questoes (
+    ${todosCampos.join(',\n    ')}
 ) VALUES (
-    ${valores.join(',\n    ')}
+    ${todosValores.join(',\n    ')}
 );`;
-    
+
     return sql;
 }
         
