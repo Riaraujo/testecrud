@@ -2234,7 +2234,7 @@ function gerarSQL(questao) {
     const camposBase = [
         'texto',
         'alternativas',
-        'resposta_correta',
+        'resposta', // Alterado de 'resposta_correta' para 'resposta'
         'disciplina',
         'materia',
         'assunto'
@@ -2282,7 +2282,7 @@ function gerarSQL(questao) {
     const todosValores = [
         formatarValor(questao.enunciado),
         formatarValor(questao.alternativas),
-        formatarValor(questao.resposta_correta),
+        formatarValor(questao.resposta_correta), // Mantém a referência ao campo original
         formatarValor(questao.disciplina),
         formatarValor(questao.materia),
         formatarValor(questao.assunto),
