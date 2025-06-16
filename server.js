@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // Configuração do CORS
 const corsOptions = {
-    origin: 'https://riaraujo.github.io',
+    origin: ['https://riaraujo.github.io', 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204
@@ -17,7 +17,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Conexão com MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:ceHWJohQxTyyQzrTCeDUHOJnEVjDMknx@switchback.proxy.rlwy.net:28016';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/editor-questoes';
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
@@ -31,7 +31,7 @@ mongoose.connect(MONGODB_URI, {
     process.exit(1);
 });
 
-// Modelo ajustado
+// Schemas atualizados
 const questaoSchema = new mongoose.Schema({
     disciplina: {
         type: String,
@@ -68,12 +68,15 @@ const questaoSchema = new mongoose.Schema({
         required: [true, 'O campo enunciado é obrigatório']
     },
     alternativas: {
-        type: String,
-        required: [true, 'O campo alternativas é obrigatório']
+        type: [String],
+        required: [true, 'O campo alternativas é obrigatório'],
+        set: function(val) {
+            return Array.isArray(val) ? val : [val];
+        }
     },
-    resposta: {
+    resposta_correta: {
         type: String,
-        required: [true, 'O campo resposta é obrigatório'],
+        required: [true, 'O campo resposta_correta é obrigatório'],
         enum: ['A', 'B', 'C', 'D', 'E']
     },
     prova: {
@@ -81,11 +84,45 @@ const questaoSchema = new mongoose.Schema({
         ref: 'Prova',
         required: [true, 'O campo prova é obrigatório']
     },
+    img1: {
+        type: String,
+        trim: true
+    },
+    img2: {
+        type: String,
+        trim: true
+    },
+    img3: {
+        type: String,
+        trim: true
+    },
+    conhecimento1: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    conhecimento2: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    conhecimento3: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    conhecimento4: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
     createdAt: {
         type: Date,
         default: Date.now
-    },
-    
+    }
+}, { 
+    strict: false,
+    versionKey: false 
 });
 
 const Questao = mongoose.model('Questao', questaoSchema);
@@ -269,16 +306,13 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rotas da API para Questões
-// Rota POST ajustada
+// Rota POST para Questões (completa e corrigida)
 app.post('/api/questoes', async (req, res) => {
     try {
-        console.log('Dados recebidos:', req.body);
-        
         const requiredFields = [
             'disciplina', 'materia', 'assunto', 
             'enunciado', 'alternativas', 
-            'resposta', 'prova'
+            'resposta_correta', 'prova'
         ];
         
         const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -299,10 +333,9 @@ app.post('/api/questoes', async (req, res) => {
             ano: req.body.ano ? parseInt(req.body.ano) : undefined,
             instituicao: req.body.instituicao || undefined,
             enunciado: req.body.enunciado,
-            alternativas: req.body.alternativas,
-            resposta: req.body.resposta,
+            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
+            resposta_correta: req.body.resposta_correta,
             prova: req.body.prova,
-            // Adicione os novos campos
             img1: req.body.img1 || undefined,
             img2: req.body.img2 || undefined,
             img3: req.body.img3 || undefined,
