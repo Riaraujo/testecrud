@@ -2234,11 +2234,12 @@ function gerarSQL(questao) {
     const camposOpcionais = [];
     const valoresOpcionais = [];
     
+    // Campos padrão que sempre existem
     const camposPadrao = [
         'texto', 'alternativas', 'resposta', 'disciplina', 'materia', 'assunto'
     ];
     
-    // Adicionar campos condicionalmente
+    // Campos adicionais que podem ser incluídos
     const camposAdicionais = [
         { nome: 'conteudo', valor: questao.conteudo },
         { nome: 'topico', valor: questao.topico },
@@ -2253,6 +2254,7 @@ function gerarSQL(questao) {
         { nome: 'conhecimento4', valor: questao.conhecimento4 }
     ];
     
+    // Adicionar campos adicionais apenas se tiverem valor
     camposAdicionais.forEach(campo => {
         if (campo.valor !== undefined && campo.valor !== null && campo.valor !== '') {
             camposPadrao.push(campo.nome);
