@@ -74,11 +74,11 @@ const questaoSchema = new mongoose.Schema({
             return Array.isArray(val) ? val : [val];
         }
     },
-    resposta_correta: {
-        type: String,
-        required: [true, 'O campo resposta_correta é obrigatório'],
-        enum: ['A', 'B', 'C', 'D', 'E']
-    },
+    resposta: {
+    type: String,
+    required: [true, 'O campo resposta é obrigatório'],
+    enum: ['A', 'B', 'C', 'D', 'E']
+},
     prova: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Prova',
