@@ -200,7 +200,11 @@ app.get('/api/pastas', async (req, res) => {
 
 app.get('/api/pastas/:id', async (req, res) => {
     try {
-        const pasta = await Pasta.findById(req.params.id).populate({path: 'provas', populate: {path: 'questoes'}});
+        const populateQuery = req.query.populate === 'provas' ? 
+            {path: 'provas', populate: {path: 'questoes'}} : 
+            'provas';
+            
+        const pasta = await Pasta.findById(req.params.id).populate(populateQuery);
         if (!pasta) {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
@@ -264,7 +268,14 @@ app.get('/api/provas', async (req, res) => {
 
 app.get('/api/provas/:id', async (req, res) => {
     try {
-        const prova = await Prova.findById(req.params.id).populate('questoes').populate('pasta');
+        const populateQuery = req.query.populate === 'questoes' ? 
+            {path: 'questoes', options: {sort: {createdAt: -1}}} : 
+            'questoes';
+            
+        const prova = await Prova.findById(req.params.id)
+            .populate(populateQuery)
+            .populate('pasta');
+            
         if (!prova) {
             return res.status(404).json({ error: 'Prova não encontrada' });
         }
