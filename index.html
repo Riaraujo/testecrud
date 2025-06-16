@@ -999,6 +999,36 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Novos campos para conhecimentos -->
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="conhecimento1">Conhecimento 1 (opcional):</label>
+                        <input type="text" id="conhecimento1" class="form-control">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="conhecimento2">Conhecimento 2 (opcional):</label>
+                        <input type="text" id="conhecimento2" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="conhecimento3">Conhecimento 3 (opcional):</label>
+                        <input type="text" id="conhecimento3" class="form-control">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="conhecimento4">Conhecimento 4 (opcional):</label>
+                        <input type="text" id="conhecimento4" class="form-control">
+                    </div>
+                </div>
+            </div>
             
             <div id="linhas-container" class="linhas-container"></div>
         </div>
@@ -1657,7 +1687,7 @@
                         <td>${questao.disciplina}</td>
                         <td>${questao.materia}</td>
                         <td>${questao.assunto}</td>
-                        <td>${questao.resposta}</td>
+                        <td>${questao.resposta_correta}</td>
                         <td>
                             <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
                             <button class="btn-table btn-ver-sql" onclick="mostrarSQL('${questao._id}')">Ver SQL</button>
@@ -1694,7 +1724,11 @@
                 document.getElementById('topico').value = questao.topico || '';
                 document.getElementById('ano').value = questao.ano || '';
                 document.getElementById('instituicao').value = questao.instituicao || '';
-                document.getElementById('resposta').value = questao.resposta || 'A';
+                document.getElementById('resposta').value = questao.resposta_correta || 'A';
+                document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
+                document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
+                document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
+                document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
                 
                 // Restaurar linhas
                 linhas = questao.linhas || [];
@@ -1737,6 +1771,10 @@
             document.getElementById('ano').value = '';
             document.getElementById('instituicao').value = '';
             document.getElementById('resposta').value = 'A';
+            document.getElementById('conhecimento1').value = '';
+            document.getElementById('conhecimento2').value = '';
+            document.getElementById('conhecimento3').value = '';
+            document.getElementById('conhecimento4').value = '';
             
             linhas = [];
             nextLinhaId = 1;
@@ -2066,7 +2104,7 @@
             renderizarEditor();
         }
         
-       async function salvarQuestao() {
+        async function salvarQuestao() {
     if (!provaSelecionada) {
         alert('Selecione uma prova primeiro.');
         return;
@@ -2083,8 +2121,10 @@
         return;
     }
 
-    // Converter blocos para HTML do enunciado
+    // Converter blocos para HTML do enunciado (apenas texto)
     let enunciadoHTML = '';
+    let imagens = [];
+    
     linhas.forEach(linha => {
         linha.blocos.forEach(bloco => {
             if (bloco.tipo === 'texto' && bloco.texto.trim() !== '') {
@@ -2100,42 +2140,50 @@
                 
                 enunciadoHTML += `<div${classe ? ` class="${classe}"` : ''}>${texto}</div>\n`;
             } else if (bloco.tipo === 'imagem' && bloco.url.trim() !== '') {
-                enunciadoHTML += `<img src="${bloco.url.trim()}" alt="Imagem">\n`;
+                // Adiciona apenas a URL da imagem ao array de imagens
+                imagens.push(bloco.url.trim());
             }
         });
     });
 
-    if (enunciadoHTML === '') {
-        alert('Por favor, adicione conteúdo ao enunciado.');
+    if (enunciadoHTML === '' && imagens.length === 0) {
+        alert('Por favor, adicione conteúdo ao enunciado ou imagens.');
         return;
     }
 
-    // Formatar alternativas
-    let alternativasText = '';
-    alternativas.forEach(alt => {
-        if (alt.texto.trim() !== '') {
-            alternativasText += `${alt.letra}) ${alt.texto.trim()}\n`;
-        }
-    });
+    // Formatar alternativas como array
+    let alternativasArray = alternativas
+        .filter(alt => alt.texto.trim() !== '')
+        .map(alt => `${alt.letra}) ${alt.texto.trim()}`);
 
-    if (alternativasText.split('\n').filter(line => line.trim() !== '').length < 2) {
+    if (alternativasArray.length < 2) {
         alert('Por favor, preencha pelo menos duas alternativas.');
         return;
     }
 
-    // Preparar objeto para envio (ajustado para o formato desejado)
+    // Preparar objeto para envio
     const questao = {
         disciplina: disciplina,
         materia: materia,
         assunto: assunto,
         resposta_correta: resposta,
         enunciado: enunciadoHTML,
-        alternativas: alternativasText,
-        prova: provaSelecionada._id,  // Isso será convertido para texto no SQL
+        alternativas: alternativasArray,
+        prova: provaSelecionada._id,
         // Campos adicionais
         conteudo: document.getElementById('conteudo').value.trim() || null,
         topico: document.getElementById('topico').value.trim() || null,
-        ano: document.getElementById('ano').value ? parseInt(document.getElementById('ano').value) : null
+        ano: document.getElementById('ano').value ? parseInt(document.getElementById('ano').value) : null,
+        instituicao: document.getElementById('instituicao').value.trim() || null,
+        // Adicionar imagens (apenas as 3 primeiras)
+        img1: imagens[0] || null,
+        img2: imagens[1] || null,
+        img3: imagens[2] || null,
+        // Campos de conhecimento em lowercase
+        conhecimento1: document.getElementById('conhecimento1').value.trim().toLowerCase() || null,
+        conhecimento2: document.getElementById('conhecimento2').value.trim().toLowerCase() || null,
+        conhecimento3: document.getElementById('conhecimento3').value.trim().toLowerCase() || null,
+        conhecimento4: document.getElementById('conhecimento4').value.trim().toLowerCase() || null
     };
 
     try {
@@ -2143,8 +2191,6 @@
         const url = modoEdicao ? 
             `${API_URL}/api/questoes/${questaoEditando._id}` : 
             `${API_URL}/api/questoes`;
-
-        console.log('Enviando questão:', questao);
 
         const response = await fetch(url, {
             method: method,
@@ -2182,50 +2228,64 @@
         alert(`Erro ao salvar questão: ${error.message}`);
     }
 }
-        
-        function gerarSQL(questao) {
+
+function gerarSQL(questao) {
     // Processar campos opcionais
     const camposOpcionais = [];
     const valoresOpcionais = [];
     
-    if (questao.conteudo) {
-        camposOpcionais.push('conteudo');
-        valoresOpcionais.push(`'${questao.conteudo.replace(/'/g, "''")}'`);
-    }
-    if (questao.topico) {
-        camposOpcionais.push('topico');
-        valoresOpcionais.push(`'${questao.topico.replace(/'/g, "''")}'`);
-    }
-    if (questao.ano) {
-        camposOpcionais.push('ano');
-        valoresOpcionais.push(questao.ano);
-    }
-    if (questao.instituicao) {
-        camposOpcionais.push('instituicao');
-        valoresOpcionais.push(`'${questao.instituicao.replace(/'/g, "''")}'`);
-    }
-
-    // Obter nome da prova (para o SQL)
-    const provaNome = provaSelecionada ? provaSelecionada.titulo : 'N/A';
-
-    const sql = `INSERT INTO questoes (
-    disciplina, 
-    materia, 
-    assunto, 
-    ${camposOpcionais.join(', ')}${camposOpcionais.length > 0 ? ', ' : ''}
-    prova,
-    enunciado, 
-    alternativas, 
-    resposta_correta
+    const camposPadrao = [
+        'texto', 'alternativas', 'resposta', 'disciplina', 'materia', 'assunto'
+    ];
+    
+    // Adicionar campos condicionalmente
+    const camposAdicionais = [
+        { nome: 'conteudo', valor: questao.conteudo },
+        { nome: 'topico', valor: questao.topico },
+        { nome: 'ano', valor: questao.ano },
+        { nome: 'instituicao', valor: questao.instituicao },
+        { nome: 'img1', valor: questao.img1 },
+        { nome: 'img2', valor: questao.img2 },
+        { nome: 'img3', valor: questao.img3 },
+        { nome: 'conhecimento1', valor: questao.conhecimento1 },
+        { nome: 'conhecimento2', valor: questao.conhecimento2 },
+        { nome: 'conhecimento3', valor: questao.conhecimento3 },
+        { nome: 'conhecimento4', valor: questao.conhecimento4 }
+    ];
+    
+    camposAdicionais.forEach(campo => {
+        if (campo.valor !== undefined && campo.valor !== null && campo.valor !== '') {
+            camposPadrao.push(campo.nome);
+        }
+    });
+    
+    // Função para formatar valores para SQL
+    const formatarValor = (valor) => {
+        if (valor === null || valor === undefined) return 'NULL';
+        if (typeof valor === 'number') return valor;
+        if (Array.isArray(valor)) {
+            return `ARRAY[\n        '${valor.join("',\n        '")}'\n    ]`;
+        }
+        return `'${valor.replace(/'/g, "''")}'`;
+    };
+    
+    // Obter valores na ordem correta
+    const valores = [
+        formatarValor(questao.enunciado), // texto
+        formatarValor(questao.alternativas), // alternativas (como array)
+        formatarValor(questao.resposta_correta), // resposta
+        formatarValor(questao.disciplina),
+        formatarValor(questao.materia),
+        formatarValor(questao.assunto),
+        ...camposAdicionais
+            .filter(campo => camposPadrao.includes(campo.nome))
+            .map(campo => formatarValor(campo.valor))
+    ];
+    
+    const sql = `INSERT INTO public.questoes (
+    ${camposPadrao.join(',\n    ')}
 ) VALUES (
-    '${questao.disciplina.replace(/'/g, "''")}',
-    '${questao.materia.replace(/'/g, "''")}',
-    '${questao.assunto.replace(/'/g, "''")}',
-    ${valoresOpcionais.join(', ')}${valoresOpcionais.length > 0 ? ', ' : ''}
-    '${provaNome.replace(/'/g, "''")}',
-    '${questao.enunciado.replace(/'/g, "''")}',
-    '${questao.alternativas.replace(/'/g, "''")}',
-    '${questao.resposta_correta}'
+    ${valores.join(',\n    ')}
 );`;
     
     return sql;
