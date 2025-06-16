@@ -74,7 +74,7 @@ const questaoSchema = new mongoose.Schema({
             return Array.isArray(val) ? val : [val];
         }
     },
-    resposta_correta: {
+    resposta: {
         type: String,
         required: [true, 'O campo resposta_correta é obrigatório'],
         enum: ['A', 'B', 'C', 'D', 'E']
