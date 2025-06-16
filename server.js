@@ -68,9 +68,17 @@ const questaoSchema = new mongoose.Schema({
         required: [true, 'O campo enunciado é obrigatório']
     },
     alternativas: {
-        type: String,
-        required: [true, 'O campo alternativas é obrigatório']
-    },
+  type: [String],  // Aceita tanto array quanto string
+  required: true,
+  set: function(val) {
+    // Converte automaticamente string para array quando necessário
+    return Array.isArray(val) ? val : [val];
+  },
+        { 
+  strict: false, // Permite campos não definidos no schema
+  versionKey: false 
+});
+},
     resposta_correta: {
         type: String,
         required: [true, 'O campo resposta_correta é obrigatório'],
