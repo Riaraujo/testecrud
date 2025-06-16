@@ -36,45 +36,92 @@ const questaoSchema = new mongoose.Schema({
     disciplina: {
         type: String,
         required: [true, 'O campo disciplina é obrigatório'],
-        trim: true
+        trim: true,
+        maxlength: 100
     },
     materia: {
         type: String,
         required: [true, 'O campo matéria é obrigatório'],
-        trim: true
+        trim: true,
+        maxlength: 100
     },
     assunto: {
         type: String,
         required: [true, 'O campo assunto é obrigatório'],
-        trim: true
+        trim: true,
+        maxlength: 100
     },
     conteudo: {
         type: String,
-        trim: true
+        trim: true,
+        maxlength: 100
     },
     topico: {
         type: String,
-        trim: true
+        trim: true,
+        maxlength: 100
     },
     ano: {
         type: Number
     },
     instituicao: {
         type: String,
-        trim: true
+        trim: true,
+        maxlength: 100
     },
     enunciado: {
         type: String,
         required: [true, 'O campo enunciado é obrigatório']
     },
     alternativas: {
-        type: String,
-        required: [true, 'O campo alternativas é obrigatório']
+        type: [String], // Alterado para array de strings
+        required: [true, 'O campo alternativas é obrigatório'],
+        validate: {
+            validator: function(v) {
+                return v.length >= 2; // Pelo menos 2 alternativas
+            },
+            message: 'Deve haver pelo menos duas alternativas'
+        }
     },
     resposta_correta: {
         type: String,
         required: [true, 'O campo resposta_correta é obrigatório'],
         enum: ['A', 'B', 'C', 'D', 'E']
+    },
+    img1: {
+        type: String,
+        trim: true,
+        maxlength: 255
+    },
+    img2: {
+        type: String,
+        trim: true,
+        maxlength: 255
+    },
+    img3: {
+        type: String,
+        trim: true,
+        maxlength: 255
+    },
+    conhecimento1: {
+        type: String,
+        trim: true,
+        maxlength: 100
+    },
+    conhecimento2: {
+        type: String,
+        trim: true,
+        maxlength: 100
+    },
+    conhecimento3: {
+        type: String,
+        trim: true,
+        maxlength: 100
+    },
+    conhecimento4: {
+        type: String,
+        trim: true,
+        maxlength: 100
     },
     prova: {
         type: mongoose.Schema.Types.ObjectId,
