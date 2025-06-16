@@ -75,10 +75,10 @@ const questaoSchema = new mongoose.Schema({
         }
     },
     resposta: {
-    type: String,
-    required: [true, 'O campo resposta é obrigatório'],
-    enum: ['A', 'B', 'C', 'D', 'E']
-},
+        type: String,
+        required: [true, 'O campo resposta é obrigatório'],
+        enum: ['A', 'B', 'C', 'D', 'E']
+    },
     prova: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Prova',
@@ -312,7 +312,7 @@ app.post('/api/questoes', async (req, res) => {
         const requiredFields = [
             'disciplina', 'materia', 'assunto', 
             'enunciado', 'alternativas', 
-            'resposta_correta', 'prova'
+            'resposta', 'prova'
         ];
         
         const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -334,7 +334,7 @@ app.post('/api/questoes', async (req, res) => {
             instituicao: req.body.instituicao || undefined,
             enunciado: req.body.enunciado,
             alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
-            resposta_correta: req.body.resposta_correta,
+            resposta: req.body.resposta,
             prova: req.body.prova,
             img1: req.body.img1 || undefined,
             img2: req.body.img2 || undefined,
