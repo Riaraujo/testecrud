@@ -2151,7 +2151,7 @@
         return;
     }
 
-    // Formatar alternativas como array
+    // Formatar alternativas como array de strings
     let alternativasArray = alternativas
         .filter(alt => alt.texto.trim() !== '')
         .map(alt => `${alt.letra}) ${alt.texto.trim()}`);
@@ -2168,7 +2168,7 @@
         assunto: assunto,
         resposta_correta: resposta,
         enunciado: enunciadoHTML,
-        alternativas: alternativasArray,
+        alternativas: alternativasArray, // Já é um array
         prova: provaSelecionada._id,
         // Campos adicionais
         conteudo: document.getElementById('conteudo').value.trim() || null,
