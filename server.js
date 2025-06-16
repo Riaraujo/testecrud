@@ -324,29 +324,40 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
+        // Validação adicional para o campo resposta
+        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
+            return res.status(400).json({
+                error: 'Resposta inválida',
+                details: 'A resposta deve ser A, B, C, D ou E'
+            });
+        }
+
         const questao = new Questao({
             disciplina: req.body.disciplina,
             materia: req.body.materia,
             assunto: req.body.assunto,
-            conteudo: req.body.conteudo || undefined,
-            topico: req.body.topico || undefined,
-            ano: req.body.ano ? parseInt(req.body.ano) : undefined,
-            instituicao: req.body.instituicao || undefined,
+            conteudo: req.body.conteudo || null,
+            topico: req.body.topico || null,
+            ano: req.body.ano ? parseInt(req.body.ano) : null,
+            instituicao: req.body.instituicao || null,
             enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
-            resposta: req.body.resposta,
+            alternativas: Array.isArray(req.body.alternativas) 
+                ? req.body.alternativas 
+                : [req.body.alternativas],
+            resposta: req.body.resposta, // Garantido pela validação anterior
             prova: req.body.prova,
-            img1: req.body.img1 || undefined,
-            img2: req.body.img2 || undefined,
-            img3: req.body.img3 || undefined,
-            conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : undefined,
-            conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : undefined,
-            conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : undefined,
-            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : undefined
+            img1: req.body.img1 || null,
+            img2: req.body.img2 || null,
+            img3: req.body.img3 || null,
+            conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : null,
+            conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : null,
+            conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : null,
+            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
         });
 
         await questao.save();
 
+        // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(req.body.prova, {
             $push: { questoes: questao._id }
         });
