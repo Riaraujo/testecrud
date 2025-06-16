@@ -1541,43 +1541,48 @@
             atualizarBreadcrumb();
         }
         
-        function atualizarListaProvasPasta() {
-            const lista = document.getElementById('provas-pasta-lista');
-            const semProvas = document.getElementById('sem-provas-pasta');
-            
-            lista.innerHTML = '';
-            
-            const provasNaPasta = provasPorPasta[pastaSelecionada._id] || [];
-            
-            if (provasNaPasta.length === 0) {
-                semProvas.style.display = 'block';
-                return;
-            }
-            
-            semProvas.style.display = 'none';
-            
-            provasNaPasta.forEach((provaId, index) => {
-                const prova = provas.find(p => p._id === provaId);
-                if (!prova) return;
-                
-                const questoes = questoesPorProva[provaId] || [];
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${prova.titulo}</td>
-                    <td>${prova.descricao || 'Sem descrição'}</td>
-                    <td>${questoes.length}</td>
-                    <td>
-                        <button class="btn-table btn-abrir" onclick="abrirProva('${prova._id}')">Abrir</button>
-                        <button class="btn-table btn-ver-sql" onclick="mostrarSQLProvaCompleta('${prova._id}')">Ver SQL</button>
-                        <button class="btn-table btn-excluir" onclick="removerProvaDaPasta('${prova._id}')">Remover</button>
-                    </td>
-                `;
-                
-                lista.appendChild(tr);
-            });
+        async function atualizarListaProvasPasta() {
+    const lista = document.getElementById('provas-pasta-lista');
+    const semProvas = document.getElementById('sem-provas-pasta');
+    
+    lista.innerHTML = '';
+    
+    // Carregar provas da pasta com contagem de questões
+    try {
+        const response = await fetch(`${API_URL}/api/pastas/${pastaSelecionada._id}?populate=provas`);
+        if (!response.ok) throw new Error('Erro ao carregar provas da pasta');
+        
+        const pastaComProvas = await response.json();
+        const provasNaPasta = pastaComProvas.provas || [];
+        
+        if (provasNaPasta.length === 0) {
+            semProvas.style.display = 'block';
+            return;
         }
+        
+        semProvas.style.display = 'none';
+        
+        provasNaPasta.forEach((prova, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${prova.titulo}</td>
+                <td>${prova.descricao || 'Sem descrição'}</td>
+                <td>${prova.questoes ? prova.questoes.length : 0}</td>
+                <td>
+                    <button class="btn-table btn-abrir" onclick="abrirProva('${prova._id}')">Abrir</button>
+                    <button class="btn-table btn-ver-sql" onclick="mostrarSQLProvaCompleta('${prova._id}')">Ver SQL</button>
+                    <button class="btn-table btn-excluir" onclick="removerProvaDaPasta('${prova._id}')">Remover</button>
+                </td>
+            `;
+            
+            lista.appendChild(tr);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar provas da pasta:', error);
+        alert('Erro ao carregar provas da pasta');
+    }
+}
         
         function abrirProva(provaId) {
             const prova = provas.find(p => p._id === provaId);
@@ -1662,53 +1667,54 @@
         }
         
         async function atualizarListaQuestoes() {
-            const lista = document.getElementById('questoes-lista');
-            const semQuestoes = document.getElementById('sem-questoes');
-            
-            lista.innerHTML = '';
-            semQuestoes.style.display = 'block'; // Mostrar mensagem inicialmente
-            
-            if (!provaSelecionada) return;
-            
-            try {
-                // Buscar questões APENAS da prova selecionada
-                const response = await fetch(`${API_URL}/api/questoes?prova=${provaSelecionada._id}`);
-                if (!response.ok) throw new Error('Erro ao carregar questões');
-                
-                const questoes = await response.json();
-                
-                if (questoes.length === 0) {
-                    semQuestoes.style.display = 'block';
-                    return;
-                }
-                
-                semQuestoes.style.display = 'none';
-                
-                questoes.forEach((questao, index) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${questao.disciplina}</td>
-                        <td>${questao.materia}</td>
-                        <td>${questao.assunto}</td>
-                        <td>${questao.resposta_correta}</td>
-                        <td>
-                            <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
-                            <button class="btn-table btn-ver-sql" onclick="mostrarSQL('${questao._id}')">Ver SQL</button>
-                            <button class="btn-table btn-excluir" onclick="excluirQuestaoUI('${questao._id}')">Excluir</button>
-                        </td>
-                    `;
-                    
-                    lista.appendChild(tr);
-                });
-                
-                // Atualizar o cache local APENAS para esta prova
-                questoesPorProva[provaSelecionada._id] = questoes;
-            } catch (error) {
-                console.error('Erro ao carregar questões:', error);
-                alert('Erro ao carregar questões');
-            }
+    const lista = document.getElementById('questoes-lista');
+    const semQuestoes = document.getElementById('sem-questoes');
+    
+    lista.innerHTML = '';
+    semQuestoes.style.display = 'block'; // Mostrar mensagem inicialmente
+    
+    if (!provaSelecionada) return;
+    
+    try {
+        // Buscar a prova com suas questões populadas
+        const response = await fetch(`${API_URL}/api/provas/${provaSelecionada._id}?populate=questoes`);
+        if (!response.ok) throw new Error('Erro ao carregar prova');
+        
+        const provaComQuestoes = await response.json();
+        const questoes = provaComQuestoes.questoes || [];
+        
+        if (questoes.length === 0) {
+            semQuestoes.style.display = 'block';
+            return;
         }
+        
+        semQuestoes.style.display = 'none';
+        
+        questoes.forEach((questao, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${questao.disciplina}</td>
+                <td>${questao.materia}</td>
+                <td>${questao.assunto}</td>
+                <td>${questao.resposta}</td>
+                <td>
+                    <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
+                    <button class="btn-table btn-ver-sql" onclick="mostrarSQL('${questao._id}')">Ver SQL</button>
+                    <button class="btn-table btn-excluir" onclick="excluirQuestaoUI('${questao._id}')">Excluir</button>
+                </td>
+            `;
+            
+            lista.appendChild(tr);
+        });
+        
+        // Atualizar o cache local APENAS para esta prova
+        questoesPorProva[provaSelecionada._id] = questoes;
+    } catch (error) {
+        console.error('Erro ao carregar questões:', error);
+        alert('Erro ao carregar questões');
+    }
+}
         
         async function editarQuestao(questaoId) {
             try {
