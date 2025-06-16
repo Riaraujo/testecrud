@@ -896,7 +896,7 @@
                 <div class="prova-acoes">
                     <button id="btn-voltar-pasta" class="btn-voltar-pasta">← Voltar para a Pasta</button>
                     <button id="btn-nova-questao" class="btn-nova-questao">+ Nova Questão</button>
-                    <button id="btn-ver-sql-todas" class="btn-ver-sql-todas">Ver SQL da Prova</button>
+                    <button id="btn-ver-sql-todas" class="btn-ver-sql-todas" onclick="mostrarSQLProva()">Ver SQL da Prova</button>
                 </div>
             </div>
             
@@ -1209,42 +1209,45 @@
         }
         
         function setupEventListeners() {
-            // Modal de visualização SQL
-            document.querySelector('.close').addEventListener('click', () => {
-                document.getElementById('preview-modal').style.display = 'none';
-            });
-            
-            // Modal de criar prova
-            document.getElementById('close-criar-prova').addEventListener('click', () => {
-                document.getElementById('criar-prova-modal').style.display = 'none';
-            });
-            
-            document.getElementById('cancelar-criar-prova').addEventListener('click', () => {
-                document.getElementById('criar-prova-modal').style.display = 'none';
-            });
-            
-            document.getElementById('confirmar-criar-prova').addEventListener('click', criarProva);
-            
-            // Modal de criar pasta
-            document.getElementById('close-criar-pasta').addEventListener('click', () => {
-                document.getElementById('criar-pasta-modal').style.display = 'none';
-            });
-            
-            document.getElementById('cancelar-criar-pasta').addEventListener('click', () => {
-                document.getElementById('criar-pasta-modal').style.display = 'none';
-            });
-            
-            document.getElementById('confirmar-criar-pasta').addEventListener('click', criarPasta);
-            
-            document.getElementById('btn-criar-pasta').addEventListener('click', () => {
-                document.getElementById('criar-pasta-modal').style.display = 'block';
-            });
-            
-            // Modal de visualizar SQL da prova
-            document.getElementById('close-questoes-prova').addEventListener('click', () => {
-                document.getElementById('questoes-prova-modal').style.display = 'none';
-            });
-            
+    // Modal de visualização SQL
+    document.querySelector('.close').addEventListener('click', () => {
+        document.getElementById('preview-modal').style.display = 'none';
+    });
+    
+    // Modal de criar prova
+    document.getElementById('close-criar-prova').addEventListener('click', () => {
+        document.getElementById('criar-prova-modal').style.display = 'none';
+    });
+    
+    document.getElementById('cancelar-criar-prova').addEventListener('click', () => {
+        document.getElementById('criar-prova-modal').style.display = 'none';
+    });
+    
+    document.getElementById('confirmar-criar-prova').addEventListener('click', criarProva);
+    
+    // Modal de criar pasta
+    document.getElementById('close-criar-pasta').addEventListener('click', () => {
+        document.getElementById('criar-pasta-modal').style.display = 'none';
+    });
+    
+    document.getElementById('cancelar-criar-pasta').addEventListener('click', () => {
+        document.getElementById('criar-pasta-modal').style.display = 'none';
+    });
+    
+    document.getElementById('confirmar-criar-pasta').addEventListener('click', criarPasta);
+    
+    document.getElementById('btn-criar-pasta').addEventListener('click', () => {
+        document.getElementById('criar-pasta-modal').style.display = 'block';
+    });
+    
+    // Modal de visualizar SQL da prova
+    document.getElementById('close-questoes-prova').addEventListener('click', () => {
+        document.getElementById('questoes-prova-modal').style.display = 'none';
+    });
+    
+    // Botão para ver SQL de todas as questões da prova
+    document.getElementById('btn-ver-sql-todas').addEventListener('click', mostrarSQLProva);
+    
             // Botões de navegação
             document.getElementById('btn-voltar-prova').addEventListener('click', () => {
                 if (provaSelecionada) {
@@ -1287,6 +1290,7 @@
                 }
             });
         }
+        
         
         function setupContextMenu() {
             // Esconder context menu ao clicar em qualquer lugar
@@ -1833,38 +1837,39 @@
         }
         
         async function mostrarSQLProva() {
-            if (!provaSelecionada) return;
-            
-            try {
-                // Carregar questões da prova se necessário
-                if (!questoesPorProva[provaSelecionada._id]) {
-                    const response = await fetch(`${API_URL}/api/questoes?prova=${provaSelecionada._id}`);
-                    if (!response.ok) throw new Error('Erro ao carregar questões');
-                    questoesPorProva[provaSelecionada._id] = await response.json();
-                }
-                
-                const questoes = questoesPorProva[provaSelecionada._id] || [];
-                
-                if (questoes.length === 0) {
-                    alert('Esta prova não possui questões.');
-                    return;
-                }
-                
-                let sqlCompleto = '';
-                questoes.forEach((questao, index) => {
-                    sqlCompleto += `-- Questão ${index + 1}\n`;
-                    sqlCompleto += gerarSQL(questao);
-                    sqlCompleto += '\n\n';
-                });
-                
-                document.getElementById('nome-prova-questoes').textContent = provaSelecionada.titulo;
-                document.getElementById('sql-questoes-prova').textContent = sqlCompleto;
-                document.getElementById('questoes-prova-modal').style.display = 'block';
-            } catch (error) {
-                console.error('Erro ao carregar questões:', error);
-                alert('Erro ao carregar questões');
-            }
+    if (!provaSelecionada) return;
+    
+    try {
+        // Carregar questões da prova se necessário
+        if (!questoesPorProva[provaSelecionada._id]) {
+            const response = await fetch(`${API_URL}/api/questoes?prova=${provaSelecionada._id}`);
+            if (!response.ok) throw new Error('Erro ao carregar questões');
+            questoesPorProva[provaSelecionada._id] = await response.json();
         }
+        
+        const questoes = questoesPorProva[provaSelecionada._id] || [];
+        
+        if (questoes.length === 0) {
+            alert('Esta prova não possui questões.');
+            return;
+        }
+        
+        let sqlCompleto = `-- SQL para todas as questões da prova: ${provaSelecionada.titulo}\n\n`;
+        
+        questoes.forEach((questao, index) => {
+            sqlCompleto += `-- Questão ${index + 1}\n`;
+            sqlCompleto += gerarSQL(questao);
+            sqlCompleto += '\n\n';
+        });
+        
+        document.getElementById('nome-prova-questoes').textContent = provaSelecionada.titulo;
+        document.getElementById('sql-questoes-prova').textContent = sqlCompleto;
+        document.getElementById('questoes-prova-modal').style.display = 'block';
+    } catch (error) {
+        console.error('Erro ao carregar questões:', error);
+        alert('Erro ao carregar questões: ' + error.message);
+    }
+}
         
         function copiarSQLProva() {
             const sql = document.getElementById('sql-questoes-prova').textContent;
