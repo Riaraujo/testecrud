@@ -36,96 +36,45 @@ const questaoSchema = new mongoose.Schema({
     disciplina: {
         type: String,
         required: [true, 'O campo disciplina é obrigatório'],
-        trim: true,
-        maxlength: 100
+        trim: true
     },
     materia: {
         type: String,
         required: [true, 'O campo matéria é obrigatório'],
-        trim: true,
-        maxlength: 100
+        trim: true
     },
     assunto: {
         type: String,
         required: [true, 'O campo assunto é obrigatório'],
-        trim: true,
-        maxlength: 100
+        trim: true
     },
     conteudo: {
         type: String,
-        trim: true,
-        maxlength: 100
+        trim: true
     },
     topico: {
         type: String,
-        trim: true,
-        maxlength: 100
+        trim: true
     },
     ano: {
         type: Number
     },
     instituicao: {
         type: String,
-        trim: true,
-        maxlength: 100
+        trim: true
     },
     enunciado: {
         type: String,
         required: [true, 'O campo enunciado é obrigatório']
     },
     alternativas: {
-        type: [String],
-        required: [true, 'O campo alternativas é obrigatório'],
-        validate: {
-            validator: function(v) {
-                return v.length >= 2;
-            },
-            message: 'Deve haver pelo menos duas alternativas'
-        }
+        type: String,
+        required: [true, 'O campo alternativas é obrigatório']
     },
     resposta_correta: {
         type: String,
         required: [true, 'O campo resposta_correta é obrigatório'],
         enum: ['A', 'B', 'C', 'D', 'E']
-    },
-    img1: {
-        type: String,
-        trim: true,
-        maxlength: 255
-    },
-    img2: {
-        type: String,
-        trim: true,
-        maxlength: 255
-    },
-    img3: {
-        type: String,
-        trim: true,
-        maxlength: 255
-    },
-    conhecimento1: {
-        type: String,
-        trim: true,
-        lowercase: true,
-        maxlength: 100
-    },
-    conhecimento2: {
-        type: String,
-        trim: true,
-        lowercase: true,
-        maxlength: 100
-    },
-    conhecimento3: {
-        type: String,
-        trim: true,
-        lowercase: true,
-        maxlength: 100
-    },
-    conhecimento4: {
-        type: String,
-        trim: true,
-        lowercase: true,
-        maxlength: 100
     },
     prova: {
         type: mongoose.Schema.Types.ObjectId,
@@ -351,12 +300,19 @@ app.post('/api/questoes', async (req, res) => {
             enunciado: req.body.enunciado,
             alternativas: req.body.alternativas,
             resposta_correta: req.body.resposta_correta,
-            prova: req.body.prova
+            prova: req.body.prova,
+            // Adicione os novos campos
+            img1: req.body.img1 || undefined,
+            img2: req.body.img2 || undefined,
+            img3: req.body.img3 || undefined,
+            conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : undefined,
+            conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : undefined,
+            conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : undefined,
+            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : undefined
         });
 
         await questao.save();
 
-        // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(req.body.prova, {
             $push: { questoes: questao._id }
         });
