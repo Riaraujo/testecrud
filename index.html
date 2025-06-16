@@ -1687,7 +1687,7 @@
                         <td>${questao.disciplina}</td>
                         <td>${questao.materia}</td>
                         <td>${questao.assunto}</td>
-                        <td>${questao.resposta_correta}</td>
+                        <td>${questao.resposta}</td>
                         <td>
                             <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
                             <button class="btn-table btn-ver-sql" onclick="mostrarSQL('${questao._id}')">Ver SQL</button>
@@ -1724,7 +1724,7 @@
                 document.getElementById('topico').value = questao.topico || '';
                 document.getElementById('ano').value = questao.ano || '';
                 document.getElementById('instituicao').value = questao.instituicao || '';
-                document.getElementById('resposta').value = questao.resposta_correta || 'A';
+                document.getElementById('resposta').value = questao.resposta || 'A';
                 document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
                 document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
                 document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
@@ -2166,9 +2166,9 @@
         disciplina: disciplina,
         materia: materia,
         assunto: assunto,
-        resposta_correta: resposta,
+        resposta: resposta,
         enunciado: enunciadoHTML,
-        alternativas: alternativasArray, // Já é um array
+        alternativas: Array.isArray(alternativasArray) ? alternativasArray : [alternativasArray],
         prova: provaSelecionada._id,
         // Campos adicionais
         conteudo: document.getElementById('conteudo').value.trim() || null,
@@ -2234,7 +2234,7 @@ function gerarSQL(questao) {
     const camposBase = [
         'texto',
         'alternativas',
-        'resposta_correta',
+        'resposta',
         'disciplina',
         'materia',
         'assunto'
@@ -2282,7 +2282,7 @@ function gerarSQL(questao) {
     const todosValores = [
         formatarValor(questao.enunciado),
         formatarValor(questao.alternativas),
-        formatarValor(questao.resposta_correta),
+        formatarValor(questao.resposta),
         formatarValor(questao.disciplina),
         formatarValor(questao.materia),
         formatarValor(questao.assunto),
