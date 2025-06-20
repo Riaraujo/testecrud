@@ -941,19 +941,25 @@
                 <div class="form-col">
                     <div class="form-group">
                         <label for="disciplina">Disciplina:</label>
-                        <input type="text" id="disciplina" class="form-control" placeholder="Ex: Biologia">
+                        <select id="disciplina" class="form-control" onchange="atualizarMaterias()">
+                            <option value="">Selecione uma disciplina</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="materia">Matéria:</label>
-                        <input type="text" id="materia" class="form-control" placeholder="Ex: Citologia">
+                        <select id="materia" class="form-control" onchange="atualizarAssuntos()" disabled>
+                            <option value="">Selecione uma matéria</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="assunto">Assunto:</label>
-                        <input type="text" id="assunto" class="form-control" placeholder="Ex: Organelas">
+                        <select id="assunto" class="form-control" onchange="atualizarConteudos()" disabled>
+                            <option value="">Selecione um assunto</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -962,13 +968,17 @@
                 <div class="form-col">
                     <div class="form-group">
                         <label for="conteudo">Conteúdo (opcional):</label>
-                        <input type="text" id="conteudo" class="form-control" placeholder="Ex: Vacúolo">
+                        <select id="conteudo" class="form-control" onchange="atualizarTopicos()" disabled>
+                            <option value="">Selecione um conteúdo</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="topico">Tópico (opcional):</label>
-                        <input type="text" id="topico" class="form-control" placeholder="Ex: Funções">
+                        <select id="topico" class="form-control" disabled>
+                            <option value="">Selecione um tópico</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -1204,6 +1214,388 @@
         // URL da API - substitua pela URL do seu serviço Node.js
         const API_URL = 'https://testecrud-production.up.railway.app';
         
+        // Estrutura de dados hierárquica para os selects dinâmicos
+        const estruturaDados = {
+            "Matemática": {
+                "Álgebra": {
+                    "Equações": {
+                        "Equações do 1º grau": [
+                            "Resolução básica",
+                            "Problemas contextualizados",
+                            "Sistemas de equações"
+                        ],
+                        "Equações do 2º grau": [
+                            "Fórmula de Bhaskara",
+                            "Soma e produto das raízes",
+                            "Problemas de aplicação"
+                        ]
+                    },
+                    "Funções": {
+                        "Função afim": [
+                            "Gráfico da função afim",
+                            "Coeficientes angular e linear",
+                            "Aplicações práticas"
+                        ],
+                        "Função quadrática": [
+                            "Parábola e vértice",
+                            "Raízes da função",
+                            "Máximos e mínimos"
+                        ]
+                    }
+                },
+                "Geometria": {
+                    "Geometria Plana": {
+                        "Triângulos": [
+                            "Classificação de triângulos",
+                            "Teorema de Pitágoras",
+                            "Relações métricas"
+                        ],
+                        "Quadriláteros": [
+                            "Propriedades dos quadriláteros",
+                            "Área e perímetro",
+                            "Paralelogramos"
+                        ]
+                    },
+                    "Geometria Espacial": {
+                        "Prismas": [
+                            "Volume de prismas",
+                            "Área da superfície",
+                            "Prismas regulares"
+                        ],
+                        "Pirâmides": [
+                            "Volume de pirâmides",
+                            "Área da superfície",
+                            "Tronco de pirâmide"
+                        ]
+                    }
+                }
+            },
+            "Português": {
+                "Gramática": {
+                    "Morfologia": {
+                        "Classes de palavras": [
+                            "Substantivos",
+                            "Adjetivos",
+                            "Verbos"
+                        ],
+                        "Formação de palavras": [
+                            "Derivação",
+                            "Composição",
+                            "Hibridismo"
+                        ]
+                    },
+                    "Sintaxe": {
+                        "Análise sintática": [
+                            "Sujeito e predicado",
+                            "Complementos verbais",
+                            "Adjuntos"
+                        ],
+                        "Período composto": [
+                            "Coordenação",
+                            "Subordinação",
+                            "Pontuação"
+                        ]
+                    }
+                },
+                "Literatura": {
+                    "Escolas literárias": {
+                        "Romantismo": [
+                            "Características",
+                            "Autores principais",
+                            "Obras importantes"
+                        ],
+                        "Realismo": [
+                            "Características",
+                            "Autores principais",
+                            "Obras importantes"
+                        ]
+                    },
+                    "Gêneros literários": {
+                        "Épico": [
+                            "Características",
+                            "Estrutura",
+                            "Exemplos"
+                        ],
+                        "Lírico": [
+                            "Características",
+                            "Estrutura",
+                            "Exemplos"
+                        ]
+                    }
+                }
+            },
+            "Biologia": {
+                "Citologia": {
+                    "Organelas": {
+                        "Mitocôndrias": [
+                            "Estrutura",
+                            "Função",
+                            "Respiração celular"
+                        ],
+                        "Ribossomos": [
+                            "Estrutura",
+                            "Função",
+                            "Síntese proteica"
+                        ]
+                    },
+                    "Membrana plasmática": {
+                        "Estrutura": [
+                            "Modelo mosaico fluido",
+                            "Componentes",
+                            "Permeabilidade"
+                        ],
+                        "Transporte": [
+                            "Transporte passivo",
+                            "Transporte ativo",
+                            "Endocitose e exocitose"
+                        ]
+                    }
+                },
+                "Genética": {
+                    "Leis de Mendel": {
+                        "Primeira lei": [
+                            "Monoibridismo",
+                            "Dominância",
+                            "Segregação"
+                        ],
+                        "Segunda lei": [
+                            "Diibridismo",
+                            "Segregação independente",
+                            "Quadrado de Punnett"
+                        ]
+                    },
+                    "Genética molecular": {
+                        "DNA": [
+                            "Estrutura",
+                            "Replicação",
+                            "Mutações"
+                        ],
+                        "RNA": [
+                            "Tipos de RNA",
+                            "Transcrição",
+                            "Tradução"
+                        ]
+                    }
+                }
+            },
+            "Química": {
+                "Química Geral": {
+                    "Estrutura atômica": {
+                        "Modelos atômicos": [
+                            "Modelo de Dalton",
+                            "Modelo de Thomson",
+                            "Modelo de Rutherford"
+                        ],
+                        "Configuração eletrônica": [
+                            "Distribuição eletrônica",
+                            "Números quânticos",
+                            "Orbitais"
+                        ]
+                    },
+                    "Tabela periódica": {
+                        "Propriedades periódicas": [
+                            "Raio atômico",
+                            "Energia de ionização",
+                            "Eletronegatividade"
+                        ],
+                        "Classificação": [
+                            "Metais",
+                            "Não-metais",
+                            "Semimetais"
+                        ]
+                    }
+                },
+                "Química Orgânica": {
+                    "Hidrocarbonetos": {
+                        "Alcanos": [
+                            "Nomenclatura",
+                            "Propriedades",
+                            "Reações"
+                        ],
+                        "Alcenos": [
+                            "Nomenclatura",
+                            "Propriedades",
+                            "Reações"
+                        ]
+                    },
+                    "Funções orgânicas": {
+                        "Álcoois": [
+                            "Nomenclatura",
+                            "Propriedades",
+                            "Reações"
+                        ],
+                        "Ácidos carboxílicos": [
+                            "Nomenclatura",
+                            "Propriedades",
+                            "Reações"
+                        ]
+                    }
+                }
+            },
+            "Física": {
+                "Mecânica": {
+                    "Cinemática": {
+                        "Movimento uniforme": [
+                            "Velocidade constante",
+                            "Equações",
+                            "Gráficos"
+                        ],
+                        "Movimento uniformemente variado": [
+                            "Aceleração constante",
+                            "Equações",
+                            "Gráficos"
+                        ]
+                    },
+                    "Dinâmica": {
+                        "Leis de Newton": [
+                            "Primeira lei",
+                            "Segunda lei",
+                            "Terceira lei"
+                        ],
+                        "Forças": [
+                            "Força peso",
+                            "Força normal",
+                            "Força de atrito"
+                        ]
+                    }
+                },
+                "Eletromagnetismo": {
+                    "Eletrostática": {
+                        "Carga elétrica": [
+                            "Propriedades",
+                            "Conservação",
+                            "Quantização"
+                        ],
+                        "Campo elétrico": [
+                            "Definição",
+                            "Linhas de força",
+                            "Potencial elétrico"
+                        ]
+                    },
+                    "Eletrodinâmica": {
+                        "Corrente elétrica": [
+                            "Definição",
+                            "Intensidade",
+                            "Resistência"
+                        ],
+                        "Circuitos": [
+                            "Lei de Ohm",
+                            "Associação de resistores",
+                            "Potência elétrica"
+                        ]
+                    }
+                }
+            },
+            "História": {
+                "História do Brasil": {
+                    "Brasil Colônia": {
+                        "Descobrimento": [
+                            "Chegada dos portugueses",
+                            "Primeiros contatos",
+                            "Capitanias hereditárias"
+                        ],
+                        "Economia colonial": [
+                            "Ciclo do açúcar",
+                            "Ciclo do ouro",
+                            "Escravidão"
+                        ]
+                    },
+                    "Brasil Império": {
+                        "Independência": [
+                            "Processo de independência",
+                            "Dom Pedro I",
+                            "Primeiro Reinado"
+                        ],
+                        "Segundo Reinado": [
+                            "Dom Pedro II",
+                            "Abolição da escravidão",
+                            "Proclamação da República"
+                        ]
+                    }
+                },
+                "História Geral": {
+                    "Idade Antiga": {
+                        "Civilizações antigas": [
+                            "Egito",
+                            "Mesopotâmia",
+                            "Grécia"
+                        ],
+                        "Império Romano": [
+                            "República",
+                            "Império",
+                            "Queda de Roma"
+                        ]
+                    },
+                    "Idade Média": {
+                        "Feudalismo": [
+                            "Características",
+                            "Sociedade feudal",
+                            "Economia feudal"
+                        ],
+                        "Igreja Medieval": [
+                            "Poder da Igreja",
+                            "Cruzadas",
+                            "Inquisição"
+                        ]
+                    }
+                }
+            },
+            "Geografia": {
+                "Geografia Física": {
+                    "Geologia": {
+                        "Estrutura da Terra": [
+                            "Camadas da Terra",
+                            "Placas tectônicas",
+                            "Vulcanismo"
+                        ],
+                        "Rochas e minerais": [
+                            "Tipos de rochas",
+                            "Ciclo das rochas",
+                            "Minerais"
+                        ]
+                    },
+                    "Climatologia": {
+                        "Fatores climáticos": [
+                            "Latitude",
+                            "Altitude",
+                            "Maritimidade"
+                        ],
+                        "Tipos de clima": [
+                            "Tropical",
+                            "Temperado",
+                            "Polar"
+                        ]
+                    }
+                },
+                "Geografia Humana": {
+                    "População": {
+                        "Demografia": [
+                            "Crescimento populacional",
+                            "Estrutura etária",
+                            "Migração"
+                        ],
+                        "Urbanização": [
+                            "Processo de urbanização",
+                            "Problemas urbanos",
+                            "Planejamento urbano"
+                        ]
+                    },
+                    "Economia": {
+                        "Setores econômicos": [
+                            "Setor primário",
+                            "Setor secundário",
+                            "Setor terciário"
+                        ],
+                        "Globalização": [
+                            "Características",
+                            "Blocos econômicos",
+                            "Multinacionais"
+                        ]
+                    }
+                }
+            }
+        };
+        
         // Variáveis globais
         let linhas = [];
         let nextLinhaId = 1;
@@ -1230,6 +1622,9 @@
             // Carregar dados da API
             carregarDados();
             
+            // Inicializar selects hierárquicos
+            inicializarSelectsHierarquicos();
+            
             adicionarLinha();
             renderizarEditor();
             
@@ -1242,6 +1637,143 @@
             // Mostrar tela inicial
             mostrarTelaInicial();
         });
+        
+        // Funções para selects hierárquicos
+        function inicializarSelectsHierarquicos() {
+            const disciplinaSelect = document.getElementById('disciplina');
+            
+            // Limpar e popular disciplinas
+            disciplinaSelect.innerHTML = '<option value="">Selecione uma disciplina</option>';
+            
+            Object.keys(estruturaDados).forEach(disciplina => {
+                const option = document.createElement('option');
+                option.value = disciplina;
+                option.textContent = disciplina;
+                disciplinaSelect.appendChild(option);
+            });
+        }
+        
+        function atualizarMaterias() {
+            const disciplinaSelecionada = document.getElementById('disciplina').value;
+            const materiaSelect = document.getElementById('materia');
+            const assuntoSelect = document.getElementById('assunto');
+            const conteudoSelect = document.getElementById('conteudo');
+            const topicoSelect = document.getElementById('topico');
+            
+            // Limpar selects dependentes
+            materiaSelect.innerHTML = '<option value="">Selecione uma matéria</option>';
+            assuntoSelect.innerHTML = '<option value="">Selecione um assunto</option>';
+            conteudoSelect.innerHTML = '<option value="">Selecione um conteúdo</option>';
+            topicoSelect.innerHTML = '<option value="">Selecione um tópico</option>';
+            
+            // Desabilitar selects dependentes
+            materiaSelect.disabled = true;
+            assuntoSelect.disabled = true;
+            conteudoSelect.disabled = true;
+            topicoSelect.disabled = true;
+            
+            if (disciplinaSelecionada && estruturaDados[disciplinaSelecionada]) {
+                materiaSelect.disabled = false;
+                
+                Object.keys(estruturaDados[disciplinaSelecionada]).forEach(materia => {
+                    const option = document.createElement('option');
+                    option.value = materia;
+                    option.textContent = materia;
+                    materiaSelect.appendChild(option);
+                });
+            }
+        }
+        
+        function atualizarAssuntos() {
+            const disciplinaSelecionada = document.getElementById('disciplina').value;
+            const materiaSelecionada = document.getElementById('materia').value;
+            const assuntoSelect = document.getElementById('assunto');
+            const conteudoSelect = document.getElementById('conteudo');
+            const topicoSelect = document.getElementById('topico');
+            
+            // Limpar selects dependentes
+            assuntoSelect.innerHTML = '<option value="">Selecione um assunto</option>';
+            conteudoSelect.innerHTML = '<option value="">Selecione um conteúdo</option>';
+            topicoSelect.innerHTML = '<option value="">Selecione um tópico</option>';
+            
+            // Desabilitar selects dependentes
+            assuntoSelect.disabled = true;
+            conteudoSelect.disabled = true;
+            topicoSelect.disabled = true;
+            
+            if (disciplinaSelecionada && materiaSelecionada && 
+                estruturaDados[disciplinaSelecionada] && 
+                estruturaDados[disciplinaSelecionada][materiaSelecionada]) {
+                
+                assuntoSelect.disabled = false;
+                
+                Object.keys(estruturaDados[disciplinaSelecionada][materiaSelecionada]).forEach(assunto => {
+                    const option = document.createElement('option');
+                    option.value = assunto;
+                    option.textContent = assunto;
+                    assuntoSelect.appendChild(option);
+                });
+            }
+        }
+        
+        function atualizarConteudos() {
+            const disciplinaSelecionada = document.getElementById('disciplina').value;
+            const materiaSelecionada = document.getElementById('materia').value;
+            const assuntoSelecionado = document.getElementById('assunto').value;
+            const conteudoSelect = document.getElementById('conteudo');
+            const topicoSelect = document.getElementById('topico');
+            
+            // Limpar selects dependentes
+            conteudoSelect.innerHTML = '<option value="">Selecione um conteúdo</option>';
+            topicoSelect.innerHTML = '<option value="">Selecione um tópico</option>';
+            
+            // Desabilitar selects dependentes
+            conteudoSelect.disabled = true;
+            topicoSelect.disabled = true;
+            
+            if (disciplinaSelecionada && materiaSelecionada && assuntoSelecionado &&
+                estruturaDados[disciplinaSelecionada] && 
+                estruturaDados[disciplinaSelecionada][materiaSelecionada] &&
+                estruturaDados[disciplinaSelecionada][materiaSelecionada][assuntoSelecionado]) {
+                
+                conteudoSelect.disabled = false;
+                
+                Object.keys(estruturaDados[disciplinaSelecionada][materiaSelecionada][assuntoSelecionado]).forEach(conteudo => {
+                    const option = document.createElement('option');
+                    option.value = conteudo;
+                    option.textContent = conteudo;
+                    conteudoSelect.appendChild(option);
+                });
+            }
+        }
+        
+        function atualizarTopicos() {
+            const disciplinaSelecionada = document.getElementById('disciplina').value;
+            const materiaSelecionada = document.getElementById('materia').value;
+            const assuntoSelecionado = document.getElementById('assunto').value;
+            const conteudoSelecionado = document.getElementById('conteudo').value;
+            const topicoSelect = document.getElementById('topico');
+            
+            // Limpar select dependente
+            topicoSelect.innerHTML = '<option value="">Selecione um tópico</option>';
+            topicoSelect.disabled = true;
+            
+            if (disciplinaSelecionada && materiaSelecionada && assuntoSelecionado && conteudoSelecionado &&
+                estruturaDados[disciplinaSelecionada] && 
+                estruturaDados[disciplinaSelecionada][materiaSelecionada] &&
+                estruturaDados[disciplinaSelecionada][materiaSelecionada][assuntoSelecionado] &&
+                estruturaDados[disciplinaSelecionada][materiaSelecionada][assuntoSelecionado][conteudoSelecionado]) {
+                
+                topicoSelect.disabled = false;
+                
+                estruturaDados[disciplinaSelecionada][materiaSelecionada][assuntoSelecionado][conteudoSelecionado].forEach(topico => {
+                    const option = document.createElement('option');
+                    option.value = topico;
+                    option.textContent = topico;
+                    topicoSelect.appendChild(option);
+                });
+            }
+        }
         
         // Função para atualizar o breadcrumb
         function atualizarBreadcrumb() {
@@ -1824,12 +2356,42 @@
                 modoEdicao = true;
                 questaoEditando = questao;
                 
-                // Preencher formulário com dados da questão
+                // Preencher formulário com dados da questão - selects hierárquicos
                 document.getElementById('disciplina').value = questao.disciplina || '';
-                document.getElementById('materia').value = questao.materia || '';
-                document.getElementById('assunto').value = questao.assunto || '';
-                document.getElementById('conteudo').value = questao.conteudo || '';
-                document.getElementById('topico').value = questao.topico || '';
+                
+                // Se há disciplina, atualizar matérias e selecionar a matéria
+                if (questao.disciplina) {
+                    atualizarMaterias();
+                    setTimeout(() => {
+                        document.getElementById('materia').value = questao.materia || '';
+                        
+                        // Se há matéria, atualizar assuntos e selecionar o assunto
+                        if (questao.materia) {
+                            atualizarAssuntos();
+                            setTimeout(() => {
+                                document.getElementById('assunto').value = questao.assunto || '';
+                                
+                                // Se há assunto, atualizar conteúdos e selecionar o conteúdo
+                                if (questao.assunto) {
+                                    atualizarConteudos();
+                                    setTimeout(() => {
+                                        document.getElementById('conteudo').value = questao.conteudo || '';
+                                        
+                                        // Se há conteúdo, atualizar tópicos e selecionar o tópico
+                                        if (questao.conteudo) {
+                                            atualizarTopicos();
+                                            setTimeout(() => {
+                                                document.getElementById('topico').value = questao.topico || '';
+                                            }, 50);
+                                        }
+                                    }, 50);
+                                }
+                            }, 50);
+                        }
+                    }, 50);
+                }
+                
+                // Preencher outros campos
                 document.getElementById('ano').value = questao.ano || '';
                 document.getElementById('instituicao').value = questao.instituicao || '';
                 document.getElementById('resposta').value = questao.resposta_correta || 'A';
@@ -1871,6 +2433,7 @@
         }
         
         function limparFormulario() {
+            // Limpar todos os selects
             document.getElementById('disciplina').value = '';
             document.getElementById('materia').value = '';
             document.getElementById('assunto').value = '';
@@ -1883,6 +2446,18 @@
             document.getElementById('conhecimento2').value = '';
             document.getElementById('conhecimento3').value = '';
             document.getElementById('conhecimento4').value = '';
+            
+            // Resetar selects hierárquicos
+            document.getElementById('materia').disabled = true;
+            document.getElementById('assunto').disabled = true;
+            document.getElementById('conteudo').disabled = true;
+            document.getElementById('topico').disabled = true;
+            
+            // Limpar opções dos selects dependentes
+            document.getElementById('materia').innerHTML = '<option value="">Selecione uma matéria</option>';
+            document.getElementById('assunto').innerHTML = '<option value="">Selecione um assunto</option>';
+            document.getElementById('conteudo').innerHTML = '<option value="">Selecione um conteúdo</option>';
+            document.getElementById('topico').innerHTML = '<option value="">Selecione um tópico</option>';
             
             linhas = [];
             nextLinhaId = 1;
