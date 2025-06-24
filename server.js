@@ -8,12 +8,18 @@ const PORT = process.env.PORT || 3000;
 
 // Configuração do CORS
 const corsOptions = {
-    origin: ['https://riaraujo.github.io', 'http://localhost:3000'],
+    origin: [
+        'https://riaraujo.github.io',         // Mantenha se ainda usa o domínio padrão do GitHub Pages
+        'http://localhost:3000',              // Para desenvolvimento local
+        'https://repositoriodequestoes.com',  // Adicione seu domínio raiz
+        'https://www.repositoriodequestoes.com' // Adicione seu subdomínio www
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204
 };
-app.use(cors(corsOptions));
+app.use(cors(corsOptions ));
+
 app.use(express.json());
 
 // Conexão com MongoDB
