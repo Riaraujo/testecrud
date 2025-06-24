@@ -1,7 +1,7 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,16 +9,17 @@ const PORT = process.env.PORT || 3000;
 // Configuração do CORS
 const corsOptions = {
     origin: [
-        'https://riaraujo.github.io',         // Mantenha se ainda usa o domínio padrão do GitHub Pages
-        'http://localhost:3000',              // Para desenvolvimento local
-        'https://repositoriodequestoes.com',  // Adicione seu domínio raiz
-        'https://www.repositoriodequestoes.com' // Adicione seu subdomínio www
+        'https://riaraujo.github.io',
+        'http://localhost:3000',
+        'https://repositoriodequestoes.com',
+        'https://www.repositoriodequestoes.com',
+        'http://www.repositoriodequestoes.com' // Adicionado para permitir requisições HTTP
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204
 };
-app.use(cors(corsOptions ));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
@@ -126,9 +127,9 @@ const questaoSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, { 
+}, {
     strict: false,
-    versionKey: false 
+    versionKey: false
 });
 
 const Questao = mongoose.model('Questao', questaoSchema);
@@ -206,10 +207,10 @@ app.get('/api/pastas', async (req, res) => {
 
 app.get('/api/pastas/:id', async (req, res) => {
     try {
-        const populateQuery = req.query.populate === 'provas' ? 
-            {path: 'provas', populate: {path: 'questoes'}} : 
+        const populateQuery = req.query.populate === 'provas' ?
+            {path: 'provas', populate: {path: 'questoes'}} :
             'provas';
-            
+
         const pasta = await Pasta.findById(req.params.id).populate(populateQuery);
         if (!pasta) {
             return res.status(404).json({ error: 'Pasta não encontrada' });
@@ -274,14 +275,14 @@ app.get('/api/provas', async (req, res) => {
 
 app.get('/api/provas/:id', async (req, res) => {
     try {
-        const populateQuery = req.query.populate === 'questoes' ? 
-            {path: 'questoes', options: {sort: {createdAt: -1}}} : 
+        const populateQuery = req.query.populate === 'questoes' ?
+            {path: 'questoes', options: {sort: {createdAt: -1}}} :
             'questoes';
-            
+
         const prova = await Prova.findById(req.params.id)
             .populate(populateQuery)
             .populate('pasta');
-            
+
         if (!prova) {
             return res.status(404).json({ error: 'Prova não encontrada' });
         }
@@ -327,13 +328,13 @@ app.delete('/api/provas/:id', async (req, res) => {
 app.post('/api/questoes', async (req, res) => {
     try {
         const requiredFields = [
-            'disciplina', 'materia', 'assunto', 
-            'enunciado', 'alternativas', 
+            'disciplina', 'materia', 'assunto',
+            'enunciado', 'alternativas',
             'resposta', 'prova'
         ];
-        
+
         const missingFields = requiredFields.filter(field => !req.body[field]);
-        
+
         if (missingFields.length > 0) {
             return res.status(400).json({
                 error: 'Campos obrigatórios faltando',
@@ -358,9 +359,7 @@ app.post('/api/questoes', async (req, res) => {
             ano: req.body.ano ? parseInt(req.body.ano) : null,
             instituicao: req.body.instituicao || null,
             enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) 
-                ? req.body.alternativas 
-                : [req.body.alternativas],
+            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
             resposta: req.body.resposta, // Garantido pela validação anterior
             prova: req.body.prova,
             img1: req.body.img1 || null,
@@ -472,3 +471,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
+
