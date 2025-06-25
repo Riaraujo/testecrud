@@ -8173,6 +8173,7 @@
         let questaoEditando = null;
         let contextMenuTarget = null;
         let acaoPendente = null; // Para armazenar a ação que precisa de senha
+        let pastasExpandidas = new Set(); // Para controlar quais pastas estão expandidas
         let pastaOrigemProva = null;
 
         // Inicializa o editor
@@ -8650,6 +8651,7 @@
         function renderizarPastaHierarquica(pasta, container, nivel) {
             const provasNaPasta = provasPorPasta[pasta._id] || [];
             const temChildren = pasta.children && pasta.children.length > 0;
+            const estaExpandida = pastasExpandidas.has(pasta._id);
             
             const li = document.createElement('li');
             li.className = 'pasta-item';
@@ -8661,10 +8663,28 @@
                 li.style.backgroundColor = '#e67e22'; // Cor laranja para pastas que contêm outras pastas
             }
             
+            // Ícone de expansão/colapso para pastas com children
+            const iconeExpansao = temChildren ? (estaExpandida ? '📂' : '📁') : '📁';
+            const setaExpansao = temChildren ? (estaExpandida ? '▼' : '▶') : '';
+            
             li.innerHTML = `
-                <span><span class="pasta-icon">📁</span>${pasta.nome}</span>
+                <span>
+                    ${temChildren ? `<span class="seta-expansao" style="margin-right: 5px; cursor: pointer; user-select: none;">${setaExpansao}</span>` : ''}
+                    <span class="pasta-icon">${iconeExpansao}</span>${pasta.nome}
+                </span>
                 <span class="prova-item-count">${temChildren ? pasta.children.length : provasNaPasta.length}</span>
             `;
+            
+            // Event listener para expansão/colapso
+            if (temChildren) {
+                const setaElement = li.querySelector('.seta-expansao');
+                if (setaElement) {
+                    setaElement.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Evitar que o clique na seta selecione a pasta
+                        toggleExpansaoPasta(pasta._id);
+                    });
+                }
+            }
             
             li.addEventListener('click', () => {
                 selecionarPasta(pasta);
@@ -8678,8 +8698,8 @@
             
             container.appendChild(li);
             
-            // Renderizar pastas filhas recursivamente
-            if (pasta.children && pasta.children.length > 0) {
+            // Renderizar pastas filhas recursivamente apenas se estiver expandida
+            if (pasta.children && pasta.children.length > 0 && estaExpandida) {
                 pasta.children.forEach(childId => {
                     const childPasta = pastas.find(p => p._id === childId || p._id === childId._id);
                     if (childPasta) {
@@ -8687,6 +8707,15 @@
                     }
                 });
             }
+        }
+        
+        function toggleExpansaoPasta(pastaId) {
+            if (pastasExpandidas.has(pastaId)) {
+                pastasExpandidas.delete(pastaId);
+            } else {
+                pastasExpandidas.add(pastaId);
+            }
+            atualizarListaProvas(); // Re-renderizar a lista
         }
         
         function mostrarContextMenuPasta(x, y) {
@@ -9135,7 +9164,35 @@
                 document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
                 
                 // Restaurar linhas
-                linhas = questao.linhas || [];
+                if (questao.linhas && Array.isArray(questao.linhas)) {
+                    linhas = questao.linhas.map(linha => {
+                        // Garantir que cada linha tenha a estrutura correta
+                        return {
+                            id: linha.id || Math.random(),
+                            blocos: linha.blocos ? linha.blocos.map(bloco => {
+                                // Garantir que cada bloco tenha a estrutura correta
+                                if (bloco.tipo === 'texto') {
+                                    return {
+                                        id: bloco.id || Math.random(),
+                                        tipo: 'texto',
+                                        conteudo: bloco.conteudo || '',
+                                        tipoTexto: bloco.tipoTexto || 'normal',
+                                        alinhamento: bloco.alinhamento || 'esquerda'
+                                    };
+                                } else if (bloco.tipo === 'imagem') {
+                                    return {
+                                        id: bloco.id || Math.random(),
+                                        tipo: 'imagem',
+                                        url: bloco.url || ''
+                                    };
+                                }
+                                return bloco;
+                            }) : []
+                        };
+                    });
+                } else {
+                    linhas = [];
+                }
                 nextLinhaId = Math.max(...linhas.map(l => l.id), 0) + 1;
                 
                 // Restaurar alternativas
@@ -9377,7 +9434,7 @@
                                     <option value="direita" ${bloco.alinhamento === 'direita' ? 'selected' : ''}>Direita</option>
                                 </select>
                             </div>
-                            <textarea placeholder="Digite o texto aqui..." onchange="atualizarTextoBloco(${bloco.id}, this.value)">${bloco.texto || ''}</textarea>
+                            <textarea placeholder="Digite o texto aqui..." onchange="atualizarTextoBloco(${bloco.id}, this.value)">${bloco.conteudo || bloco.texto || ''}</textarea>
                         </div>
                     </div>
                 `;
@@ -9426,7 +9483,8 @@
             const novoBloco = {
                 id: Date.now(),
                 tipo: tipo,
-                texto: '',
+                conteudo: '', // Usar conteudo para texto
+                texto: '', // Manter compatibilidade
                 url: '',
                 tipoTexto: 'normal',
                 alinhamento: 'esquerda'
@@ -9457,6 +9515,8 @@
             linhas.forEach(linha => {
                 const bloco = linha.blocos.find(b => b.id === blocoId);
                 if (bloco) {
+                    bloco.conteudo = texto;
+                    // Manter compatibilidade com versões antigas
                     bloco.texto = texto;
                 }
             });
