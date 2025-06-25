@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editor de Questões</title>
+    <link rel="icon" href="bastao.png" type="image/png">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         * {
@@ -827,6 +828,7 @@
     
     <!-- Context Menu para Pasta -->
     <div id="context-menu-pasta" class="context-menu">
+        <div class="context-menu-item" onclick="moverPasta()">Mover</div>
         <div class="context-menu-item danger" onclick="removerPasta()">Remover Pasta</div>
     </div>
     
@@ -1190,9 +1192,57 @@
                     <label for="descricao-pasta">Descrição (opcional):</label>
                     <input type="text" id="descricao-pasta" placeholder="Ex: Provas do ENEM 2023">
                 </div>
+                <div class="modal-form-group">
+                    <label for="pasta-pai">Pasta Pai (opcional):</label>
+                    <select id="pasta-pai">
+                        <option value="">Nenhuma (pasta raiz)</option>
+                    </select>
+                </div>
                 <div class="modal-buttons">
                     <button class="btn-cancelar" id="cancelar-criar-pasta">Cancelar</button>
                     <button class="btn-confirmar" id="confirmar-criar-pasta">Criar Pasta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Senha -->
+    <div id="senha-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-senha">&times;</span>
+            <h2>Senha Necessária</h2>
+            <div class="modal-form">
+                <div class="modal-form-group">
+                    <label for="senha-input">Digite a senha:</label>
+                    <input type="password" id="senha-input" placeholder="Digite a senha">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancelar" id="cancelar-senha">Cancelar</button>
+                    <button class="btn-confirmar" id="confirmar-senha">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Mover Pasta -->
+    <div id="mover-pasta-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-mover-pasta">&times;</span>
+            <h2>Mover Pasta</h2>
+            <div class="modal-form">
+                <div class="modal-form-group">
+                    <label>Pasta a ser movida:</label>
+                    <p id="pasta-sendo-movida" style="font-weight: bold; color: #333;"></p>
+                </div>
+                <div class="modal-form-group">
+                    <label for="nova-pasta-pai">Nova Pasta Pai:</label>
+                    <select id="nova-pasta-pai">
+                        <option value="">Nenhuma (pasta raiz)</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancelar" id="cancelar-mover-pasta">Cancelar</button>
+                    <button class="btn-confirmar" id="confirmar-mover-pasta">Mover Pasta</button>
                 </div>
             </div>
         </div>
@@ -8122,6 +8172,7 @@
         let modoEdicao = false;
         let questaoEditando = null;
         let contextMenuTarget = null;
+        let acaoPendente = null; // Para armazenar a ação que precisa de senha
         let pastaOrigemProva = null;
 
         // Inicializa o editor
@@ -8374,8 +8425,34 @@
     document.getElementById('confirmar-criar-pasta').addEventListener('click', criarPasta);
     
     document.getElementById('btn-criar-pasta').addEventListener('click', () => {
-        document.getElementById('criar-pasta-modal').style.display = 'block';
+        solicitarSenha(() => {
+            popularSelectPastaPai();
+            document.getElementById('criar-pasta-modal').style.display = 'block';
+        });
     });
+    
+    // Modal de senha
+    document.getElementById('close-senha').addEventListener('click', cancelarSenha);
+    document.getElementById('cancelar-senha').addEventListener('click', cancelarSenha);
+    document.getElementById('confirmar-senha').addEventListener('click', verificarSenha);
+    
+    // Permitir confirmar senha com Enter
+    document.getElementById('senha-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            verificarSenha();
+        }
+    });
+    
+    // Modal de mover pasta
+    document.getElementById('close-mover-pasta').addEventListener('click', () => {
+        document.getElementById('mover-pasta-modal').style.display = 'none';
+    });
+    
+    document.getElementById('cancelar-mover-pasta').addEventListener('click', () => {
+        document.getElementById('mover-pasta-modal').style.display = 'none';
+    });
+    
+    document.getElementById('confirmar-mover-pasta').addEventListener('click', executarMoverPasta);
     
     // Modal de visualizar SQL da prova
     document.getElementById('close-questoes-prova').addEventListener('click', () => {
@@ -8500,6 +8577,7 @@
         async function criarPasta() {
             const nome = document.getElementById('nome-pasta').value.trim();
             const descricao = document.getElementById('descricao-pasta').value.trim();
+            const pastaPai = document.getElementById('pasta-pai').value || null;
             
             if (!nome) {
                 alert('Por favor, insira um nome para a pasta.');
@@ -8507,12 +8585,17 @@
             }
             
             try {
+                const dadosPasta = { nome, descricao };
+                if (pastaPai) {
+                    dadosPasta.parent = pastaPai;
+                }
+                
                 const response = await fetch(`${API_URL}/api/pastas`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ nome, descricao })
+                    body: JSON.stringify(dadosPasta)
                 });
                 
                 if (!response.ok) throw new Error('Erro ao criar pasta');
@@ -8523,6 +8606,7 @@
                 // Limpar campos e fechar modal
                 document.getElementById('nome-pasta').value = '';
                 document.getElementById('descricao-pasta').value = '';
+                document.getElementById('pasta-pai').value = '';
                 document.getElementById('criar-pasta-modal').style.display = 'none';
                 
                 // Atualizar lista de pastas
@@ -8534,34 +8618,75 @@
             }
         }
         
+        function popularSelectPastaPai() {
+            const select = document.getElementById('pasta-pai');
+            select.innerHTML = '<option value="">Nenhuma (pasta raiz)</option>';
+            
+            // Adicionar apenas pastas que não têm provas (para evitar conflito)
+            pastas.forEach(pasta => {
+                const provasNaPasta = provasPorPasta[pasta._id] || [];
+                if (provasNaPasta.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = pasta._id;
+                    option.textContent = pasta.nome;
+                    select.appendChild(option);
+                }
+            });
+        }
+        
         function atualizarListaProvas() {
             const lista = document.getElementById('prova-list');
             lista.innerHTML = '';
             
-            pastas.forEach(pasta => {
-                const provasNaPasta = provasPorPasta[pasta._id] || [];
-                
-                const li = document.createElement('li');
-                li.className = 'pasta-item';
-                li.dataset.pastaId = pasta._id;
-                
-                li.innerHTML = `
-                    <span><span class="pasta-icon">📁</span>${pasta.nome}</span>
-                    <span class="prova-item-count">${provasNaPasta.length}</span>
-                `;
-                
-                li.addEventListener('click', () => {
-                    selecionarPasta(pasta);
-                });
-                
-                li.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    contextMenuTarget = pasta;
-                    mostrarContextMenuPasta(e.pageX, e.pageY);
-                });
-                
-                lista.appendChild(li);
+            // Separar pastas raiz (sem parent) das pastas filhas
+            const pastasRaiz = pastas.filter(pasta => !pasta.parent);
+            
+            // Renderizar pastas de forma hierárquica
+            pastasRaiz.forEach(pasta => {
+                renderizarPastaHierarquica(pasta, lista, 0);
             });
+        }
+        
+        function renderizarPastaHierarquica(pasta, container, nivel) {
+            const provasNaPasta = provasPorPasta[pasta._id] || [];
+            const temChildren = pasta.children && pasta.children.length > 0;
+            
+            const li = document.createElement('li');
+            li.className = 'pasta-item';
+            li.dataset.pastaId = pasta._id;
+            li.style.marginLeft = (nivel * 20) + 'px';
+            
+            // Mudar cor se tem children (outras pastas)
+            if (temChildren) {
+                li.style.backgroundColor = '#e67e22'; // Cor laranja para pastas que contêm outras pastas
+            }
+            
+            li.innerHTML = `
+                <span><span class="pasta-icon">📁</span>${pasta.nome}</span>
+                <span class="prova-item-count">${temChildren ? pasta.children.length : provasNaPasta.length}</span>
+            `;
+            
+            li.addEventListener('click', () => {
+                selecionarPasta(pasta);
+            });
+            
+            li.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                contextMenuTarget = pasta;
+                mostrarContextMenuPasta(e.pageX, e.pageY);
+            });
+            
+            container.appendChild(li);
+            
+            // Renderizar pastas filhas recursivamente
+            if (pasta.children && pasta.children.length > 0) {
+                pasta.children.forEach(childId => {
+                    const childPasta = pastas.find(p => p._id === childId || p._id === childId._id);
+                    if (childPasta) {
+                        renderizarPastaHierarquica(childPasta, container, nivel + 1);
+                    }
+                });
+            }
         }
         
         function mostrarContextMenuPasta(x, y) {
@@ -8570,16 +8695,118 @@
             contextMenu.style.left = x + 'px';
             contextMenu.style.top = y + 'px';
         }
-        
-        function removerPasta() {
+               function removerPasta() {
             if (!contextMenuTarget) return;
             
-            if (confirm(`Tem certeza que deseja remover a pasta "${contextMenuTarget.nome}"? Todas as provas dentro dela serão removidas permanentemente.`)) {
-                excluirPasta(contextMenuTarget._id);
+            // Esconder menu de contexto
+            document.getElementById('context-menu-pasta').style.display = 'none';
+            
+            // Solicitar senha antes de excluir
+            solicitarSenha(() => {
+                if (confirm(`Tem certeza que deseja remover a pasta "${contextMenuTarget.nome}"? Todas as provas dentro dela serão removidas permanentemente.`)) {
+                    excluirPasta(contextMenuTarget._id);
+                }
+            });
+        }
+        
+        function moverPasta() {
+            if (!contextMenuTarget) return;
+            
+            // Mostrar nome da pasta sendo movida
+            document.getElementById('pasta-sendo-movida').textContent = contextMenuTarget.nome;
+            
+            // Popular select com pastas disponíveis (excluindo a própria pasta e seus descendentes)
+            popularSelectNovaPastaPai(contextMenuTarget._id);
+            
+            // Mostrar modal
+            document.getElementById('mover-pasta-modal').style.display = 'block';
+            
+            // Esconder menu de contexto
+            document.getElementById('context-menu-pasta').style.display = 'none';
+        }
+        
+        function popularSelectNovaPastaPai(pastaExcluirId) {
+            const select = document.getElementById('nova-pasta-pai');
+            select.innerHTML = '<option value="">Nenhuma (pasta raiz)</option>';
+            
+            // Função para verificar se uma pasta é descendente da pasta sendo movida
+            function isDescendente(pastaId, ancestorId) {
+                const pasta = pastas.find(p => p._id === pastaId);
+                if (!pasta) return false;
+                if (pasta._id === ancestorId) return true;
+                if (pasta.parent) {
+                    return isDescendente(pasta.parent._id || pasta.parent, ancestorId);
+                }
+                return false;
             }
             
-            document.getElementById('context-menu-pasta').style.display = 'none';
-            contextMenuTarget = null;
+            // Adicionar pastas que não são a própria pasta nem seus descendentes
+            pastas.forEach(pasta => {
+                if (pasta._id !== pastaExcluirId && !isDescendente(pasta._id, pastaExcluirId)) {
+                    const option = document.createElement('option');
+                    option.value = pasta._id;
+                    option.textContent = pasta.nome;
+                    select.appendChild(option);
+                }
+            });
+        }
+        
+        async function executarMoverPasta() {
+            if (!contextMenuTarget) return;
+            
+            const novaPastaPai = document.getElementById('nova-pasta-pai').value || null;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/pastas/${contextMenuTarget._id}/mover`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ novoParentId: novaPastaPai })
+                });
+                
+                if (!response.ok) throw new Error('Erro ao mover pasta');
+                
+                // Fechar modal
+                document.getElementById('mover-pasta-modal').style.display = 'none';
+                
+                // Atualizar lista de pastas
+                await carregarDados();
+                atualizarListaProvas();
+                
+                alert('Pasta movida com sucesso!');
+            } catch (error) {
+                console.error('Erro ao mover pasta:', error);
+                alert('Erro ao mover pasta: ' + error.message);
+            }
+        }        
+        
+        // Funções de proteção por senha
+        function solicitarSenha(acao) {
+            acaoPendente = acao;
+            document.getElementById('senha-input').value = '';
+            document.getElementById('senha-modal').style.display = 'block';
+        }
+        
+        function verificarSenha() {
+            const senhaDigitada = document.getElementById('senha-input').value;
+            const senhaCorreta = '1610';
+            
+            if (senhaDigitada === senhaCorreta) {
+                document.getElementById('senha-modal').style.display = 'none';
+                if (acaoPendente) {
+                    acaoPendente();
+                    acaoPendente = null;
+                }
+            } else {
+                alert('Senha incorreta!');
+                document.getElementById('senha-input').value = '';
+            }
+        }
+        
+        function cancelarSenha() {
+            document.getElementById('senha-modal').style.display = 'none';
+            acaoPendente = null;
         }
         
         async function excluirPasta(pastaId) {
@@ -8901,7 +9128,7 @@
                 // Preencher outros campos
                 document.getElementById('ano').value = questao.ano || '';
                 document.getElementById('instituicao').value = questao.instituicao || '';
-                document.getElementById('resposta').value = questao.resposta_correta || 'A';
+                document.getElementById('resposta').value = questao.resposta || 'A';
                 document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
                 document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
                 document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
@@ -8912,13 +9139,29 @@
                 nextLinhaId = Math.max(...linhas.map(l => l.id), 0) + 1;
                 
                 // Restaurar alternativas
-                alternativas = questao.alternativas || [
-                    { letra: 'A', texto: '' },
-                    { letra: 'B', texto: '' },
-                    { letra: 'C', texto: '' },
-                    { letra: 'D', texto: '' },
-                    { letra: 'E', texto: '' }
-                ];
+                if (questao.alternativas && Array.isArray(questao.alternativas)) {
+                    // Se as alternativas vêm como array de strings (formato: "A) texto")
+                    alternativas = questao.alternativas.map((alt, index) => {
+                        const letra = String.fromCharCode(65 + index); // A, B, C, D, E
+                        let texto = alt;
+                        
+                        // Se a alternativa tem o formato "A) texto", extrair apenas o texto
+                        if (typeof alt === 'string' && alt.includes(')')) {
+                            texto = alt.substring(alt.indexOf(')') + 1).trim();
+                        }
+                        
+                        return { letra: letra, texto: texto };
+                    });
+                } else {
+                    // Fallback para alternativas vazias
+                    alternativas = [
+                        { letra: 'A', texto: '' },
+                        { letra: 'B', texto: '' },
+                        { letra: 'C', texto: '' },
+                        { letra: 'D', texto: '' },
+                        { letra: 'E', texto: '' }
+                    ];
+                }
                 
                 // Atualizar interface
                 document.getElementById('titulo-questao').textContent = 'Editar Questão';
@@ -9309,8 +9552,8 @@
     }
 
     // Verifica outros campos obrigatórios
-    if (!disciplina || !materia || !assunto) {
-        alert('Por favor, preencha Disciplina, Matéria e Assunto');
+    if (!disciplina || !materia) {
+        alert('Por favor, preencha Disciplina e Matéria');
         return;
     }
 
@@ -9358,7 +9601,7 @@
     const questao = {
         disciplina: disciplina,
         materia: materia,
-        assunto: assunto,
+        assunto: assunto || null, // Permitir null se vazio
         resposta: resposta, // Campo resposta garantido
         enunciado: enunciadoHTML,
         alternativas: alternativasArray,
