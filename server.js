@@ -52,7 +52,7 @@ const questaoSchema = new mongoose.Schema({
     },
     assunto: {
         type: String,
-        required: [true, 'O campo assunto é obrigatório'],
+        required: false, // Tornando opcional
         trim: true
     },
     conteudo: {
@@ -177,6 +177,15 @@ const pastaSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Prova'
     }],
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Pasta',
+        default: null
+    },
+    children: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Pasta'
+    }],
     createdAt: {
         type: Date,
         default: Date.now
@@ -190,6 +199,14 @@ app.post('/api/pastas', async (req, res) => {
     try {
         const pasta = new Pasta(req.body);
         await pasta.save();
+        
+        // Se tem parent, adicionar esta pasta aos children do parent
+        if (pasta.parent) {
+            await Pasta.findByIdAndUpdate(pasta.parent, { 
+                $push: { children: pasta._id } 
+            });
+        }
+        
         res.status(201).json(pasta);
     } catch (error) {
         res.status(400).json({ error: error.message, details: error.errors });
@@ -198,7 +215,11 @@ app.post('/api/pastas', async (req, res) => {
 
 app.get('/api/pastas', async (req, res) => {
     try {
-        const pastas = await Pasta.find().populate('provas').sort({ createdAt: -1 });
+        const pastas = await Pasta.find()
+            .populate('provas')
+            .populate('children')
+            .populate('parent')
+            .sort({ createdAt: -1 });
         res.json(pastas);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -239,12 +260,76 @@ app.put('/api/pastas/:id', async (req, res) => {
 
 app.delete('/api/pastas/:id', async (req, res) => {
     try {
-        const pasta = await Pasta.findByIdAndDelete(req.params.id);
+        const pasta = await Pasta.findById(req.params.id);
         if (!pasta) {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
+        
+        // Remover esta pasta dos children do parent
+        if (pasta.parent) {
+            await Pasta.findByIdAndUpdate(pasta.parent, { 
+                $pull: { children: pasta._id } 
+            });
+        }
+        
+        // Mover os children desta pasta para o parent (ou null se não tiver parent)
+        if (pasta.children && pasta.children.length > 0) {
+            await Pasta.updateMany(
+                { _id: { $in: pasta.children } },
+                { parent: pasta.parent }
+            );
+            
+            // Se tem parent, adicionar os children aos children do parent
+            if (pasta.parent) {
+                await Pasta.findByIdAndUpdate(pasta.parent, { 
+                    $push: { children: { $each: pasta.children } } 
+                });
+            }
+        }
+        
+        await Pasta.findByIdAndDelete(req.params.id);
         await Prova.deleteMany({ pasta: req.params.id });
         res.json({ message: 'Pasta excluída com sucesso' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Rota para mover pasta
+app.put('/api/pastas/:id/mover', async (req, res) => {
+    try {
+        const { novoParentId } = req.body;
+        const pastaId = req.params.id;
+        
+        const pasta = await Pasta.findById(pastaId);
+        if (!pasta) {
+            return res.status(404).json({ error: 'Pasta não encontrada' });
+        }
+        
+        // Verificar se não está tentando mover para si mesma ou para um descendente
+        if (novoParentId === pastaId) {
+            return res.status(400).json({ error: 'Não é possível mover uma pasta para si mesma' });
+        }
+        
+        // Remover dos children do parent atual
+        if (pasta.parent) {
+            await Pasta.findByIdAndUpdate(pasta.parent, { 
+                $pull: { children: pastaId } 
+            });
+        }
+        
+        // Atualizar o parent da pasta
+        pasta.parent = novoParentId || null;
+        await pasta.save();
+        
+        // Adicionar aos children do novo parent
+        if (novoParentId) {
+            await Pasta.findByIdAndUpdate(novoParentId, { 
+                $push: { children: pastaId } 
+            });
+        }
+        
+        res.json({ message: 'Pasta movida com sucesso', pasta });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -253,6 +338,16 @@ app.delete('/api/pastas/:id', async (req, res) => {
 // Rotas da API para Provas
 app.post('/api/provas', async (req, res) => {
     try {
+        // Verificar se a pasta tem children (outras pastas)
+        if (req.body.pasta) {
+            const pasta = await Pasta.findById(req.body.pasta);
+            if (pasta && pasta.children && pasta.children.length > 0) {
+                return res.status(400).json({ 
+                    error: 'Não é possível criar provas em pastas que contêm outras pastas' 
+                });
+            }
+        }
+        
         const prova = new Prova(req.body);
         await prova.save();
         if (prova.pasta) {
@@ -328,7 +423,7 @@ app.delete('/api/provas/:id', async (req, res) => {
 app.post('/api/questoes', async (req, res) => {
     try {
         const requiredFields = [
-            'disciplina', 'materia', 'assunto',
+            'disciplina', 'materia',
             'enunciado', 'alternativas',
             'resposta', 'prova'
         ];
@@ -471,4 +566,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
