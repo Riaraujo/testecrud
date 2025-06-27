@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // Configuração do CORS
 const corsOptions = {
-    origin: [ 
+    origin: [
         'https://riaraujo.github.io',
         'http://localhost:3000',
         'https://repositoriodequestoes.com',
@@ -45,20 +45,6 @@ const questaoSchema = new mongoose.Schema({
         required: [true, 'O campo disciplina é obrigatório'],
         trim: true
     },
-    language: {
-        type: String,
-        trim: true,
-        default: null
-    },
-    index: {
-        type: Number,
-        default: null
-    },
-    title: {
-        type: String,
-        trim: true,
-        default: null
-    },
     materia: {
         type: String,
         required: [true, 'O campo matéria é obrigatório'],
@@ -66,7 +52,7 @@ const questaoSchema = new mongoose.Schema({
     },
     assunto: {
         type: String,
-        required: false,
+        required: false, // Tornando opcional
         trim: true
     },
     conteudo: {
@@ -84,33 +70,16 @@ const questaoSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    context: { // Mantido o campo context
-        type: String,
-        trim: true,
-        default: null
-    },
-    enunciado: { // Enunciado será a parte do context antes do \n\n
+    enunciado: {
         type: String,
         required: [true, 'O campo enunciado é obrigatório']
     },
-    referencia: { // Novo campo para a parte do context após o \n\n
-        type: String,
-        trim: true,
-        default: null
-    },
-    alternativesIntroduction: { // Mantido o campo alternativesIntroduction
-        type: String,
-        trim: true,
-        default: null
-    },
     alternativas: {
-        type: [{
-            letter: { type: String, required: true },
-            text: { type: String, required: true },
-            file: { type: String, default: null },
-            isCorrect: { type: Boolean, default: false }
-        }],
-        required: [true, 'O campo alternativas é obrigatório']
+        type: [String],
+        required: [true, 'O campo alternativas é obrigatório'],
+        set: function(val) {
+            return Array.isArray(val) ? val : [val];
+        }
     },
     resposta: {
         type: String,
@@ -454,9 +423,9 @@ app.delete('/api/provas/:id', async (req, res) => {
 app.post('/api/questoes', async (req, res) => {
     try {
         const requiredFields = [
-            'title', 'index', 'year', 'discipline',
-            'context', 'alternativesIntroduction', 'alternatives',
-            'correctAlternative'
+            'disciplina', 'materia',
+            'enunciado', 'alternativas',
+            'resposta', 'prova'
         ];
 
         const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -468,89 +437,29 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        // Validação adicional para o campo correctAlternative
-        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.correctAlternative)) {
+        // Validação adicional para o campo resposta
+        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
             return res.status(400).json({
-                error: 'correctAlternative inválida',
-                details: 'A correctAlternative deve ser A, B, C, D ou E'
+                error: 'Resposta inválida',
+                details: 'A resposta deve ser A, B, C, D ou E'
             });
         }
 
-        const questionYear = req.body.year;
-        const questionIndex = req.body.index;
-
-        if (!questionYear || !questionIndex) {
-            return res.status(400).json({ error: 'Os campos year e index são obrigatórios para organizar a questão.' });
-        }
-
-        // Determinar o nome da prova com base no index
-        let provaNameSuffix = '';
-        if (questionIndex >= 1 && questionIndex <= 90) {
-            provaNameSuffix = ' PRIMEIRO DIA';
-        } else if (questionIndex >= 91) {
-            provaNameSuffix = ' SEGUNDO DIA';
-        } else {
-            return res.status(400).json({ error: 'Index da questão fora do intervalo esperado (1-90 ou 91+).' });
-        }
-
-        const pastaName = `ENEM ${questionYear}`;
-        const provaTitle = `ENEM ${questionYear}${provaNameSuffix}`;
-
-        // 1. Encontrar ou criar a Pasta (folder) com o nome "ENEM [ano]"
-        let pasta = await Pasta.findOne({ nome: pastaName });
-        if (!pasta) {
-            pasta = new Pasta({ nome: pastaName, descricao: `Questões do ENEM do ano ${questionYear}` });
-            await pasta.save();
-        }
-
-        // 2. Encontrar ou criar a Prova (exam) com o título específico dentro dessa pasta
-        let prova = await Prova.findOne({ titulo: provaTitle, pasta: pasta._id });
-        if (!prova) {
-            prova = new Prova({ titulo: provaTitle, descricao: `Questões do ${provaTitle}`, pasta: pasta._id });
-            await prova.save();
-            // Adicionar a prova à pasta
-            await Pasta.findByIdAndUpdate(pasta._id, { $push: { provas: prova._id } });
-        }
-
-        let enunciadoText = req.body.context;
-        let referenciaText = null;
-
-        // Separar enunciado e referência do context
-        const contextParts = req.body.context.split('\n\n');
-        if (contextParts.length > 1) {
-            enunciadoText = contextParts[0];
-            referenciaText = contextParts.slice(1).join('\n\n');
-        }
-
-        // Processar files para img1, img2, img3
-        const files = req.body.files || [];
-        const img1 = files[0] || null;
-        const img2 = files[1] || null;
-        const img3 = files[2] || null;
-
         const questao = new Questao({
-            title: req.body.title,
-            index: req.body.index,
-            year: req.body.year,
-            language: req.body.language || null,
-            discipline: req.body.discipline,
-            context: req.body.context, // Mantém o context original
-            enunciado: enunciadoText, // Enunciado extraído
-            referencia: referenciaText, // Referência extraída
-            alternativesIntroduction: req.body.alternativesIntroduction, // Mantém alternativesIntroduction original
-            alternativas: req.body.alternatives, // Array de objetos
-            resposta: req.body.correctAlternative, // Mapeia correctAlternative para resposta
-            prova: prova._id, // Associa a questão à prova encontrada/criada
-            img1: img1,
-            img2: img2,
-            img3: img3,
-            // Os campos materia, assunto, conteudo, topico, instituicao, conhecimento1-4
-            // não estão no JSON de entrada, então serão nulos ou precisarão ser adicionados
-            // se forem obrigatórios ou desejados.
-            // Por exemplo, você pode adicionar valores padrão ou mapeá-los se existirem em outro lugar.
-            materia: req.body.materia || 'Geral', // Exemplo de valor padrão
-            assunto: req.body.assunto || null,
-            instituicao: req.body.instituicao || 'ENEM', // Exemplo de valor padrão
+            disciplina: req.body.disciplina,
+            materia: req.body.materia,
+            assunto: req.body.assunto,
+            conteudo: req.body.conteudo || null,
+            topico: req.body.topico || null,
+            ano: req.body.ano ? parseInt(req.body.ano) : null,
+            instituicao: req.body.instituicao || null,
+            enunciado: req.body.enunciado,
+            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
+            resposta: req.body.resposta, // Garantido pela validação anterior
+            prova: req.body.prova,
+            img1: req.body.img1 || null,
+            img2: req.body.img2 || null,
+            img3: req.body.img3 || null,
             conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : null,
             conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : null,
             conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : null,
@@ -560,7 +469,7 @@ app.post('/api/questoes', async (req, res) => {
         await questao.save();
 
         // Atualizar a prova com a nova questão
-        await Prova.findByIdAndUpdate(prova._id, {
+        await Prova.findByIdAndUpdate(req.body.prova, {
             $push: { questoes: questao._id }
         });
 
@@ -597,45 +506,9 @@ app.get('/api/questoes/:id', async (req, res) => {
 
 app.put('/api/questoes/:id', async (req, res) => {
     try {
-        // Validação adicional para o campo correctAlternative (se estiver sendo atualizado)
-        if (req.body.correctAlternative && !['A', 'B', 'C', 'D', 'E'].includes(req.body.correctAlternative)) {
-            return res.status(400).json({
-                error: 'correctAlternative inválida',
-                details: 'A correctAlternative deve ser A, B, C, D ou E'
-            });
-        }
-
-        // Processar files para img1, img2, img3 se existirem no update
-        const updateData = { ...req.body };
-        if (req.body.files) {
-            updateData.img1 = req.body.files[0] || null;
-            updateData.img2 = req.body.files[1] || null;
-            updateData.img3 = req.body.files[2] || null;
-            delete updateData.files; // Remover o campo files do updateData
-        }
-
-        // Mapear correctAlternative para resposta
-        if (req.body.correctAlternative) {
-            updateData.resposta = req.body.correctAlternative;
-            delete updateData.correctAlternative;
-        }
-
-        // Separar enunciado e referência do context se o context for atualizado
-        if (req.body.context) {
-            const contextParts = req.body.context.split('\n\n');
-            updateData.enunciado = contextParts[0];
-            updateData.referencia = contextParts.slice(1).join('\n\n') || null;
-        }
-
-        // Mapear campos de conhecimento para lowercase se existirem
-        if (updateData.conhecimento1) updateData.conhecimento1 = updateData.conhecimento1.toLowerCase();
-        if (updateData.conhecimento2) updateData.conhecimento2 = updateData.conhecimento2.toLowerCase();
-        if (updateData.conhecimento3) updateData.conhecimento3 = updateData.conhecimento3.toLowerCase();
-        if (updateData.conhecimento4) updateData.conhecimento4 = updateData.conhecimento4.toLowerCase();
-
         const questao = await Questao.findByIdAndUpdate(
             req.params.id,
-            updateData,
+            req.body,
             { new: true, runValidators: true }
         );
         if (!questao) {
@@ -693,5 +566,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
-
