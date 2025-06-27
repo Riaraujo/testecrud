@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // Configuração do CORS
 const corsOptions = {
-    origin: [
+    origin: [ 
         'https://riaraujo.github.io',
         'http://localhost:3000',
         'https://repositoriodequestoes.com',
