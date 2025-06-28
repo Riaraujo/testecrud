@@ -61,7 +61,7 @@ const questaoSchema = new mongoose.Schema({
     },
     materia: {
         type: String,
-        required: [true, 'O campo matéria é obrigatório'],
+        required: false,
         trim: true
     },
     assunto: {
@@ -531,9 +531,9 @@ app.post('/api/questoes', async (req, res) => {
         const questao = new Questao({
             title: req.body.title,
             index: req.body.index,
-            year: req.body.year,
+            ano: req.body.year, // Mapeia year para ano
             language: req.body.language || null,
-            discipline: req.body.discipline,
+            disciplina: req.body.discipline, // Mapeia discipline para disciplina
             context: req.body.context, // Mantém o context original
             enunciado: enunciadoText, // Enunciado extraído
             referencia: referenciaText, // Referência extraída
@@ -693,5 +693,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
 
