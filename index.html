@@ -842,6 +842,7 @@
         <div class="sidebar-menu">
             <div class="sidebar-menu-title">Pastas</div>
             <button id="btn-criar-pasta" class="sidebar-button">📁 Criar Pasta</button>
+            <button id="btn-inserir-sql" class="sidebar-button">💾 Inserir SQL Direto</button>
         </div>
         
         <ul id="prova-list" class="prova-list">
@@ -1257,6 +1258,44 @@
                 <pre id="sql-questoes-prova"></pre>
             </div>
             <button onclick="copiarSQLProva()" class="btn-copiar">Copiar Todos os SQLs</button>
+        </div>
+    </div>
+    
+    <!-- Modal de Inserir SQL Direto -->
+    <div id="inserir-sql-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-inserir-sql">&times;</span>
+            <h2>Inserir Questão via SQL Direto</h2>
+            <div class="modal-form">
+                <div class="modal-form-group">
+                    <label for="json-questao">Cole o JSON da questão:</label>
+                    <textarea id="json-questao" placeholder='Cole aqui o JSON da questão no formato:
+{
+    "title": "Questão 175 - ENEM 2018",
+    "index": 175,
+    "year": 2018,
+    "language": null,
+    "discipline": "matematica",
+    "context": "Uma loja vende automóveis...",
+    "files": [],
+    "correctAlternative": "B",
+    "alternativesIntroduction": "Nessas condições...",
+    "alternatives": [
+        {
+            "letter": "A",
+            "text": "20",
+            "file": null,
+            "isCorrect": false
+        },
+        ...
+    ]
+}' style="width: 100%; height: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 14px;"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancelar" id="cancelar-inserir-sql">Cancelar</button>
+                    <button class="btn-confirmar" id="confirmar-inserir-sql">Inserir Questão</button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -8460,6 +8499,21 @@
         document.getElementById('questoes-prova-modal').style.display = 'none';
     });
     
+    // Modal de inserir SQL direto
+    document.getElementById('btn-inserir-sql').addEventListener('click', () => {
+        document.getElementById('inserir-sql-modal').style.display = 'block';
+    });
+    
+    document.getElementById('close-inserir-sql').addEventListener('click', () => {
+        document.getElementById('inserir-sql-modal').style.display = 'none';
+    });
+    
+    document.getElementById('cancelar-inserir-sql').addEventListener('click', () => {
+        document.getElementById('inserir-sql-modal').style.display = 'none';
+    });
+    
+    document.getElementById('confirmar-inserir-sql').addEventListener('click', inserirQuestaoSQL);
+    
     // Botão para ver SQL de todas as questões da prova
     document.getElementById('btn-ver-sql-todas').addEventListener('click', mostrarSQLProva);
     
@@ -9794,6 +9848,83 @@ function gerarSQL(questao) {
 
     return sql;
 }
+
+        // Função para inserir questão via SQL direto
+        async function inserirQuestaoSQL() {
+            const jsonText = document.getElementById('json-questao').value.trim();
+            
+            if (!jsonText) {
+                alert('Por favor, cole o JSON da questão.');
+                return;
+            }
+            
+            try {
+                // Validar JSON
+                const questaoData = JSON.parse(jsonText);
+                
+                // Validar campos obrigatórios
+                const camposObrigatorios = ['title', 'index', 'year', 'discipline', 'context', 'alternativesIntroduction', 'alternatives', 'correctAlternative'];
+                const camposFaltando = camposObrigatorios.filter(campo => !questaoData[campo]);
+                
+                if (camposFaltando.length > 0) {
+                    alert(`Campos obrigatórios faltando: ${camposFaltando.join(', ')}`);
+                    return;
+                }
+                
+                // Validar alternativas
+                if (!Array.isArray(questaoData.alternatives) || questaoData.alternatives.length === 0) {
+                    alert('O campo alternatives deve ser um array com pelo menos uma alternativa.');
+                    return;
+                }
+                
+                // Validar estrutura das alternativas
+                for (let i = 0; i < questaoData.alternatives.length; i++) {
+                    const alt = questaoData.alternatives[i];
+                    if (!alt.letter || !alt.text || typeof alt.isCorrect !== 'boolean') {
+                        alert(`Alternativa ${i + 1} tem estrutura inválida. Deve ter letter, text e isCorrect.`);
+                        return;
+                    }
+                }
+                
+                // Validar correctAlternative
+                if (!['A', 'B', 'C', 'D', 'E'].includes(questaoData.correctAlternative)) {
+                    alert('correctAlternative deve ser A, B, C, D ou E.');
+                    return;
+                }
+                
+                // Fazer requisição para o servidor
+                const response = await fetch(`${API_URL}/api/questoes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(questaoData)
+                });
+                
+                if (response.ok) {
+                    const resultado = await response.json();
+                    alert('Questão inserida com sucesso!');
+                    
+                    // Limpar o campo e fechar modal
+                    document.getElementById('json-questao').value = '';
+                    document.getElementById('inserir-sql-modal').style.display = 'none';
+                    
+                    // Recarregar a lista de pastas para mostrar as atualizações
+                    carregarPastas();
+                } else {
+                    const erro = await response.json();
+                    alert(`Erro ao inserir questão: ${erro.error || 'Erro desconhecido'}`);
+                }
+                
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    alert('JSON inválido. Verifique a sintaxe do JSON colado.');
+                } else {
+                    console.error('Erro ao inserir questão:', error);
+                    alert('Erro ao inserir questão. Verifique o console para mais detalhes.');
+                }
+            }
+        }
         
         function copiarCodigo() {
             const codigo = document.getElementById('codigo-gerado').textContent;
