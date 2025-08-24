@@ -234,66 +234,74 @@ function determinarTipoProva(index) {
     return index > 95 ? 'SEGUNDO DIA' : 'PRIMEIRO DIA';
 }
 
-// Middleware para criar pasta e prova automaticamente
-async function criarPastaEProvaAutomaticamente(questaoData) {
+// Função para criar pasta e prova automaticamente
+async function criarPastaEProvaAutomaticamente(year, index) {
     try {
-        // Verificar e criar pasta se necessário
-        let pastaNome = `ENEM ${questaoData.year}`;
+        // 1. Verificar/Criar PASTA
+        const pastaNome = `ENEM ${year}`;
         let pasta = await Pasta.findOne({ nome: pastaNome });
         
         if (!pasta) {
             pasta = new Pasta({ 
                 nome: pastaNome, 
-                descricao: `Provas do ENEM ${questaoData.year}` 
+                descricao: `Provas do ENEM ${year}` 
             });
             await pasta.save();
-            console.log(`Pasta criada automaticamente: ${pastaNome}`);
+            console.log(`✅ Pasta criada: ${pastaNome}`);
         }
 
-        // Verificar e criar prova se necessário
-        const tipoProva = determinarTipoProva(questaoData.index);
-        const provaTitulo = `ENEM ${questaoData.year} ${tipoProva}`;
-        let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+        // 2. Verificar/Criar PROVA
+        const tipoProva = determinarTipoProva(index);
+        const provaTitulo = `ENEM ${year} ${tipoProva}`;
+        let prova = await Prova.findOne({ titulo: provaTitulo });
         
         if (!prova) {
             prova = new Prova({
                 titulo: provaTitulo,
-                descricao: `Prova do ENEM ${questaoData.year} - ${tipoProva}`,
+                descricao: `Prova do ENEM ${year} - ${tipoProva}`,
                 pasta: pasta._id
             });
             await prova.save();
+            console.log(`✅ Prova criada: ${provaTitulo}`);
             
-            // Atualizar pasta com a nova prova
-            await Pasta.findByIdAndUpdate(pasta._id, { 
-                $push: { provas: prova._id } 
-            });
-            
-            console.log(`Prova criada automaticamente: ${provaTitulo}`);
+            // 3. Adicionar prova à pasta
+            await Pasta.findByIdAndUpdate(
+                pasta._id, 
+                { $push: { provas: prova._id } }
+            );
         }
 
-        return prova._id;
+        return { pastaId: pasta._id, provaId: prova._id };
+        
     } catch (error) {
-        console.error('Erro ao criar pasta e prova automaticamente:', error);
+        console.error('❌ Erro ao criar pasta/prova:', error);
         throw error;
     }
 }
 
-// Middleware pré-save para Questao
+// MIDDLEWARE Pré-save para Questão
 questaoSchema.pre('save', async function(next) {
     try {
-        // Só executa se for uma nova questão (não update)
         if (this.isNew) {
-            const provaId = await criarPastaEProvaAutomaticamente({
-                year: this.year,
-                index: this.index
-            });
-            
-            // Atribuir o ID da prova à questão
+            const { provaId } = await criarPastaEProvaAutomaticamente(this.year, this.index);
             this.prova = provaId;
         }
         next();
     } catch (error) {
         next(error);
+    }
+});
+
+// MIDDLEWARE Pós-save para Questão - Adicionar questão à prova
+questaoSchema.post('save', async function(doc) {
+    try {
+        await Prova.findByIdAndUpdate(
+            doc.prova,
+            { $addToSet: { questoes: doc._id } }
+        );
+        console.log(`✅ Questão ${doc.index} adicionada à prova`);
+    } catch (error) {
+        console.error('❌ Erro ao adicionar questão à prova:', error);
     }
 });
 
@@ -312,19 +320,6 @@ app.post('/api/pastas', async (req, res) => {
         res.status(201).json(pasta);
     } catch (error) {
         res.status(400).json({ error: error.message, details: error.errors });
-    }
-});
-
-// Buscar pasta por nome e ano
-app.get('/api/pastas/buscar/:nome', async (req, res) => {
-    try {
-        const pasta = await Pasta.findOne({ nome: req.params.nome });
-        if (!pasta) {
-            return res.status(404).json({ error: 'Pasta não encontrada' });
-        }
-        res.json(pasta);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
     }
 });
 
@@ -407,55 +402,6 @@ app.delete('/api/pastas/:id', async (req, res) => {
     }
 });
 
-// Rota para mover pasta
-app.put('/api/pastas/:id/mover', async (req, res) => {
-    try {
-        const { novoParentId } = req.body;
-        const pastaId = req.params.id;
-        
-        const pasta = await Pasta.findById(pastaId);
-        if (!pasta) {
-            return res.status(404).json({ error: 'Pasta não encontrada' });
-        }
-        
-        if (novoParentId === pastaId) {
-            return res.status(400).json({ error: 'Não é possível mover uma pasta para si mesma' });
-        }
-        
-        if (pasta.parent) {
-            await Pasta.findByIdAndUpdate(pasta.parent, { 
-                $pull: { children: pastaId } 
-            });
-        }
-        
-        pasta.parent = novoParentId || null;
-        await pasta.save();
-        
-        if (novoParentId) {
-            await Pasta.findByIdAndUpdate(novoParentId, { 
-                $push: { children: pastaId } 
-            });
-        }
-        
-        res.json({ message: 'Pasta movida com sucesso', pasta });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Buscar prova por título
-app.get('/api/provas/buscar/:titulo', async (req, res) => {
-    try {
-        const prova = await Prova.findOne({ titulo: req.params.titulo }).populate('pasta');
-        if (!prova) {
-            return res.status(404).json({ error: 'Prova não encontrada' });
-        }
-        res.json(prova);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
 // Rotas da API para Provas
 app.post('/api/provas', async (req, res) => {
     try {
@@ -481,7 +427,10 @@ app.post('/api/provas', async (req, res) => {
 
 app.get('/api/provas', async (req, res) => {
     try {
-        const provas = await Prova.find().populate('questoes').populate('pasta').sort({ createdAt: -1 });
+        const provas = await Prova.find()
+            .populate('questoes')
+            .populate('pasta')
+            .sort({ createdAt: -1 });
         res.json(provas);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -490,12 +439,8 @@ app.get('/api/provas', async (req, res) => {
 
 app.get('/api/provas/:id', async (req, res) => {
     try {
-        const populateQuery = req.query.populate === 'questoes' ?
-            {path: 'questoes', options: {sort: {createdAt: -1}}} :
-            'questoes';
-
         const prova = await Prova.findById(req.params.id)
-            .populate(populateQuery)
+            .populate('questoes')
             .populate('pasta');
 
         if (!prova) {
@@ -539,7 +484,7 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões (atualizada para schema em inglês)
+// Rota POST para Questões
 app.post('/api/questoes', async (req, res) => {
     try {
         const requiredFields = [
@@ -564,13 +509,16 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        // Preparar alternativas no formato correto
+        // Preparar alternativas
         const alternatives = req.body.alternatives.map((alt, index) => ({
             letter: String.fromCharCode(65 + index),
             text: alt,
             file: null,
             isCorrect: String.fromCharCode(65 + index) === req.body.correctAlternative
         }));
+
+        // Criar pasta e prova primeiro
+        const { provaId } = await criarPastaEProvaAutomaticamente(req.body.year, req.body.index);
 
         const questao = new Questao({
             title: req.body.title,
@@ -587,6 +535,7 @@ app.post('/api/questoes', async (req, res) => {
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
             instituicao: req.body.instituicao || null,
+            prova: provaId,
             img1: req.body.img1 || null,
             img2: req.body.img2 || null,
             img3: req.body.img3 || null,
@@ -598,8 +547,6 @@ app.post('/api/questoes', async (req, res) => {
         });
 
         await questao.save();
-
-        // A prova será atribuída automaticamente pelo middleware pré-save
 
         res.status(201).json(questao);
     } catch (error) {
@@ -613,7 +560,9 @@ app.post('/api/questoes', async (req, res) => {
 
 app.get('/api/questoes', async (req, res) => {
     try {
-        const questoes = await Questao.find().populate('prova').sort({ createdAt: -1 });
+        const questoes = await Questao.find()
+            .populate('prova')
+            .sort({ createdAt: -1 });
         res.json(questoes);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -622,7 +571,8 @@ app.get('/api/questoes', async (req, res) => {
 
 app.get('/api/questoes/:id', async (req, res) => {
     try {
-        const questao = await Questao.findById(req.params.id).populate('prova');
+        const questao = await Questao.findById(req.params.id)
+            .populate('prova');
         if (!questao) {
             return res.status(404).json({ error: 'Questão não encontrada' });
         }
