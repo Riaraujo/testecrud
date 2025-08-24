@@ -13,7 +13,7 @@ const corsOptions = {
         'http://localhost:3000',
         'https://repositoriodequestoes.com',
         'https://www.repositoriodequestoes.com',
-        'http://www.repositoriodequestoes.com' // Adicionado para permitir requisições HTTP
+        'http://www.repositoriodequestoes.com'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -38,7 +38,7 @@ mongoose.connect(MONGODB_URI, {
     process.exit(1);
 });
 
-// Schemas atualizados
+// Schemas atualizados em inglês
 const questaoSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -79,6 +79,69 @@ const questaoSchema = new mongoose.Schema({
         type: String,
         required: [true, 'O campo introdução das alternativas é obrigatório'],
         trim: true
+    },
+    materia: {
+        type: String,
+        required: [true, 'O campo matéria é obrigatório'],
+        trim: true
+    },
+    assunto: {
+        type: String,
+        required: false,
+        trim: true
+    },
+    conteudo: {
+        type: String,
+        trim: true
+    },
+    topico: {
+        type: String,
+        trim: true
+    },
+    instituicao: {
+        type: String,
+        trim: true
+    },
+    prova: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Prova',
+        required: [true, 'O campo prova é obrigatório']
+    },
+    img1: {
+        type: String,
+        trim: true
+    },
+    img2: {
+        type: String,
+        trim: true
+    },
+    img3: {
+        type: String,
+        trim: true
+    },
+    conhecimento1: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    conhecimento2: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    conhecimento3: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    conhecimento4: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     },
     alternatives: [{
         letter: {
@@ -166,13 +229,17 @@ const pastaSchema = new mongoose.Schema({
 
 const Pasta = mongoose.model('Pasta', pastaSchema);
 
+// Função para determinar o tipo de prova baseado no índice
+function determinarTipoProva(index) {
+    return index > 95 ? 'SEGUNDO DIA' : 'PRIMEIRO DIA';
+}
+
 // Rotas da API para Pastas
 app.post('/api/pastas', async (req, res) => {
     try {
         const pasta = new Pasta(req.body);
         await pasta.save();
         
-        // Se tem parent, adicionar esta pasta aos children do parent
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $push: { children: pasta._id } 
@@ -182,6 +249,19 @@ app.post('/api/pastas', async (req, res) => {
         res.status(201).json(pasta);
     } catch (error) {
         res.status(400).json({ error: error.message, details: error.errors });
+    }
+});
+
+// Buscar pasta por nome e ano
+app.get('/api/pastas/buscar/:nome', async (req, res) => {
+    try {
+        const pasta = await Pasta.findOne({ nome: req.params.nome });
+        if (!pasta) {
+            return res.status(404).json({ error: 'Pasta não encontrada' });
+        }
+        res.json(pasta);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -237,21 +317,18 @@ app.delete('/api/pastas/:id', async (req, res) => {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
         
-        // Remover esta pasta dos children do parent
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $pull: { children: pasta._id } 
             });
         }
         
-        // Mover os children desta pasta para o parent (ou null se não tiver parent)
         if (pasta.children && pasta.children.length > 0) {
             await Pasta.updateMany(
                 { _id: { $in: pasta.children } },
                 { parent: pasta.parent }
             );
             
-            // Se tem parent, adicionar os children aos children do parent
             if (pasta.parent) {
                 await Pasta.findByIdAndUpdate(pasta.parent, { 
                     $push: { children: { $each: pasta.children } } 
@@ -278,23 +355,19 @@ app.put('/api/pastas/:id/mover', async (req, res) => {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
         
-        // Verificar se não está tentando mover para si mesma ou para um descendente
         if (novoParentId === pastaId) {
             return res.status(400).json({ error: 'Não é possível mover uma pasta para si mesma' });
         }
         
-        // Remover dos children do parent atual
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $pull: { children: pastaId } 
             });
         }
         
-        // Atualizar o parent da pasta
         pasta.parent = novoParentId || null;
         await pasta.save();
         
-        // Adicionar aos children do novo parent
         if (novoParentId) {
             await Pasta.findByIdAndUpdate(novoParentId, { 
                 $push: { children: pastaId } 
@@ -307,10 +380,22 @@ app.put('/api/pastas/:id/mover', async (req, res) => {
     }
 });
 
+// Buscar prova por título
+app.get('/api/provas/buscar/:titulo', async (req, res) => {
+    try {
+        const prova = await Prova.findOne({ titulo: req.params.titulo }).populate('pasta');
+        if (!prova) {
+            return res.status(404).json({ error: 'Prova não encontrada' });
+        }
+        res.json(prova);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Rotas da API para Provas
 app.post('/api/provas', async (req, res) => {
     try {
-        // Verificar se a pasta tem children (outras pastas)
         if (req.body.pasta) {
             const pasta = await Pasta.findById(req.body.pasta);
             if (pasta && pasta.children && pasta.children.length > 0) {
@@ -391,13 +476,13 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões (completa e corrigida)
+// Rota POST para Questões (atualizada para schema em inglês)
 app.post('/api/questoes', async (req, res) => {
     try {
         const requiredFields = [
-            'disciplina', 'materia',
-            'enunciado', 'alternativas',
-            'resposta', 'prova'
+            'title', 'index', 'year', 'discipline', 'materia',
+            'context', 'alternatives', 'correctAlternative',
+            'alternativesIntroduction', 'prova'
         ];
 
         const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -409,39 +494,79 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        // Validação adicional para o campo resposta
-        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
+        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.correctAlternative)) {
             return res.status(400).json({
                 error: 'Resposta inválida',
                 details: 'A resposta deve ser A, B, C, D ou E'
             });
         }
 
+        // Verificar e criar pasta se necessário
+        let pastaNome = `ENEM ${req.body.year}`;
+        let pasta = await Pasta.findOne({ nome: pastaNome });
+        
+        if (!pasta) {
+            pasta = new Pasta({ nome: pastaNome, descricao: `Provas do ENEM ${req.body.year}` });
+            await pasta.save();
+        }
+
+        // Verificar e criar prova se necessário
+        const tipoProva = determinarTipoProva(req.body.index);
+        const provaTitulo = `ENEM ${req.body.year} ${tipoProva}`;
+        let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+        
+        if (!prova) {
+            prova = new Prova({
+                titulo: provaTitulo,
+                descricao: `Prova do ENEM ${req.body.year} - ${tipoProva}`,
+                pasta: pasta._id
+            });
+            await prova.save();
+            
+            // Atualizar pasta com a nova prova
+            await Pasta.findByIdAndUpdate(pasta._id, { 
+                $push: { provas: prova._id } 
+            });
+        }
+
+        // Preparar alternativas no formato correto
+        const alternatives = req.body.alternatives.map((alt, index) => ({
+            letter: String.fromCharCode(65 + index),
+            text: alt,
+            file: null,
+            isCorrect: String.fromCharCode(65 + index) === req.body.correctAlternative
+        }));
+
         const questao = new Questao({
-            disciplina: req.body.disciplina,
+            title: req.body.title,
+            index: req.body.index,
+            year: req.body.year,
+            language: req.body.language || null,
+            discipline: req.body.discipline,
+            context: req.body.context,
+            files: req.body.files || [],
+            correctAlternative: req.body.correctAlternative,
+            alternativesIntroduction: req.body.alternativesIntroduction,
             materia: req.body.materia,
-            assunto: req.body.assunto,
+            assunto: req.body.assunto || null,
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
-            ano: req.body.ano ? parseInt(req.body.ano) : null,
             instituicao: req.body.instituicao || null,
-            enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
-            resposta: req.body.resposta, // Garantido pela validação anterior
-            prova: req.body.prova,
+            prova: prova._id,
             img1: req.body.img1 || null,
             img2: req.body.img2 || null,
             img3: req.body.img3 || null,
             conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : null,
             conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : null,
             conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : null,
-            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
+            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null,
+            alternatives: alternatives
         });
 
         await questao.save();
 
         // Atualizar a prova com a nova questão
-        await Prova.findByIdAndUpdate(req.body.prova, {
+        await Prova.findByIdAndUpdate(prova._id, {
             $push: { questoes: questao._id }
         });
 
