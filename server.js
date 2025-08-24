@@ -485,12 +485,12 @@ app.post('/api/questoes', async (req, res) => {
 
         // Determinar o nome da prova com base no index
         let provaNameSuffix = '';
-        if (questionIndex >= 1 && questionIndex <= 95) {
+        if (questionIndex >= 1 && questionIndex <= 90) {
             provaNameSuffix = ' PRIMEIRO DIA';
-        } else if (questionIndex >= 96) {
+        } else if (questionIndex >= 91) {
             provaNameSuffix = ' SEGUNDO DIA';
         } else {
-            return res.status(400).json({ error: 'Index da questão fora do intervalo esperado (1-95 ou 96+).' });
+            return res.status(400).json({ error: 'Index da questão fora do intervalo esperado (1-90 ou 91+).' });
         }
 
         const pastaName = `ENEM ${questionYear}`;
@@ -565,8 +565,11 @@ app.post('/api/questoes', async (req, res) => {
         });
 
         res.status(201).json(questao);
-    } catch (erro        console.error('Erro ao criar questão:', error);
-        res.status(400).json({ error: error.message, details: error.errors || error });    details: error.errors
+    } catch (error) {
+        console.error('Erro ao criar questão:', error);
+        res.status(400).json({
+            error: error.message,
+            details: error.errors
         });
     }
 });
