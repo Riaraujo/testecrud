@@ -565,11 +565,8 @@ app.post('/api/questoes', async (req, res) => {
         });
 
         res.status(201).json(questao);
-    } catch (error) {
-        console.error('Erro ao criar questão:', error);
-        res.status(400).json({
-            error: error.message,
-            details: error.errors
+    } catch (erro        console.error('Erro ao criar questão:', error);
+        res.status(400).json({ error: error.message, details: error.errors || error });    details: error.errors
         });
     }
 });
