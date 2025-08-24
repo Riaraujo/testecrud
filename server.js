@@ -234,6 +234,69 @@ function determinarTipoProva(index) {
     return index > 95 ? 'SEGUNDO DIA' : 'PRIMEIRO DIA';
 }
 
+// Middleware para criar pasta e prova automaticamente
+async function criarPastaEProvaAutomaticamente(questaoData) {
+    try {
+        // Verificar e criar pasta se necessário
+        let pastaNome = `ENEM ${questaoData.year}`;
+        let pasta = await Pasta.findOne({ nome: pastaNome });
+        
+        if (!pasta) {
+            pasta = new Pasta({ 
+                nome: pastaNome, 
+                descricao: `Provas do ENEM ${questaoData.year}` 
+            });
+            await pasta.save();
+            console.log(`Pasta criada automaticamente: ${pastaNome}`);
+        }
+
+        // Verificar e criar prova se necessário
+        const tipoProva = determinarTipoProva(questaoData.index);
+        const provaTitulo = `ENEM ${questaoData.year} ${tipoProva}`;
+        let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+        
+        if (!prova) {
+            prova = new Prova({
+                titulo: provaTitulo,
+                descricao: `Prova do ENEM ${questaoData.year} - ${tipoProva}`,
+                pasta: pasta._id
+            });
+            await prova.save();
+            
+            // Atualizar pasta com a nova prova
+            await Pasta.findByIdAndUpdate(pasta._id, { 
+                $push: { provas: prova._id } 
+            });
+            
+            console.log(`Prova criada automaticamente: ${provaTitulo}`);
+        }
+
+        return prova._id;
+    } catch (error) {
+        console.error('Erro ao criar pasta e prova automaticamente:', error);
+        throw error;
+    }
+}
+
+// Middleware pré-save para Questao
+questaoSchema.pre('save', async function(next) {
+    try {
+        // Só executa se for uma nova questão (não update)
+        if (this.isNew) {
+            const provaId = await criarPastaEProvaAutomaticamente({
+                year: this.year,
+                index: this.index
+            });
+            
+            // Atribuir o ID da prova à questão
+            this.prova = provaId;
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Rotas da API para Pastas
 app.post('/api/pastas', async (req, res) => {
     try {
@@ -482,7 +545,7 @@ app.post('/api/questoes', async (req, res) => {
         const requiredFields = [
             'title', 'index', 'year', 'discipline', 'materia',
             'context', 'alternatives', 'correctAlternative',
-            'alternativesIntroduction', 'prova'
+            'alternativesIntroduction'
         ];
 
         const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -498,34 +561,6 @@ app.post('/api/questoes', async (req, res) => {
             return res.status(400).json({
                 error: 'Resposta inválida',
                 details: 'A resposta deve ser A, B, C, D ou E'
-            });
-        }
-
-        // Verificar e criar pasta se necessário
-        let pastaNome = `ENEM ${req.body.year}`;
-        let pasta = await Pasta.findOne({ nome: pastaNome });
-        
-        if (!pasta) {
-            pasta = new Pasta({ nome: pastaNome, descricao: `Provas do ENEM ${req.body.year}` });
-            await pasta.save();
-        }
-
-        // Verificar e criar prova se necessário
-        const tipoProva = determinarTipoProva(req.body.index);
-        const provaTitulo = `ENEM ${req.body.year} ${tipoProva}`;
-        let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
-        
-        if (!prova) {
-            prova = new Prova({
-                titulo: provaTitulo,
-                descricao: `Prova do ENEM ${req.body.year} - ${tipoProva}`,
-                pasta: pasta._id
-            });
-            await prova.save();
-            
-            // Atualizar pasta com a nova prova
-            await Pasta.findByIdAndUpdate(pasta._id, { 
-                $push: { provas: prova._id } 
             });
         }
 
@@ -552,7 +587,6 @@ app.post('/api/questoes', async (req, res) => {
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
             instituicao: req.body.instituicao || null,
-            prova: prova._id,
             img1: req.body.img1 || null,
             img2: req.body.img2 || null,
             img3: req.body.img3 || null,
@@ -565,10 +599,7 @@ app.post('/api/questoes', async (req, res) => {
 
         await questao.save();
 
-        // Atualizar a prova com a nova questão
-        await Prova.findByIdAndUpdate(prova._id, {
-            $push: { questoes: questao._id }
-        });
+        // A prova será atribuída automaticamente pelo middleware pré-save
 
         res.status(201).json(questao);
     } catch (error) {
