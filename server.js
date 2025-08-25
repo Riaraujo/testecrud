@@ -422,6 +422,7 @@ app.delete('/api/provas/:id', async (req, res) => {
 // Rota POST para Questões (completa e corrigida)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 app.post('/api/questoes', async (req, res) => {
     try {
         console.log('Recebendo requisição para criar questão:', req.body);
@@ -460,6 +461,24 @@ app.post('/api/questoes', async (req, res) => {
                 });
             }
 
+            // Converter ano para número inteiro
+            ano = parseInt(ano);
+            if (isNaN(ano)) {
+                return res.status(400).json({
+                    error: 'Ano deve ser um número válido'
+                });
+            }
+
+            // Converter index para número inteiro se fornecido
+            if (index !== undefined && index !== null) {
+                index = parseInt(index);
+                if (isNaN(index)) {
+                    return res.status(400).json({
+                        error: 'Index deve ser um número válido'
+                    });
+                }
+            }
+
             // Determinar o dia com base no index da questão
             let dia = 'Primeiro Dia';
             if (index !== undefined && index !== null && index > 95) {
@@ -469,13 +488,19 @@ app.post('/api/questoes', async (req, res) => {
             // Verificar/Criar pasta
             const pastaNome = `ENEM ${ano}`;
             let pasta = await Pasta.findOne({ nome: pastaNome });
+            
             if (!pasta) {
-                pasta = new Pasta({
-                    nome: pastaNome,
-                    descricao: `Provas do ENEM do ano ${ano}`
-                });
-                await pasta.save();
-                console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
+                try {
+                    pasta = new Pasta({
+                        nome: pastaNome,
+                        descricao: `Provas do ENEM do ano ${ano}`
+                    });
+                    await pasta.save();
+                    console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
+                } catch (error) {
+                    console.error('Erro ao criar pasta:', error);
+                    return res.status(500).json({ error: 'Erro ao criar pasta' });
+                }
             } else {
                 console.log(`Pasta encontrada: ${pastaNome} com ID: ${pasta._id}`);
             }
@@ -483,19 +508,27 @@ app.post('/api/questoes', async (req, res) => {
             // Verificar/Criar prova
             const provaTitulo = `ENEM ${ano} ${dia}`;
             let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+            
             if (!prova) {
-                prova = new Prova({
-                    titulo: provaTitulo,
-                    descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
-                    pasta: pasta._id
-                });
-                await prova.save();
-                console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
+                try {
+                    prova = new Prova({
+                        titulo: provaTitulo,
+                        descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
+                        pasta: pasta._id
+                    });
+                    await prova.save();
+                    console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
 
-                // Atualizar pasta com a nova prova
-                await Pasta.findByIdAndUpdate(pasta._id, {
-                    $push: { provas: prova._id }
-                });
+                    // Atualizar pasta com a nova prova
+                    await Pasta.findByIdAndUpdate(
+                        pasta._id, 
+                        { $push: { provas: prova._id } }
+                    );
+                    console.log(`Prova adicionada à pasta: ${pasta._id}`);
+                } catch (error) {
+                    console.error('Erro ao criar prova:', error);
+                    return res.status(500).json({ error: 'Erro ao criar prova' });
+                }
             } else {
                 console.log(`Prova encontrada: ${provaTitulo} com ID: ${prova._id}`);
             }
@@ -510,8 +543,8 @@ app.post('/api/questoes', async (req, res) => {
             assunto: req.body.assunto,
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
-            ano: ano ? parseInt(ano) : null,
-            instituicao: 'ENEM', // Definindo como ENEM fixo
+            ano: ano, // Já convertido para número
+            instituicao: 'ENEM',
             enunciado: req.body.enunciado,
             alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
             resposta: req.body.resposta,
@@ -525,9 +558,9 @@ app.post('/api/questoes', async (req, res) => {
             conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
         };
 
-        // Adicionar index da questão se fornecido
+        // Adicionar index da questão se fornecido (já convertido para número)
         if (index !== undefined && index !== null) {
-            questaoData.index = parseInt(index);
+            questaoData.index = index;
         }
 
         const questao = new Questao(questaoData);
@@ -535,26 +568,23 @@ app.post('/api/questoes', async (req, res) => {
         console.log(`Questão criada com ID: ${questao._id}`);
 
         // Atualizar a prova com a nova questão
-        await Prova.findByIdAndUpdate(provaId, {
-            $push: { questoes: questao._id }
-        });
+        await Prova.findByIdAndUpdate(
+            provaId, 
+            { $push: { questoes: questao._id } }
+        );
         console.log(`Questão adicionada à prova: ${provaId}`);
-
-        // Buscar a prova atualizada para retornar no response
-        const provaAtualizada = await Prova.findById(provaId).populate('pasta');
 
         res.status(201).json({
             questao: questao,
-            prova: provaAtualizada,
             provaCriada: !req.body.prova,
             pastaCriada: !req.body.prova
         });
 
     } catch (error) {
         console.error('Erro ao criar questão:', error);
-        res.status(400).json({
-            error: error.message,
-            details: error.errors
+        res.status(500).json({
+            error: 'Erro interno do servidor',
+            details: error.message
         });
     }
 });
