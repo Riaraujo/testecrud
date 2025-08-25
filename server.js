@@ -447,15 +447,14 @@ app.post('/api/questoes', async (req, res) => {
         }
 
         let provaId = req.body.prova;
-        let instituicao = req.body.instituicao || '';
         let ano = req.body.ano;
         let index = req.body.index;
 
         // Se não foi fornecido um ID de prova, criar automaticamente
         if (!provaId) {
-            if (!ano || !instituicao) {
+            if (!ano) {
                 return res.status(400).json({
-                    error: 'Para criar prova automaticamente, são necessários ano e instituição'
+                    error: 'Para criar prova automaticamente, é necessário o ano da questão'
                 });
             }
 
@@ -465,38 +464,38 @@ app.post('/api/questoes', async (req, res) => {
                 dia = 'Segundo Dia';
             }
 
-            // Verificar/criar pasta - CORREÇÃO: usar regex para busca case-insensitive
-            let pastaNome = `${instituicao} ${ano}`;
+            // Verificar/criar pasta - Prefixo fixo "ENEM"
+            let pastaNome = `ENEM ${ano}`;
             let pasta = await Pasta.findOne({ 
-                nome: { $regex: new RegExp(`^${pastaNome}$`, 'i') } 
+                nome: pastaNome
             });
             
             if (!pasta) {
                 pasta = new Pasta({
                     nome: pastaNome,
-                    descricao: `Provas do ${instituicao} do ano ${ano}`
+                    descricao: `Provas do ENEM do ano ${ano}`
                 });
                 await pasta.save();
                 console.log(`Pasta criada: ${pastaNome}`);
             }
 
-            // Verificar/criar prova - CORREÇÃO: usar regex para busca case-insensitive
-            let provaTitulo = `${instituicao} ${ano} ${dia}`;
+            // Verificar/criar prova - Prefixo fixo "ENEM"
+            let provaTitulo = `ENEM ${ano} ${dia}`;
             let prova = await Prova.findOne({ 
-                titulo: { $regex: new RegExp(`^${provaTitulo}$`, 'i') },
+                titulo: provaTitulo,
                 pasta: pasta._id 
             });
             
             if (!prova) {
                 prova = new Prova({
                     titulo: provaTitulo,
-                    descricao: `Prova do ${instituicao} do ano ${ano} - ${dia}`,
+                    descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
                     pasta: pasta._id
                 });
                 await prova.save();
                 console.log(`Prova criada: ${provaTitulo}`);
 
-                // Atualizar pasta com a nova prova - CORREÇÃO: garantir que a prova seja adicionada
+                // Atualizar pasta com a nova prova
                 await Pasta.findByIdAndUpdate(pasta._id, {
                     $push: { provas: prova._id }
                 });
@@ -513,7 +512,7 @@ app.post('/api/questoes', async (req, res) => {
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
             ano: ano ? parseInt(ano) : null,
-            instituicao: instituicao,
+            instituicao: 'ENEM', // Definindo como ENEM fixo
             enunciado: req.body.enunciado,
             alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
             resposta: req.body.resposta,
@@ -535,7 +534,7 @@ app.post('/api/questoes', async (req, res) => {
         const questao = new Questao(questaoData);
         await questao.save();
 
-        // Atualizar a prova com a nova questão - CORREÇÃO: garantir que a questão seja adicionada
+        // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(provaId, {
             $push: { questoes: questao._id }
         });
