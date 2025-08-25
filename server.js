@@ -123,9 +123,6 @@ const questaoSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
-    index: {
-        type: Number
-    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -275,7 +272,7 @@ app.delete('/api/pastas/:id', async (req, res) => {
             });
         }
         
-        // Mover os children desta pasta para elo parent (ou null se não tiver parent)
+        // Mover os children desta pasta para o parent (ou null se não tiver parent)
         if (pasta.children && pasta.children.length > 0) {
             await Pasta.updateMany(
                 { _id: { $in: pasta.children } },
@@ -422,6 +419,7 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
+// Rota POST para Questões (completa e corrigida)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 app.post('/api/questoes', async (req, res) => {
     try {
@@ -467,9 +465,11 @@ app.post('/api/questoes', async (req, res) => {
                 dia = 'Segundo Dia';
             }
 
-            // Verificar/criar pasta
+            // Verificar/criar pasta - CORREÇÃO: usar regex para busca case-insensitive
             let pastaNome = `${instituicao} ${ano}`;
-            let pasta = await Pasta.findOne({ nome: pastaNome });
+            let pasta = await Pasta.findOne({ 
+                nome: { $regex: new RegExp(`^${pastaNome}$`, 'i') } 
+            });
             
             if (!pasta) {
                 pasta = new Pasta({
@@ -477,11 +477,15 @@ app.post('/api/questoes', async (req, res) => {
                     descricao: `Provas do ${instituicao} do ano ${ano}`
                 });
                 await pasta.save();
+                console.log(`Pasta criada: ${pastaNome}`);
             }
 
-            // Verificar/criar prova
+            // Verificar/criar prova - CORREÇÃO: usar regex para busca case-insensitive
             let provaTitulo = `${instituicao} ${ano} ${dia}`;
-            let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+            let prova = await Prova.findOne({ 
+                titulo: { $regex: new RegExp(`^${provaTitulo}$`, 'i') },
+                pasta: pasta._id 
+            });
             
             if (!prova) {
                 prova = new Prova({
@@ -490,8 +494,9 @@ app.post('/api/questoes', async (req, res) => {
                     pasta: pasta._id
                 });
                 await prova.save();
+                console.log(`Prova criada: ${provaTitulo}`);
 
-                // Atualizar pasta com a nova prova
+                // Atualizar pasta com a nova prova - CORREÇÃO: garantir que a prova seja adicionada
                 await Pasta.findByIdAndUpdate(pasta._id, {
                     $push: { provas: prova._id }
                 });
@@ -530,13 +535,17 @@ app.post('/api/questoes', async (req, res) => {
         const questao = new Questao(questaoData);
         await questao.save();
 
-        // Atualizar a prova com a nova questão
+        // Atualizar a prova com a nova questão - CORREÇÃO: garantir que a questão seja adicionada
         await Prova.findByIdAndUpdate(provaId, {
             $push: { questoes: questao._id }
         });
 
+        // Buscar a prova atualizada para retornar no response
+        const provaAtualizada = await Prova.findById(provaId).populate('pasta');
+
         res.status(201).json({
             questao: questao,
+            prova: provaAtualizada,
             provaCriada: !req.body.prova,
             pastaCriada: !req.body.prova
         });
