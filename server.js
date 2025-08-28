@@ -13,7 +13,7 @@ const corsOptions = {
         'http://localhost:3000',
         'https://repositoriodequestoes.com',
         'https://www.repositoriodequestoes.com',
-        'http://www.repositoriodequestoes.com' // Adicionado para permitir requisições HTTP
+        'http://www.repositoriodequestoes.com'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -193,7 +193,8 @@ const provaSchema = new mongoose.Schema({
     descricao: {
         type: String,
         trim: true,
-        maxlength: [1000, 'A descrição não pode ter mais que 1000 caracteres']
+        maxlength: [1000, 'A descrição não pode ter mais que 1000 caracteres'],
+        default: ""
     },
     questoes: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -220,7 +221,8 @@ const pastaSchema = new mongoose.Schema({
     },
     descricao: {
         type: String,
-        trim: true
+        trim: true,
+        default: ""
     },
     provas: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -468,16 +470,18 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões - ATUALIZADA para o novo formato
+// Rota POST para Questões - VERSÃO CORRIGIDA E SIMPLIFICADA
 app.post('/api/questoes', async (req, res) => {
     try {
-        console.log('Recebendo requisição para criar questão:', req.body);
+        console.log('=== INÍCIO DA CRIAÇÃO DE QUESTÃO ===');
+        console.log('Dados recebidos:', JSON.stringify(req.body, null, 2));
 
-        // Validação dos campos obrigatórios do novo formato
+        // Validação dos campos obrigatórios
         const requiredFields = ['title', 'index', 'year', 'discipline', 'correctAlternative', 'alternatives'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
 
         if (missingFields.length > 0) {
+            console.log('Campos obrigatórios faltando:', missingFields);
             return res.status(400).json({
                 error: 'Campos obrigatórios faltando',
                 missingFields: missingFields
@@ -486,6 +490,7 @@ app.post('/api/questoes', async (req, res) => {
 
         // Validação da resposta correta
         if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.correctAlternative)) {
+            console.log('Resposta inválida:', req.body.correctAlternative);
             return res.status(400).json({
                 error: 'Resposta inválida',
                 details: 'A resposta deve ser A, B, C, D ou E'
@@ -494,6 +499,7 @@ app.post('/api/questoes', async (req, res) => {
 
         // Validação das alternativas
         if (!Array.isArray(req.body.alternatives) || req.body.alternatives.length === 0) {
+            console.log('Alternativas inválidas:', req.body.alternatives);
             return res.status(400).json({
                 error: 'Alternativas inválidas',
                 details: 'Deve haver pelo menos uma alternativa'
@@ -505,23 +511,30 @@ app.post('/api/questoes', async (req, res) => {
         const index = parseInt(req.body.index);
 
         if (isNaN(year) || isNaN(index)) {
+            console.log('Year ou index inválidos:', { year: req.body.year, index: req.body.index });
             return res.status(400).json({
                 error: 'Year e index devem ser números válidos'
             });
         }
 
-        // Determinar o dia com base no index da questão (corrigido: > 95 para segundo dia)
+        console.log('Dados convertidos:', { year, index });
+
+        // Determinar o dia com base no index da questão
         let dia = 'PRIMEIRO DIA';
         if (index > 95) {
             dia = 'SEGUNDO DIA';
         }
+        console.log('Dia determinado:', dia);
 
-        // Verificar/Criar pasta
+        // ETAPA 1: Verificar/Criar pasta
         const pastaNome = `ENEM ${year}`;
+        console.log('Procurando pasta:', pastaNome);
+        
         let pasta = await Pasta.findOne({ nome: pastaNome });
         let pastaCriada = false;
         
         if (!pasta) {
+            console.log('Pasta não encontrada, criando nova...');
             try {
                 pasta = new Pasta({
                     nome: pastaNome,
@@ -532,21 +545,27 @@ app.post('/api/questoes', async (req, res) => {
                 });
                 await pasta.save();
                 pastaCriada = true;
-                console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
-            } catch (error) {
-                console.error('Erro ao criar pasta:', error);
-                return res.status(500).json({ error: 'Erro ao criar pasta' });
+                console.log('✅ Pasta criada com sucesso:', pasta._id);
+            } catch (pastaError) {
+                console.error('❌ Erro ao criar pasta:', pastaError);
+                return res.status(500).json({ 
+                    error: 'Erro ao criar pasta',
+                    details: pastaError.message 
+                });
             }
         } else {
-            console.log(`Pasta encontrada: ${pastaNome} com ID: ${pasta._id}`);
+            console.log('✅ Pasta encontrada:', pasta._id);
         }
 
-        // Verificar/Criar prova
+        // ETAPA 2: Verificar/Criar prova
         const provaTitulo = `ENEM ${year} ${dia}`;
+        console.log('Procurando prova:', provaTitulo);
+        
         let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
         let provaCriada = false;
         
         if (!prova) {
+            console.log('Prova não encontrada, criando nova...');
             try {
                 prova = new Prova({
                     titulo: provaTitulo,
@@ -556,22 +575,28 @@ app.post('/api/questoes', async (req, res) => {
                 });
                 await prova.save();
                 provaCriada = true;
-                console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
+                console.log('✅ Prova criada com sucesso:', prova._id);
 
                 // Atualizar pasta com a nova prova
                 await Pasta.findByIdAndUpdate(
                     pasta._id, 
                     { $push: { provas: prova._id } }
                 );
-                console.log(`Prova adicionada à pasta: ${pasta._id}`);
-            } catch (error) {
-                console.error('Erro ao criar prova:', error);
-                return res.status(500).json({ error: 'Erro ao criar prova' });
+                console.log('✅ Prova adicionada à pasta');
+            } catch (provaError) {
+                console.error('❌ Erro ao criar prova:', provaError);
+                return res.status(500).json({ 
+                    error: 'Erro ao criar prova',
+                    details: provaError.message 
+                });
             }
         } else {
-            console.log(`Prova encontrada: ${provaTitulo} com ID: ${prova._id}`);
+            console.log('✅ Prova encontrada:', prova._id);
         }
 
+        // ETAPA 3: Processar dados da questão
+        console.log('Processando dados da questão...');
+        
         // Processar context para separar enunciado e referência
         let enunciado = '';
         let referencia = '';
@@ -593,7 +618,8 @@ app.post('/api/questoes', async (req, res) => {
             img3 = req.body.files[2] || null;
         }
 
-        // Criar a questão com o novo formato
+        // ETAPA 4: Criar a questão
+        console.log('Criando questão...');
         const questaoData = {
             // Novos campos
             title: req.body.title,
@@ -608,15 +634,15 @@ app.post('/api/questoes', async (req, res) => {
             alternatives: req.body.alternatives,
             
             // Campos legados para compatibilidade
-            disciplina: req.body.discipline, // Mapear discipline para disciplina
+            disciplina: req.body.discipline,
             materia: req.body.materia || null,
             assunto: req.body.assunto || null,
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
-            ano: year, // Mapear year para ano
+            ano: year,
             instituicao: 'ENEM',
             enunciado: enunciado,
-            resposta: req.body.correctAlternative, // Mapear correctAlternative para resposta
+            resposta: req.body.correctAlternative,
             prova: prova._id,
             img1: img1,
             img2: img2,
@@ -627,27 +653,39 @@ app.post('/api/questoes', async (req, res) => {
             conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
         };
 
-        const questao = new Questao(questaoData);
-        await questao.save();
-        console.log(`Questão criada com ID: ${questao._id}`);
+        try {
+            const questao = new Questao(questaoData);
+            await questao.save();
+            console.log('✅ Questão criada com sucesso:', questao._id);
 
-        // Atualizar a prova com a nova questão
-        await Prova.findByIdAndUpdate(
-            prova._id, 
-            { $push: { questoes: questao._id } }
-        );
-        console.log(`Questão adicionada à prova: ${prova._id}`);
+            // ETAPA 5: Atualizar a prova com a nova questão
+            await Prova.findByIdAndUpdate(
+                prova._id, 
+                { $push: { questoes: questao._id } }
+            );
+            console.log('✅ Questão adicionada à prova');
 
-        res.status(201).json({
-            questao: questao,
-            provaCriada: provaCriada,
-            pastaCriada: pastaCriada,
-            pasta: pasta,
-            prova: prova
-        });
+            console.log('=== CRIAÇÃO CONCLUÍDA COM SUCESSO ===');
+            
+            res.status(201).json({
+                success: true,
+                questao: questao,
+                provaCriada: provaCriada,
+                pastaCriada: pastaCriada,
+                pasta: pasta,
+                prova: prova
+            });
+
+        } catch (questaoError) {
+            console.error('❌ Erro ao criar questão:', questaoError);
+            return res.status(500).json({
+                error: 'Erro ao criar questão',
+                details: questaoError.message
+            });
+        }
 
     } catch (error) {
-        console.error('Erro ao criar questão:', error);
+        console.error('❌ Erro geral:', error);
         res.status(500).json({
             error: 'Erro interno do servidor',
             details: error.message
