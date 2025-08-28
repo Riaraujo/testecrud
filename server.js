@@ -197,6 +197,19 @@ const Pasta = mongoose.model('Pasta', pastaSchema);
 // Rotas da API para Pastas
 app.post('/api/pastas', async (req, res) => {
     try {
+        const { nome, parent } = req.body;
+        
+        // Verificar se a pasta já existe
+        const pastaExistente = await Pasta.findOne({ nome: nome.trim() });
+        
+        if (pastaExistente) {
+            return res.status(409).json({ 
+                error: 'Pasta já existe',
+                existingPasta: pastaExistente 
+            });
+        }
+        
+        // Criar nova pasta
         const pasta = new Pasta(req.body);
         await pasta.save();
         
