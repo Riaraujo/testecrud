@@ -194,6 +194,70 @@ const pastaSchema = new mongoose.Schema({
 
 const Pasta = mongoose.model('Pasta', pastaSchema);
 
+// Função auxiliar para criar pasta e prova automaticamente
+async function criarPastaEProvaAutomaticamente(disciplina, materia, assunto) {
+    try {
+        // Gerar nome baseado na disciplina e matéria
+        const nomeBase = `${disciplina} - ${materia}`;
+        
+        // Se tiver assunto, adicionar ao nome
+        const nomeCompleto = assunto ? `${nomeBase} - ${assunto}` : nomeBase;
+
+        console.log(`Tentando criar/encontrar pasta e prova para: ${nomeCompleto}`);
+
+        // Verificar/Criar pasta
+        let pasta = await Pasta.findOne({ nome: nomeCompleto });
+        let pastaCriada = false;
+        
+        if (!pasta) {
+            pasta = new Pasta({
+                nome: nomeCompleto,
+                descricao: `Pasta para questões de ${nomeCompleto}`
+            });
+            await pasta.save();
+            pastaCriada = true;
+            console.log(`✓ Pasta criada: ${nomeCompleto} com ID: ${pasta._id}`);
+        } else {
+            console.log(`✓ Pasta encontrada: ${nomeCompleto} com ID: ${pasta._id}`);
+        }
+
+        // Verificar/Criar prova
+        let prova = await Prova.findOne({ titulo: nomeCompleto, pasta: pasta._id });
+        let provaCriada = false;
+        
+        if (!prova) {
+            prova = new Prova({
+                titulo: nomeCompleto,
+                descricao: `Prova de ${nomeCompleto}`,
+                pasta: pasta._id
+            });
+            await prova.save();
+            provaCriada = true;
+            console.log(`✓ Prova criada: ${nomeCompleto} com ID: ${prova._id}`);
+
+            // Atualizar pasta com a nova prova
+            await Pasta.findByIdAndUpdate(
+                pasta._id, 
+                { $push: { provas: prova._id } }
+            );
+            console.log(`✓ Prova adicionada à pasta: ${pasta._id}`);
+        } else {
+            console.log(`✓ Prova encontrada: ${nomeCompleto} com ID: ${prova._id}`);
+        }
+
+        return {
+            pasta: pasta,
+            prova: prova,
+            pastaCriada: pastaCriada,
+            provaCriada: provaCriada
+        };
+
+    } catch (error) {
+        console.error('Erro ao criar pasta e prova:', error);
+        throw error;
+    }
+}
+
 // Rotas da API para Pastas
 app.post('/api/pastas', async (req, res) => {
     try {
@@ -419,17 +483,14 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões (MODIFICADA - cria pasta e prova automaticamente)
+// Rota POST para Questões (NOVA VERSÃO - SEMPRE cria pasta e prova automaticamente)
 app.post('/api/questoes', async (req, res) => {
     try {
-        console.log('Recebendo requisição para criar questão:', req.body);
+        console.log('=== INICIANDO CRIAÇÃO DE QUESTÃO ===');
+        console.log('Dados recebidos:', req.body);
 
-        const requiredFields = [
-            'disciplina', 'materia',
-            'enunciado', 'alternativas',
-            'resposta'
-        ];
-
+        // Validar campos obrigatórios
+        const requiredFields = ['disciplina', 'materia', 'enunciado', 'alternativas', 'resposta'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
 
         if (missingFields.length > 0) {
@@ -446,70 +507,18 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        let provaId = req.body.prova;
-        let pastaCriada = false;
-        let provaCriada = false;
+        // SEMPRE criar pasta e prova automaticamente baseado na questão
+        const resultado = await criarPastaEProvaAutomaticamente(
+            req.body.disciplina,
+            req.body.materia,
+            req.body.assunto
+        );
 
-        // Se não foi fornecido um ID de prova, criar automaticamente
-        if (!provaId) {
-            // Gerar nome baseado na disciplina e matéria
-            const nomeBase = `${req.body.disciplina} - ${req.body.materia}`;
-            
-            // Se tiver assunto, adicionar ao nome
-            const nomeCompleto = req.body.assunto ? 
-                `${nomeBase} - ${req.body.assunto}` : 
-                nomeBase;
-
-            // Verificar/Criar pasta
-            let pasta = await Pasta.findOne({ nome: nomeCompleto });
-            
-            if (!pasta) {
-                try {
-                    pasta = new Pasta({
-                        nome: nomeCompleto,
-                        descricao: `Pasta para questões de ${nomeCompleto}`
-                    });
-                    await pasta.save();
-                    pastaCriada = true;
-                    console.log(`Pasta criada: ${nomeCompleto} com ID: ${pasta._id}`);
-                } catch (error) {
-                    console.error('Erro ao criar pasta:', error);
-                    return res.status(500).json({ error: 'Erro ao criar pasta' });
-                }
-            } else {
-                console.log(`Pasta encontrada: ${nomeCompleto} com ID: ${pasta._id}`);
-            }
-
-            // Verificar/Criar prova
-            let prova = await Prova.findOne({ titulo: nomeCompleto, pasta: pasta._id });
-            
-            if (!prova) {
-                try {
-                    prova = new Prova({
-                        titulo: nomeCompleto,
-                        descricao: `Prova de ${nomeCompleto}`,
-                        pasta: pasta._id
-                    });
-                    await prova.save();
-                    provaCriada = true;
-                    console.log(`Prova criada: ${nomeCompleto} com ID: ${prova._id}`);
-
-                    // Atualizar pasta com a nova prova
-                    await Pasta.findByIdAndUpdate(
-                        pasta._id, 
-                        { $push: { provas: prova._id } }
-                    );
-                    console.log(`Prova adicionada à pasta: ${pasta._id}`);
-                } catch (error) {
-                    console.error('Erro ao criar prova:', error);
-                    return res.status(500).json({ error: 'Erro ao criar prova' });
-                }
-            } else {
-                console.log(`Prova encontrada: ${nomeCompleto} com ID: ${prova._id}`);
-            }
-
-            provaId = prova._id;
-        }
+        console.log('=== RESULTADO DA CRIAÇÃO DE PASTA/PROVA ===');
+        console.log('Pasta ID:', resultado.pasta._id);
+        console.log('Prova ID:', resultado.prova._id);
+        console.log('Pasta criada:', resultado.pastaCriada);
+        console.log('Prova criada:', resultado.provaCriada);
 
         // Criar a questão
         const questaoData = {
@@ -523,7 +532,7 @@ app.post('/api/questoes', async (req, res) => {
             enunciado: req.body.enunciado,
             alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
             resposta: req.body.resposta,
-            prova: provaId,
+            prova: resultado.prova._id,
             img1: req.body.img1 || null,
             img2: req.body.img2 || null,
             img3: req.body.img3 || null,
@@ -543,23 +552,29 @@ app.post('/api/questoes', async (req, res) => {
 
         const questao = new Questao(questaoData);
         await questao.save();
-        console.log(`Questão criada com ID: ${questao._id}`);
+        console.log(`✓ Questão criada com ID: ${questao._id}`);
 
         // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(
-            provaId, 
+            resultado.prova._id, 
             { $push: { questoes: questao._id } }
         );
-        console.log(`Questão adicionada à prova: ${provaId}`);
+        console.log(`✓ Questão adicionada à prova: ${resultado.prova._id}`);
+
+        console.log('=== QUESTÃO CRIADA COM SUCESSO ===');
 
         res.status(201).json({
             questao: questao,
-            pastaCriada: pastaCriada,
-            provaCriada: provaCriada
+            pasta: resultado.pasta,
+            prova: resultado.prova,
+            pastaCriada: resultado.pastaCriada,
+            provaCriada: resultado.provaCriada,
+            message: `Questão criada com sucesso! ${resultado.pastaCriada ? 'Pasta criada. ' : ''}${resultado.provaCriada ? 'Prova criada.' : ''}`
         });
 
     } catch (error) {
-        console.error('Erro ao criar questão:', error);
+        console.error('=== ERRO AO CRIAR QUESTÃO ===');
+        console.error('Erro:', error);
         res.status(500).json({
             error: 'Erro interno do servidor',
             details: error.message
