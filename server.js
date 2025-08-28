@@ -424,6 +424,7 @@ app.delete('/api/provas/:id', async (req, res) => {
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no ano e índice)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no ano e índice)
 app.post('/api/questoes', async (req, res) => {
     try {
         console.log('Recebendo requisição para criar questão:', req.body);
@@ -508,14 +509,18 @@ app.post('/api/questoes', async (req, res) => {
 
             // Verificar/Criar prova
             const provaTitulo = `ENEM ${ano} ${dia}`;
-            let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+            let prova = await Prova.findOne({ 
+                titulo: provaTitulo, 
+                pasta: pasta._id 
+            });
             
             if (!prova) {
                 try {
                     prova = new Prova({
                         titulo: provaTitulo,
                         descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
-                        pasta: pasta._id
+                        pasta: pasta._id,
+                        questoes: []
                     });
                     await prova.save();
                     console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
