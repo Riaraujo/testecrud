@@ -519,14 +519,19 @@ app.post('/api/questoes', async (req, res) => {
         // Verificar/Criar pasta
         const pastaNome = `ENEM ${year}`;
         let pasta = await Pasta.findOne({ nome: pastaNome });
+        let pastaCriada = false;
         
         if (!pasta) {
             try {
                 pasta = new Pasta({
                     nome: pastaNome,
-                    descricao: `Provas do ENEM do ano ${year}`
+                    descricao: "",
+                    provas: [],
+                    parent: null,
+                    children: []
                 });
                 await pasta.save();
+                pastaCriada = true;
                 console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
             } catch (error) {
                 console.error('Erro ao criar pasta:', error);
@@ -539,15 +544,18 @@ app.post('/api/questoes', async (req, res) => {
         // Verificar/Criar prova
         const provaTitulo = `ENEM ${year} ${dia}`;
         let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+        let provaCriada = false;
         
         if (!prova) {
             try {
                 prova = new Prova({
                     titulo: provaTitulo,
-                    descricao: `Prova do ENEM do ano ${year} - ${dia}`,
+                    descricao: "",
+                    questoes: [],
                     pasta: pasta._id
                 });
                 await prova.save();
+                provaCriada = true;
                 console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
 
                 // Atualizar pasta com a nova prova
@@ -632,8 +640,8 @@ app.post('/api/questoes', async (req, res) => {
 
         res.status(201).json({
             questao: questao,
-            provaCriada: !req.body.prova,
-            pastaCriada: !req.body.prova,
+            provaCriada: provaCriada,
+            pastaCriada: pastaCriada,
             pasta: pasta,
             prova: prova
         });
