@@ -194,16 +194,20 @@ const pastaSchema = new mongoose.Schema({
 
 const Pasta = mongoose.model('Pasta', pastaSchema);
 
-// Função auxiliar para criar pasta e prova automaticamente
-async function criarPastaEProvaAutomaticamente(disciplina, materia, assunto) {
+// FUNÇÃO SEPARADA PARA CRIAR PASTA E PROVA AUTOMATICAMENTE
+async function criarPastaEProva(dadosQuestao) {
     try {
+        console.log('=== INICIANDO CRIAÇÃO DE PASTA E PROVA ===');
+        
         // Gerar nome baseado na disciplina e matéria
-        const nomeBase = `${disciplina} - ${materia}`;
+        const nomeBase = `${dadosQuestao.disciplina} - ${dadosQuestao.materia}`;
         
         // Se tiver assunto, adicionar ao nome
-        const nomeCompleto = assunto ? `${nomeBase} - ${assunto}` : nomeBase;
+        const nomeCompleto = dadosQuestao.assunto ? 
+            `${nomeBase} - ${dadosQuestao.assunto}` : 
+            nomeBase;
 
-        console.log(`Tentando criar/encontrar pasta e prova para: ${nomeCompleto}`);
+        console.log(`Nome gerado: ${nomeCompleto}`);
 
         // Verificar/Criar pasta
         let pasta = await Pasta.findOne({ nome: nomeCompleto });
@@ -245,6 +249,8 @@ async function criarPastaEProvaAutomaticamente(disciplina, materia, assunto) {
             console.log(`✓ Prova encontrada: ${nomeCompleto} com ID: ${prova._id}`);
         }
 
+        console.log('=== PASTA E PROVA CRIADAS/ENCONTRADAS COM SUCESSO ===');
+
         return {
             pasta: pasta,
             prova: prova,
@@ -253,7 +259,8 @@ async function criarPastaEProvaAutomaticamente(disciplina, materia, assunto) {
         };
 
     } catch (error) {
-        console.error('Erro ao criar pasta e prova:', error);
+        console.error('=== ERRO AO CRIAR PASTA E PROVA ===');
+        console.error('Erro:', error);
         throw error;
     }
 }
@@ -483,7 +490,7 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões (NOVA VERSÃO - SEMPRE cria pasta e prova automaticamente)
+// ROTA POST PARA QUESTÕES - REFATORADA PARA CHAMAR A FUNÇÃO SEPARADA
 app.post('/api/questoes', async (req, res) => {
     try {
         console.log('=== INICIANDO CRIAÇÃO DE QUESTÃO ===');
@@ -507,12 +514,8 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        // SEMPRE criar pasta e prova automaticamente baseado na questão
-        const resultado = await criarPastaEProvaAutomaticamente(
-            req.body.disciplina,
-            req.body.materia,
-            req.body.assunto
-        );
+        // CHAMAR A FUNÇÃO SEPARADA PARA CRIAR PASTA E PROVA
+        const resultado = await criarPastaEProva(req.body);
 
         console.log('=== RESULTADO DA CRIAÇÃO DE PASTA/PROVA ===');
         console.log('Pasta ID:', resultado.pasta._id);
