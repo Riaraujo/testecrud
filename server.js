@@ -38,21 +38,78 @@ mongoose.connect(MONGODB_URI, {
     process.exit(1);
 });
 
-// Schemas atualizados
+// Schema atualizado para questões
 const questaoSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: [true, 'O campo title é obrigatório'],
+        trim: true
+    },
+    index: {
+        type: Number,
+        required: [true, 'O campo index é obrigatório']
+    },
+    year: {
+        type: Number,
+        required: [true, 'O campo year é obrigatório']
+    },
+    language: {
+        type: String,
+        trim: true,
+        default: null
+    },
+    discipline: {
+        type: String,
+        required: [true, 'O campo discipline é obrigatório'],
+        trim: true
+    },
+    context: {
+        type: String,
+        trim: true
+    },
+    files: [{
+        type: String,
+        trim: true
+    }],
+    correctAlternative: {
+        type: String,
+        required: [true, 'O campo correctAlternative é obrigatório'],
+        enum: ['A', 'B', 'C', 'D', 'E']
+    },
+    alternativesIntroduction: {
+        type: String,
+        trim: true
+    },
+    alternatives: [{
+        letter: {
+            type: String,
+            required: true,
+            enum: ['A', 'B', 'C', 'D', 'E']
+        },
+        text: {
+            type: String,
+            required: true
+        },
+        file: {
+            type: String,
+            default: null
+        },
+        isCorrect: {
+            type: Boolean,
+            required: true
+        }
+    }],
+    // Campos legados mantidos para compatibilidade
     disciplina: {
         type: String,
-        required: [true, 'O campo disciplina é obrigatório'],
         trim: true
     },
     materia: {
         type: String,
-        required: [true, 'O campo matéria é obrigatório'],
         trim: true
     },
     assunto: {
         type: String,
-        required: false, // Tornando opcional
         trim: true
     },
     conteudo: {
@@ -68,22 +125,14 @@ const questaoSchema = new mongoose.Schema({
     },
     instituicao: {
         type: String,
-        trim: true
+        trim: true,
+        default: 'ENEM'
     },
     enunciado: {
-        type: String,
-        required: [true, 'O campo enunciado é obrigatório']
-    },
-    alternativas: {
-        type: [String],
-        required: [true, 'O campo alternativas é obrigatório'],
-        set: function(val) {
-            return Array.isArray(val) ? val : [val];
-        }
+        type: String
     },
     resposta: {
         type: String,
-        required: [true, 'O campo resposta é obrigatório'],
         enum: ['A', 'B', 'C', 'D', 'E']
     },
     prova: {
@@ -419,23 +468,13 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões (completa e corrigida)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no ano e índice)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no ano e índice)
-// Rota POST para Questões (com criação automática de pasta e prova)
+// Rota POST para Questões - ATUALIZADA para o novo formato
 app.post('/api/questoes', async (req, res) => {
     try {
         console.log('Recebendo requisição para criar questão:', req.body);
 
-        const requiredFields = [
-            'disciplina', 'materia',
-            'enunciado', 'alternativas',
-            'resposta'
-        ];
-
+        // Validação dos campos obrigatórios do novo formato
+        const requiredFields = ['title', 'index', 'year', 'discipline', 'correctAlternative', 'alternatives'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
 
         if (missingFields.length > 0) {
@@ -445,80 +484,68 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
+        // Validação da resposta correta
+        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.correctAlternative)) {
             return res.status(400).json({
                 error: 'Resposta inválida',
                 details: 'A resposta deve ser A, B, C, D ou E'
             });
         }
 
-        let provaId = req.body.prova;
-        let ano = req.body.ano;
-        let index = req.body.index;
+        // Validação das alternativas
+        if (!Array.isArray(req.body.alternatives) || req.body.alternatives.length === 0) {
+            return res.status(400).json({
+                error: 'Alternativas inválidas',
+                details: 'Deve haver pelo menos uma alternativa'
+            });
+        }
 
-        // Se não foi fornecido um ID de prova, criar pasta e prova automaticamente
-        if (!provaId) {
-            if (!ano) {
-                return res.status(400).json({
-                    error: 'Para criar prova automaticamente, é necessário o ano da questão'
-                });
-            }
+        // Converter dados de entrada
+        const year = parseInt(req.body.year);
+        const index = parseInt(req.body.index);
 
-            // Converter ano para número inteiro
-            ano = parseInt(ano);
-            if (isNaN(ano)) {
-                return res.status(400).json({
-                    error: 'Ano deve ser um número válido'
-                });
-            }
+        if (isNaN(year) || isNaN(index)) {
+            return res.status(400).json({
+                error: 'Year e index devem ser números válidos'
+            });
+        }
 
-            // Converter index para número inteiro se fornecido
-            if (index !== undefined && index !== null) {
-                index = parseInt(index);
-                if (isNaN(index)) {
-                    return res.status(400).json({
-                        error: 'Index deve ser um número válido'
-                    });
-                }
-            }
+        // Determinar o dia com base no index da questão (corrigido: > 95 para segundo dia)
+        let dia = 'PRIMEIRO DIA';
+        if (index > 95) {
+            dia = 'SEGUNDO DIA';
+        }
 
-            // Determinar o dia com base no index da questão
-            let dia = 'PRIMEIRO DIA';
-            if (index !== undefined && index !== null && index > 95) {
-                dia = 'SEGUNDO DIA';
-            }
-
-            // Verificar/Criar pasta
-            const pastaNome = `ENEM ${ano}`;
-            let pasta = await Pasta.findOne({ nome: pastaNome });
-            
-            if (!pasta) {
+        // Verificar/Criar pasta
+        const pastaNome = `ENEM ${year}`;
+        let pasta = await Pasta.findOne({ nome: pastaNome });
+        
+        if (!pasta) {
+            try {
                 pasta = new Pasta({
                     nome: pastaNome,
-                    descricao: `Provas do ENEM do ano ${ano}`,
-                    provas: [],
-                    parent: null,
-                    children: []
+                    descricao: `Provas do ENEM do ano ${year}`
                 });
                 await pasta.save();
                 console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
-            } else {
-                console.log(`Pasta encontrada: ${pastaNome} com ID: ${pasta._id}`);
+            } catch (error) {
+                console.error('Erro ao criar pasta:', error);
+                return res.status(500).json({ error: 'Erro ao criar pasta' });
             }
+        } else {
+            console.log(`Pasta encontrada: ${pastaNome} com ID: ${pasta._id}`);
+        }
 
-            // Verificar/Criar prova
-            const provaTitulo = `ENEM ${ano} ${dia}`;
-            let prova = await Prova.findOne({ 
-                titulo: provaTitulo, 
-                pasta: pasta._id 
-            });
-            
-            if (!prova) {
+        // Verificar/Criar prova
+        const provaTitulo = `ENEM ${year} ${dia}`;
+        let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+        
+        if (!prova) {
+            try {
                 prova = new Prova({
                     titulo: provaTitulo,
-                    descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
-                    pasta: pasta._id,
-                    questoes: []
+                    descricao: `Prova do ENEM do ano ${year} - ${dia}`,
+                    pasta: pasta._id
                 });
                 await prova.save();
                 console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
@@ -526,46 +553,71 @@ app.post('/api/questoes', async (req, res) => {
                 // Atualizar pasta com a nova prova
                 await Pasta.findByIdAndUpdate(
                     pasta._id, 
-                    { $push: { provas: prova._id } },
-                    { new: true }
+                    { $push: { provas: prova._id } }
                 );
                 console.log(`Prova adicionada à pasta: ${pasta._id}`);
-            } else {
-                console.log(`Prova encontrada: ${provaTitulo} com ID: ${prova._id}`);
+            } catch (error) {
+                console.error('Erro ao criar prova:', error);
+                return res.status(500).json({ error: 'Erro ao criar prova' });
             }
-
-            provaId = prova._id;
+        } else {
+            console.log(`Prova encontrada: ${provaTitulo} com ID: ${prova._id}`);
         }
 
-        // Criar a questão
+        // Processar context para separar enunciado e referência
+        let enunciado = '';
+        let referencia = '';
+        if (req.body.context) {
+            const contextParts = req.body.context.split('\n\n');
+            if (contextParts.length >= 2) {
+                enunciado = contextParts[0];
+                referencia = contextParts.slice(1).join('\n\n');
+            } else {
+                enunciado = req.body.context;
+            }
+        }
+
+        // Processar files para img1, img2, img3
+        let img1 = null, img2 = null, img3 = null;
+        if (req.body.files && Array.isArray(req.body.files)) {
+            img1 = req.body.files[0] || null;
+            img2 = req.body.files[1] || null;
+            img3 = req.body.files[2] || null;
+        }
+
+        // Criar a questão com o novo formato
         const questaoData = {
-            disciplina: req.body.disciplina,
-            materia: req.body.materia,
-            assunto: req.body.assunto,
+            // Novos campos
+            title: req.body.title,
+            index: index,
+            year: year,
+            language: req.body.language || null,
+            discipline: req.body.discipline,
+            context: req.body.context || null,
+            files: req.body.files || [],
+            correctAlternative: req.body.correctAlternative,
+            alternativesIntroduction: req.body.alternativesIntroduction || null,
+            alternatives: req.body.alternatives,
+            
+            // Campos legados para compatibilidade
+            disciplina: req.body.discipline, // Mapear discipline para disciplina
+            materia: req.body.materia || null,
+            assunto: req.body.assunto || null,
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
-            ano: ano,
-            instituicao: req.body.instituicao || 'ENEM',
-            enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
-            resposta: req.body.resposta,
-            prova: provaId,
-            img1: req.body.img1 || null,
-            img2: req.body.img2 || null,
-            img3: req.body.img3 || null,
+            ano: year, // Mapear year para ano
+            instituicao: 'ENEM',
+            enunciado: enunciado,
+            resposta: req.body.correctAlternative, // Mapear correctAlternative para resposta
+            prova: prova._id,
+            img1: img1,
+            img2: img2,
+            img3: img3,
             conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : null,
             conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : null,
             conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : null,
             conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
         };
-
-        // Adicionar campos específicos se existirem no request
-        if (req.body.title) questaoData.title = req.body.title;
-        if (index !== undefined && index !== null) questaoData.index = index;
-        if (req.body.language) questaoData.language = req.body.language;
-        if (req.body.context) questaoData.context = req.body.context;
-        if (req.body.files) questaoData.files = req.body.files;
-        if (req.body.alternativesIntroduction) questaoData.alternativesIntroduction = req.body.alternativesIntroduction;
 
         const questao = new Questao(questaoData);
         await questao.save();
@@ -573,28 +625,24 @@ app.post('/api/questoes', async (req, res) => {
 
         // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(
-            provaId, 
-            { $push: { questoes: questao._id } },
-            { new: true }
+            prova._id, 
+            { $push: { questoes: questao._id } }
         );
-        console.log(`Questão adicionada à prova: ${provaId}`);
-
-        // Buscar a questão populada para retornar
-        const questaoPopulada = await Questao.findById(questao._id).populate('prova');
+        console.log(`Questão adicionada à prova: ${prova._id}`);
 
         res.status(201).json({
-            message: 'Questão criada com sucesso',
-            questao: questaoPopulada,
+            questao: questao,
             provaCriada: !req.body.prova,
-            pastaCriada: !req.body.prova
+            pastaCriada: !req.body.prova,
+            pasta: pasta,
+            prova: prova
         });
 
     } catch (error) {
-        console.error('Erro detalhado ao criar questão:', error);
+        console.error('Erro ao criar questão:', error);
         res.status(500).json({
             error: 'Erro interno do servidor',
-            details: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            details: error.message
         });
     }
 });
@@ -682,4 +730,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
