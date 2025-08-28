@@ -194,64 +194,6 @@ const pastaSchema = new mongoose.Schema({
 
 const Pasta = mongoose.model('Pasta', pastaSchema);
 
-// FUNÇÃO SEPARADA PARA CRIAR PASTA E PROVA
-async function criarPastaEProva(disciplina, materia, assunto) {
-    // Gerar nome baseado na disciplina e matéria
-    const nomeBase = `${disciplina} - ${materia}`;
-    
-    // Se tiver assunto, adicionar ao nome
-    const nomeCompleto = assunto ? `${nomeBase} - ${assunto}` : nomeBase;
-
-    console.log(`Criando/buscando pasta e prova para: ${nomeCompleto}`);
-
-    // 1. CRIAR/BUSCAR PASTA
-    let pasta = await Pasta.findOne({ nome: nomeCompleto });
-    let pastaCriada = false;
-    
-    if (!pasta) {
-        pasta = new Pasta({
-            nome: nomeCompleto,
-            descricao: `Pasta para questões de ${nomeCompleto}`
-        });
-        await pasta.save();
-        pastaCriada = true;
-        console.log(`PASTA CRIADA: ${nomeCompleto} - ID: ${pasta._id}`);
-    } else {
-        console.log(`PASTA ENCONTRADA: ${nomeCompleto} - ID: ${pasta._id}`);
-    }
-
-    // 2. CRIAR/BUSCAR PROVA
-    let prova = await Prova.findOne({ titulo: nomeCompleto, pasta: pasta._id });
-    let provaCriada = false;
-    
-    if (!prova) {
-        prova = new Prova({
-            titulo: nomeCompleto,
-            descricao: `Prova de ${nomeCompleto}`,
-            pasta: pasta._id
-        });
-        await prova.save();
-        provaCriada = true;
-        console.log(`PROVA CRIADA: ${nomeCompleto} - ID: ${prova._id}`);
-
-        // 3. ADICIONAR PROVA À PASTA
-        await Pasta.findByIdAndUpdate(
-            pasta._id, 
-            { $push: { provas: prova._id } }
-        );
-        console.log(`PROVA ADICIONADA À PASTA: ${pasta._id}`);
-    } else {
-        console.log(`PROVA ENCONTRADA: ${nomeCompleto} - ID: ${prova._id}`);
-    }
-
-    return {
-        pasta: pasta,
-        prova: prova,
-        pastaCriada: pastaCriada,
-        provaCriada: provaCriada
-    };
-}
-
 // Rotas da API para Pastas
 app.post('/api/pastas', async (req, res) => {
     try {
@@ -477,93 +419,205 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// ROTA POST PARA QUESTÕES - SEMPRE CRIA PASTA E PROVA
+// Rota POST para Questões (completa e corrigida)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 app.post('/api/questoes', async (req, res) => {
+    const session = await mongoose.startSession();
+    
     try {
-        console.log('=== CRIANDO QUESTÃO ===');
-        console.log('Dados recebidos:', req.body);
+        await session.withTransaction(async () => {
+            console.log('Recebendo requisição para criar questão:', req.body);
 
-        // Validar campos obrigatórios
-        const requiredFields = ['disciplina', 'materia', 'enunciado', 'alternativas', 'resposta'];
-        const missingFields = requiredFields.filter(field => !req.body[field]);
+            const requiredFields = [
+                'disciplina', 'materia',
+                'enunciado', 'alternativas',
+                'resposta'
+            ];
 
-        if (missingFields.length > 0) {
-            return res.status(400).json({
-                error: 'Campos obrigatórios faltando',
-                missingFields: missingFields
-            });
-        }
+            const missingFields = requiredFields.filter(field => !req.body[field]);
 
-        if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
-            return res.status(400).json({
-                error: 'Resposta inválida',
-                details: 'A resposta deve ser A, B, C, D ou E'
-            });
-        }
+            if (missingFields.length > 0) {
+                throw {
+                    status: 400,
+                    message: 'Campos obrigatórios faltando',
+                    details: { missingFields }
+                };
+            }
 
-        // SEMPRE CRIAR PASTA E PROVA BASEADO NA DISCIPLINA E MATÉRIA
-        const resultado = await criarPastaEProva(
-            req.body.disciplina,
-            req.body.materia,
-            req.body.assunto
-        );
+            if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
+                throw {
+                    status: 400,
+                    message: 'Resposta inválida',
+                    details: 'A resposta deve ser A, B, C, D ou E'
+                };
+            }
 
-        // Criar a questão
-        const questaoData = {
-            disciplina: req.body.disciplina,
-            materia: req.body.materia,
-            assunto: req.body.assunto,
-            conteudo: req.body.conteudo || null,
-            topico: req.body.topico || null,
-            ano: req.body.ano ? parseInt(req.body.ano) : null,
-            instituicao: req.body.instituicao || null,
-            enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
-            resposta: req.body.resposta,
-            prova: resultado.prova._id,
-            img1: req.body.img1 || null,
-            img2: req.body.img2 || null,
-            img3: req.body.img3 || null,
-            conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : null,
-            conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : null,
-            conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : null,
-            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
-        };
+            let provaId = req.body.prova;
+            let ano = req.body.ano;
+            let index = req.body.index;
+            let pasta = null;
+            let prova = null;
 
-        // Adicionar index da questão se fornecido
-        if (req.body.index !== undefined && req.body.index !== null) {
-            const index = parseInt(req.body.index);
-            if (!isNaN(index)) {
+            // Se não foi fornecido um ID de prova, criar automaticamente
+            if (!provaId) {
+                if (!ano) {
+                    throw {
+                        status: 400,
+                        message: 'Para criar prova automaticamente, é necessário o ano da questão'
+                    };
+                }
+
+                // Converter ano para número inteiro
+                ano = parseInt(ano);
+                if (isNaN(ano)) {
+                    throw {
+                        status: 400,
+                        message: 'Ano deve ser um número válido'
+                    };
+                }
+
+                // Converter index para número inteiro se fornecido
+                if (index !== undefined && index !== null) {
+                    index = parseInt(index);
+                    if (isNaN(index)) {
+                        throw {
+                            status: 400,
+                            message: 'Index deve ser um número válido'
+                        };
+                    }
+                }
+
+                // Determinar o dia com base no index da questão
+                let dia = 'Primeiro Dia';
+                if (index !== undefined && index !== null && index > 95) {
+                    dia = 'Segundo Dia';
+                }
+
+                // Verificar/Criar pasta - USANDO SESSÃO
+                const pastaNome = `ENEM ${ano}`;
+                pasta = await Pasta.findOne({ nome: pastaNome }).session(session);
+                
+                if (!pasta) {
+                    pasta = new Pasta({
+                        nome: pastaNome,
+                        descricao: `Provas do ENEM do ano ${ano}`
+                    });
+                    await pasta.save({ session });
+                    console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
+                } else {
+                    console.log(`Pasta encontrada: ${pastaNome} com ID: ${pasta._id}`);
+                }
+
+                // Verificar/Criar prova - USANDO SESSÃO
+                const provaTitulo = `ENEM ${ano} ${dia}`;
+                prova = await Prova.findOne({ 
+                    titulo: provaTitulo, 
+                    pasta: pasta._id 
+                }).session(session);
+                
+                if (!prova) {
+                    prova = new Prova({
+                        titulo: provaTitulo,
+                        descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
+                        pasta: pasta._id,
+                        questoes: [] // Inicializar array vazio
+                    });
+                    await prova.save({ session });
+                    console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
+
+                    // Atualizar pasta com a nova prova - USANDO SESSÃO
+                    await Pasta.findByIdAndUpdate(
+                        pasta._id, 
+                        { $push: { provas: prova._id } },
+                        { session }
+                    );
+                    console.log(`Prova adicionada à pasta: ${pasta._id}`);
+                } else {
+                    console.log(`Prova encontrada: ${provaTitulo} com ID: ${prova._id}`);
+                }
+
+                provaId = prova._id;
+            } else {
+                // Se provaId foi fornecido, buscar a prova e pasta associada - USANDO SESSÃO
+                prova = await Prova.findById(provaId).populate('pasta').session(session);
+                if (!prova) {
+                    throw {
+                        status: 404,
+                        message: 'Prova não encontrada'
+                    };
+                }
+                pasta = prova.pasta;
+            }
+
+            // Criar a questão - USANDO SESSÃO
+            const questaoData = {
+                disciplina: req.body.disciplina,
+                materia: req.body.materia,
+                assunto: req.body.assunto,
+                conteudo: req.body.conteudo || null,
+                topico: req.body.topico || null,
+                ano: ano, // Já convertido para número
+                instituicao: 'ENEM',
+                enunciado: req.body.enunciado,
+                alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
+                resposta: req.body.resposta,
+                prova: provaId,
+                img1: req.body.img1 || null,
+                img2: req.body.img2 || null,
+                img3: req.body.img3 || null,
+                conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : null,
+                conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : null,
+                conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : null,
+                conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
+            };
+
+            // Adicionar index da questão se fornecido (já convertido para número)
+            if (index !== undefined && index !== null) {
                 questaoData.index = index;
             }
-        }
 
-        const questao = new Questao(questaoData);
-        await questao.save();
-        console.log(`QUESTÃO CRIADA: ID ${questao._id}`);
+            const questao = new Questao(questaoData);
+            await questao.save({ session });
+            console.log(`Questão criada com ID: ${questao._id}`);
 
-        // Adicionar questão à prova
-        await Prova.findByIdAndUpdate(
-            resultado.prova._id, 
-            { $push: { questoes: questao._id } }
-        );
-        console.log(`QUESTÃO ADICIONADA À PROVA: ${resultado.prova._id}`);
+            // Atualizar a prova com a nova questão - USANDO SESSÃO
+            await Prova.findByIdAndUpdate(
+                provaId, 
+                { $push: { questoes: questao._id } },
+                { session }
+            );
+            console.log(`Questão adicionada à prova: ${provaId}`);
 
-        res.status(201).json({
-            questao: questao,
-            pasta: resultado.pasta,
-            prova: resultado.prova,
-            pastaCriada: resultado.pastaCriada,
-            provaCriada: resultado.provaCriada,
-            message: `Questão criada! ${resultado.pastaCriada ? 'Nova pasta criada. ' : ''}${resultado.provaCriada ? 'Nova prova criada.' : ''}`
+            // Commit implícito acontece aqui se tudo der certo
+            res.status(201).json({
+                questao: questao,
+                prova: prova,
+                pasta: pasta,
+                provaCriada: !req.body.prova,
+                pastaCriada: !req.body.prova && !pasta._id.equals(await Pasta.findOne({ nome: `ENEM ${ano}` }).select('_id'))
+            });
         });
 
     } catch (error) {
-        console.error('ERRO AO CRIAR QUESTÃO:', error);
+        console.error('Erro ao criar questão:', error);
+        
+        // Se for um erro de validação que nós lançamos
+        if (error.status) {
+            return res.status(error.status).json({
+                error: error.message,
+                details: error.details
+            });
+        }
+
+        // Erro genérico do servidor
         res.status(500).json({
             error: 'Erro interno do servidor',
             details: error.message
         });
+    } finally {
+        await session.endSession();
     }
 });
 
