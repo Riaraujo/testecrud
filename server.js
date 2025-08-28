@@ -423,6 +423,7 @@ app.delete('/api/provas/:id', async (req, res) => {
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no ano e índice)
 app.post('/api/questoes', async (req, res) => {
     try {
         console.log('Recebendo requisição para criar questão:', req.body);
@@ -480,9 +481,9 @@ app.post('/api/questoes', async (req, res) => {
             }
 
             // Determinar o dia com base no index da questão
-            let dia = 'Primeiro Dia';
+            let dia = 'PRIMEIRO DIA';
             if (index !== undefined && index !== null && index > 95) {
-                dia = 'Segundo Dia';
+                dia = 'SEGUNDO DIA';
             }
 
             // Verificar/Criar pasta
@@ -672,3 +673,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
+
