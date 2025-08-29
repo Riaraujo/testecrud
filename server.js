@@ -13,7 +13,7 @@ const corsOptions = {
         'http://localhost:3000',
         'https://repositoriodequestoes.com',
         'https://www.repositoriodequestoes.com',
-        'http://www.repositoriodequestoes.com' // Adicionado para permitir requisições HTTP
+        'http://www.repositoriodequestoes.com'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -52,7 +52,7 @@ const questaoSchema = new mongoose.Schema({
     },
     assunto: {
         type: String,
-        required: false, // Tornando opcional
+        required: false,
         trim: true
     },
     conteudo: {
@@ -200,7 +200,6 @@ app.post('/api/pastas', async (req, res) => {
         const pasta = new Pasta(req.body);
         await pasta.save();
         
-        // Se tem parent, adicionar esta pasta aos children do parent
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $push: { children: pasta._id } 
@@ -265,21 +264,18 @@ app.delete('/api/pastas/:id', async (req, res) => {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
         
-        // Remover esta pasta dos children do parent
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $pull: { children: pasta._id } 
             });
         }
         
-        // Mover os children desta pasta para o parent (ou null se não tiver parent)
         if (pasta.children && pasta.children.length > 0) {
             await Pasta.updateMany(
                 { _id: { $in: pasta.children } },
                 { parent: pasta.parent }
             );
             
-            // Se tem parent, adicionar os children aos children do parent
             if (pasta.parent) {
                 await Pasta.findByIdAndUpdate(pasta.parent, { 
                     $push: { children: { $each: pasta.children } } 
@@ -306,23 +302,19 @@ app.put('/api/pastas/:id/mover', async (req, res) => {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
         
-        // Verificar se não está tentando mover para si mesma ou para um descendente
         if (novoParentId === pastaId) {
             return res.status(400).json({ error: 'Não é possível mover uma pasta para si mesma' });
         }
         
-        // Remover dos children do parent atual
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $pull: { children: pastaId } 
             });
         }
         
-        // Atualizar o parent da pasta
         pasta.parent = novoParentId || null;
         await pasta.save();
         
-        // Adicionar aos children do novo parent
         if (novoParentId) {
             await Pasta.findByIdAndUpdate(novoParentId, { 
                 $push: { children: pastaId } 
@@ -338,7 +330,6 @@ app.put('/api/pastas/:id/mover', async (req, res) => {
 // Rotas da API para Provas
 app.post('/api/provas', async (req, res) => {
     try {
-        // Verificar se a pasta tem children (outras pastas)
         if (req.body.pasta) {
             const pasta = await Pasta.findById(req.body.pasta);
             if (pasta && pasta.children && pasta.children.length > 0) {
@@ -419,23 +410,20 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões (completa e corrigida)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
+// Rota POST para Questões - CORRIGIDA
 app.post('/api/questoes', async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
     try {
         console.log('Recebendo requisição para criar questão:', req.body);
 
-        const requiredFields = [
-            'disciplina', 'materia',
-            'enunciado', 'alternativas',
-            'resposta'
-        ];
-
+        const requiredFields = ['disciplina', 'materia', 'enunciado', 'alternativas', 'resposta'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
 
         if (missingFields.length > 0) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({
                 error: 'Campos obrigatórios faltando',
                 missingFields: missingFields
@@ -443,6 +431,8 @@ app.post('/api/questoes', async (req, res) => {
         }
 
         if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).json({
                 error: 'Resposta inválida',
                 details: 'A resposta deve ser A, B, C, D ou E'
@@ -452,27 +442,33 @@ app.post('/api/questoes', async (req, res) => {
         let provaId = req.body.prova;
         let ano = req.body.ano;
         let index = req.body.index;
+        let pasta = null;
+        let prova = null;
 
         // Se não foi fornecido um ID de prova, criar automaticamente
         if (!provaId) {
             if (!ano) {
+                await session.abortTransaction();
+                session.endSession();
                 return res.status(400).json({
                     error: 'Para criar prova automaticamente, é necessário o ano da questão'
                 });
             }
 
-            // Converter ano para número inteiro
             ano = parseInt(ano);
             if (isNaN(ano)) {
+                await session.abortTransaction();
+                session.endSession();
                 return res.status(400).json({
                     error: 'Ano deve ser um número válido'
                 });
             }
 
-            // Converter index para número inteiro se fornecido
             if (index !== undefined && index !== null) {
                 index = parseInt(index);
                 if (isNaN(index)) {
+                    await session.abortTransaction();
+                    session.endSession();
                     return res.status(400).json({
                         error: 'Index deve ser um número válido'
                     });
@@ -487,7 +483,7 @@ app.post('/api/questoes', async (req, res) => {
 
             // Verificar/Criar pasta
             const pastaNome = `ENEM ${ano}`;
-            let pasta = await Pasta.findOne({ nome: pastaNome });
+            pasta = await Pasta.findOne({ nome: pastaNome }).session(session);
             
             if (!pasta) {
                 try {
@@ -495,9 +491,11 @@ app.post('/api/questoes', async (req, res) => {
                         nome: pastaNome,
                         descricao: `Provas do ENEM do ano ${ano}`
                     });
-                    await pasta.save();
+                    await pasta.save({ session });
                     console.log(`✅ Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
                 } catch (error) {
+                    await session.abortTransaction();
+                    session.endSession();
                     console.error('❌ Erro ao criar pasta:', error);
                     return res.status(500).json({ error: 'Erro ao criar pasta', details: error.message });
                 }
@@ -505,30 +503,33 @@ app.post('/api/questoes', async (req, res) => {
                 console.log(`📁 Pasta encontrada: ${pastaNome} com ID: ${pasta._id}`);
             }
 
-            // Verificar/Criar prova - CORRIGIDO para usar 'pasta' em vez de 'parent'
+            // Verificar/Criar prova - CORREÇÃO CRÍTICA AQUI
             const provaTitulo = `ENEM ${ano} ${dia}`;
-            let prova = await Prova.findOne({ 
+            prova = await Prova.findOne({ 
                 titulo: provaTitulo, 
-                pasta: pasta._id  // ← CORRIGIDO: usando campo 'pasta' do schema
-            });
+                pasta: pasta._id 
+            }).session(session);
             
             if (!prova) {
                 try {
                     prova = new Prova({
                         titulo: provaTitulo,
                         descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
-                        pasta: pasta._id  // ← CORRIGIDO: usando campo 'pasta'
+                        pasta: pasta._id
                     });
-                    await prova.save();
+                    await prova.save({ session });
                     console.log(`📝 Prova criada: ${provaTitulo} com ID: ${prova._id}`);
 
-                    // Atualizar pasta com a nova prova - CORRIGIDO para usar 'provas' array
+                    // Atualizar pasta com a nova prova - CORREÇÃO AQUI
                     await Pasta.findByIdAndUpdate(
                         pasta._id, 
-                        { $push: { provas: prova._id } }
+                        { $push: { provas: prova._id } },
+                        { session }
                     );
                     console.log(`✅ Prova adicionada à pasta: ${pasta._id}`);
                 } catch (error) {
+                    await session.abortTransaction();
+                    session.endSession();
                     console.error('❌ Erro ao criar prova:', error);
                     return res.status(500).json({ 
                         error: 'Erro ao criar prova', 
@@ -540,6 +541,12 @@ app.post('/api/questoes', async (req, res) => {
             }
 
             provaId = prova._id;
+        } else {
+            // Se provaId foi fornecido, buscar a prova para obter a pasta
+            prova = await Prova.findById(provaId).session(session);
+            if (prova && prova.pasta) {
+                pasta = await Pasta.findById(prova.pasta).session(session);
+            }
         }
 
         // Criar a questão
@@ -564,29 +571,34 @@ app.post('/api/questoes', async (req, res) => {
             conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
         };
 
-        // Adicionar index da questão se fornecido
         if (index !== undefined && index !== null) {
             questaoData.index = index;
         }
 
         const questao = new Questao(questaoData);
-        await questao.save();
+        await questao.save({ session });
         console.log(`❓ Questão criada com ID: ${questao._id}`);
 
         // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(
             provaId, 
-            { $push: { questoes: questao._id } }
+            { $push: { questoes: questao._id } },
+            { session }
         );
         console.log(`✅ Questão adicionada à prova: ${provaId}`);
+
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(201).json({
             questao: questao,
             provaCriada: !req.body.prova,
-            pastaCriada: !req.body.prova
+            pastaCriada: !req.body.prova && !!pasta
         });
 
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.error('💥 Erro ao criar questão:', error);
         res.status(500).json({
             error: 'Erro interno do servidor',
@@ -594,6 +606,7 @@ app.post('/api/questoes', async (req, res) => {
         });
     }
 });
+
 app.get('/api/questoes', async (req, res) => {
     try {
         const questoes = await Questao.find().populate('prova').sort({ createdAt: -1 });
