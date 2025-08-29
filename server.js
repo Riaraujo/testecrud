@@ -24,7 +24,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Conexão com MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/editor-questoes';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/test';
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
@@ -691,3 +691,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
+
