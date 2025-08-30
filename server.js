@@ -13,7 +13,7 @@ const corsOptions = {
         'http://localhost:3000',
         'https://repositoriodequestoes.com',
         'https://www.repositoriodequestoes.com',
-        'http://www.repositoriodequestoes.com'
+        'http://www.repositoriodequestoes.com' // Adicionado para permitir requisições HTTP
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -23,10 +23,8 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// Conexão com MongoDB - CORRIGIDO para banco 'test'
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/test';
-
-console.log('🔗 Conectando ao MongoDB com URI:', MONGODB_URI);
+// Conexão com MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/editor-questoes';
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
@@ -34,16 +32,13 @@ mongoose.connect(MONGODB_URI, {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000
 })
-.then(() => {
-    console.log('✅ MongoDB conectado com sucesso!');
-    console.log('📊 Banco de dados:', mongoose.connection.db.databaseName);
-})
+.then(() => console.log('MongoDB conectado com sucesso!'))
 .catch(err => {
-    console.error('❌ Falha na conexão com MongoDB:', err);
+    console.error('Falha na conexão com MongoDB:', err);
     process.exit(1);
 });
 
-// Schemas
+// Schemas atualizados
 const questaoSchema = new mongoose.Schema({
     disciplina: {
         type: String,
@@ -57,7 +52,7 @@ const questaoSchema = new mongoose.Schema({
     },
     assunto: {
         type: String,
-        required: false,
+        required: false, // Tornando opcional
         trim: true
     },
     conteudo: {
@@ -205,6 +200,7 @@ app.post('/api/pastas', async (req, res) => {
         const pasta = new Pasta(req.body);
         await pasta.save();
         
+        // Se tem parent, adicionar esta pasta aos children do parent
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $push: { children: pasta._id } 
@@ -269,18 +265,21 @@ app.delete('/api/pastas/:id', async (req, res) => {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
         
+        // Remover esta pasta dos children do parent
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $pull: { children: pasta._id } 
             });
         }
         
+        // Mover os children desta pasta para o parent (ou null se não tiver parent)
         if (pasta.children && pasta.children.length > 0) {
             await Pasta.updateMany(
                 { _id: { $in: pasta.children } },
                 { parent: pasta.parent }
             );
             
+            // Se tem parent, adicionar os children aos children do parent
             if (pasta.parent) {
                 await Pasta.findByIdAndUpdate(pasta.parent, { 
                     $push: { children: { $each: pasta.children } } 
@@ -296,6 +295,7 @@ app.delete('/api/pastas/:id', async (req, res) => {
     }
 });
 
+// Rota para mover pasta
 app.put('/api/pastas/:id/mover', async (req, res) => {
     try {
         const { novoParentId } = req.body;
@@ -306,19 +306,23 @@ app.put('/api/pastas/:id/mover', async (req, res) => {
             return res.status(404).json({ error: 'Pasta não encontrada' });
         }
         
+        // Verificar se não está tentando mover para si mesma ou para um descendente
         if (novoParentId === pastaId) {
             return res.status(400).json({ error: 'Não é possível mover uma pasta para si mesma' });
         }
         
+        // Remover dos children do parent atual
         if (pasta.parent) {
             await Pasta.findByIdAndUpdate(pasta.parent, { 
                 $pull: { children: pastaId } 
             });
         }
         
+        // Atualizar o parent da pasta
         pasta.parent = novoParentId || null;
         await pasta.save();
         
+        // Adicionar aos children do novo parent
         if (novoParentId) {
             await Pasta.findByIdAndUpdate(novoParentId, { 
                 $push: { children: pastaId } 
@@ -334,6 +338,7 @@ app.put('/api/pastas/:id/mover', async (req, res) => {
 // Rotas da API para Provas
 app.post('/api/provas', async (req, res) => {
     try {
+        // Verificar se a pasta tem children (outras pastas)
         if (req.body.pasta) {
             const pasta = await Pasta.findById(req.body.pasta);
             if (pasta && pasta.children && pasta.children.length > 0) {
@@ -414,12 +419,20 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões - VERSÃO CORRIGIDA E FUNCIONAL
+// Rota POST para Questões (completa e corrigida)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
+// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 app.post('/api/questoes', async (req, res) => {
     try {
-        console.log('📨 Recebendo requisição para criar questão:', req.body);
+        console.log('Recebendo requisição para criar questão:', req.body);
 
-        const requiredFields = ['disciplina', 'materia', 'enunciado', 'alternativas', 'resposta'];
+        const requiredFields = [
+            'disciplina', 'materia',
+            'enunciado', 'alternativas',
+            'resposta'
+        ];
+
         const missingFields = requiredFields.filter(field => !req.body[field]);
 
         if (missingFields.length > 0) {
@@ -439,9 +452,8 @@ app.post('/api/questoes', async (req, res) => {
         let provaId = req.body.prova;
         let ano = req.body.ano;
         let index = req.body.index;
-        let pasta = null;
-        let prova = null;
 
+        // Se não foi fornecido um ID de prova, criar automaticamente
         if (!provaId) {
             if (!ano) {
                 return res.status(400).json({
@@ -449,6 +461,7 @@ app.post('/api/questoes', async (req, res) => {
                 });
             }
 
+            // Converter ano para número inteiro
             ano = parseInt(ano);
             if (isNaN(ano)) {
                 return res.status(400).json({
@@ -456,6 +469,7 @@ app.post('/api/questoes', async (req, res) => {
                 });
             }
 
+            // Converter index para número inteiro se fornecido
             if (index !== undefined && index !== null) {
                 index = parseInt(index);
                 if (isNaN(index)) {
@@ -465,75 +479,71 @@ app.post('/api/questoes', async (req, res) => {
                 }
             }
 
+            // Determinar o dia com base no index da questão
             let dia = 'Primeiro Dia';
             if (index !== undefined && index !== null && index > 95) {
                 dia = 'Segundo Dia';
             }
 
-            // 1. VERIFICAR/CRIAR PASTA
+            // Verificar/Criar pasta
             const pastaNome = `ENEM ${ano}`;
-            console.log(`🔍 Buscando pasta: "${pastaNome}"`);
-            
-            pasta = await Pasta.findOne({ nome: pastaNome });
+            let pasta = await Pasta.findOne({ nome: pastaNome });
             
             if (!pasta) {
-                console.log(`➕ Criando nova pasta: "${pastaNome}"`);
-                pasta = new Pasta({
-                    nome: pastaNome,
-                    descricao: `Provas do ENEM do ano ${ano}`
-                });
-                await pasta.save();
-                console.log(`✅ Pasta criada com ID: ${pasta._id}`);
+                try {
+                    pasta = new Pasta({
+                        nome: pastaNome,
+                        descricao: `Provas do ENEM do ano ${ano}`
+                    });
+                    await pasta.save();
+                    console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
+                } catch (error) {
+                    console.error('Erro ao criar pasta:', error);
+                    return res.status(500).json({ error: 'Erro ao criar pasta' });
+                }
             } else {
-                console.log(`📁 Pasta encontrada: ${pasta._id}`);
+                console.log(`Pasta encontrada: ${pastaNome} com ID: ${pasta._id}`);
             }
 
-            // 2. VERIFICAR/CRIAR PROVA
+            // Verificar/Criar prova
             const provaTitulo = `ENEM ${ano} ${dia}`;
-            console.log(`🔍 Buscando prova: "${provaTitulo}" na pasta: ${pasta._id}`);
-            
-            prova = await Prova.findOne({ 
-                titulo: provaTitulo, 
-                pasta: pasta._id 
-            });
+            let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
             
             if (!prova) {
-                console.log(`➕ Criando nova prova: "${provaTitulo}"`);
-                prova = new Prova({
-                    titulo: provaTitulo,
-                    descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
-                    pasta: pasta._id
-                });
-                await prova.save();
-                console.log(`✅ Prova criada com ID: ${prova._id}`);
+                try {
+                    prova = new Prova({
+                        titulo: provaTitulo,
+                        descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
+                        pasta: pasta._id
+                    });
+                    await prova.save();
+                    console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
 
-                await Pasta.findByIdAndUpdate(
-                    pasta._id, 
-                    { $push: { provas: prova._id } }
-                );
-                console.log(`✅ Prova adicionada à pasta: ${pasta._id}`);
-
+                    // Atualizar pasta com a nova prova
+                    await Pasta.findByIdAndUpdate(
+                        pasta._id, 
+                        { $push: { provas: prova._id } }
+                    );
+                    console.log(`Prova adicionada à pasta: ${pasta._id}`);
+                } catch (error) {
+                    console.error('Erro ao criar prova:', error);
+                    return res.status(500).json({ error: 'Erro ao criar prova' });
+                }
             } else {
-                console.log(`📝 Prova encontrada: ${prova._id}`);
+                console.log(`Prova encontrada: ${provaTitulo} com ID: ${prova._id}`);
             }
 
             provaId = prova._id;
-        } else {
-            prova = await Prova.findById(provaId);
-            if (prova && prova.pasta) {
-                pasta = await Pasta.findById(prova.pasta);
-            }
         }
 
-        // 3. CRIAR QUESTÃO
-        console.log(`➕ Criando questão para prova: ${provaId}`);
+        // Criar a questão
         const questaoData = {
             disciplina: req.body.disciplina,
             materia: req.body.materia,
             assunto: req.body.assunto,
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
-            ano: ano,
+            ano: ano, // Já convertido para número
             instituicao: 'ENEM',
             enunciado: req.body.enunciado,
             alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
@@ -548,31 +558,30 @@ app.post('/api/questoes', async (req, res) => {
             conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
         };
 
+        // Adicionar index da questão se fornecido (já convertido para número)
         if (index !== undefined && index !== null) {
             questaoData.index = index;
         }
 
         const questao = new Questao(questaoData);
         await questao.save();
-        console.log(`✅ Questão criada com ID: ${questao._id}`);
+        console.log(`Questão criada com ID: ${questao._id}`);
 
+        // Atualizar a prova com a nova questão
         await Prova.findByIdAndUpdate(
             provaId, 
             { $push: { questoes: questao._id } }
         );
-        console.log(`✅ Questão adicionada à prova: ${provaId}`);
+        console.log(`Questão adicionada à prova: ${provaId}`);
 
         res.status(201).json({
-            success: true,
             questao: questao,
             provaCriada: !req.body.prova,
-            pastaCriada: !req.body.prova && !!pasta,
-            provaId: provaId,
-            pastaId: pasta ? pasta._id : null
+            pastaCriada: !req.body.prova
         });
 
     } catch (error) {
-        console.error('💥 ERRO ao criar questão:', error);
+        console.error('Erro ao criar questão:', error);
         res.status(500).json({
             error: 'Erro interno do servidor',
             details: error.message
@@ -634,44 +643,32 @@ app.delete('/api/questoes/:id', async (req, res) => {
 
 // Rotas de Status e Raiz
 app.get('/api/status', (req, res) => {
-    const dbStatus = mongoose.connection.readyState;
-    const statusText = {
-        0: 'disconnected',
-        1: 'connected', 
-        2: 'connecting',
-        3: 'disconnecting'
-    }[dbStatus] || 'unknown';
-    
     res.json({
         status: 'online',
-        database: statusText,
-        databaseName: mongoose.connection.db?.databaseName || 'unknown',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         timestamp: new Date()
     });
 });
 
 app.get('/', (req, res) => {
-    const dbStatus = mongoose.connection.readyState;
-    const statusText = dbStatus === 1 ? 'Conectado' : 'Desconectado';
-    const dbName = mongoose.connection.db?.databaseName || 'test';
-    
     res.send(`
         <h1>API CRUD com MongoDB para Plataforma Educacional</h1>
         <p>Esta API está funcionando corretamente.</p>
-        <p>Banco de dados: ${statusText} (${dbName})</p>
+        <p>Banco de dados: ${mongoose.connection.readyState === 1 ? 'Conectado' : 'Desconectado'}</p>
         <p><a href='/api/pastas'>Ver todas as Pastas</a></p>
         <p><a href='/api/provas'>Ver todas as Provas</a></p>
         <p><a href='/api/questoes'>Ver todas as Questões</a></p>
-        <p><a href='/api/status'>Status da API</a></p>
     `);
 });
 
+// Middleware de erro
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Algo deu errado!' });
 });
 
+// Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    console.log(`🔗 Conectado ao MongoDB em: ${MONGODB_URI}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
