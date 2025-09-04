@@ -123,6 +123,9 @@ const questaoSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
+    index: {
+        type: Number
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -193,6 +196,184 @@ const pastaSchema = new mongoose.Schema({
 });
 
 const Pasta = mongoose.model('Pasta', pastaSchema);
+
+// Função auxiliar para mapear disciplinas
+function mapearDisciplina(discipline) {
+    const mapeamento = {
+        'ciencias-natureza': 'Ciências da Natureza',
+        'ciencias-humanas': 'Ciências Humanas',
+        'linguagens': 'Linguagens',
+        'matematica': 'Matemática'
+    };
+    return mapeamento[discipline] || discipline;
+}
+
+// Função auxiliar para mapear matérias
+function mapearMateria(discipline) {
+    const mapeamento = {
+        'ciencias-natureza': 'Química',
+        'ciencias-humanas': 'História',
+        'linguagens': 'Português',
+        'matematica': 'Matemática'
+    };
+    return mapeamento[discipline] || 'Geral';
+}
+
+// Nova rota para inserção SQL direta (múltiplas questões)
+app.post('/api/questoes/bulk', async (req, res) => {
+    try {
+        console.log('Recebendo requisição para inserção em lote:', req.body);
+
+        let questoes = req.body;
+        
+        // Se não for um array, transformar em array
+        if (!Array.isArray(questoes)) {
+            questoes = [questoes];
+        }
+
+        const resultados = [];
+        const erros = [];
+
+        for (let i = 0; i < questoes.length; i++) {
+            const questaoData = questoes[i];
+            
+            try {
+                // Validar campos obrigatórios
+                if (!questaoData.index || !questaoData.year || !questaoData.correctAlternative || !questaoData.alternatives) {
+                    erros.push({
+                        questao: i + 1,
+                        erro: 'Campos obrigatórios faltando: index, year, correctAlternative, alternatives'
+                    });
+                    continue;
+                }
+
+                const ano = parseInt(questaoData.year);
+                const index = parseInt(questaoData.index);
+
+                if (isNaN(ano) || isNaN(index)) {
+                    erros.push({
+                        questao: i + 1,
+                        erro: 'Ano e index devem ser números válidos'
+                    });
+                    continue;
+                }
+
+                // Determinar o dia com base no index da questão
+                let dia = index <= 95 ? 'Primeiro Dia' : 'Segundo Dia';
+
+                // Verificar/Criar pasta
+                const pastaNome = `Enem ${ano}`;
+                let pasta = await Pasta.findOne({ nome: pastaNome });
+                
+                if (!pasta) {
+                    pasta = new Pasta({
+                        nome: pastaNome,
+                        descricao: `Provas do ENEM do ano ${ano}`
+                    });
+                    await pasta.save();
+                    console.log(`Pasta criada: ${pastaNome} com ID: ${pasta._id}`);
+                }
+
+                // Verificar/Criar prova
+                const provaTitulo = `Enem ${ano} ${dia}`;
+                let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
+                
+                if (!prova) {
+                    prova = new Prova({
+                        titulo: provaTitulo,
+                        descricao: `Prova do ENEM do ano ${ano} - ${dia}`,
+                        pasta: pasta._id
+                    });
+                    await prova.save();
+                    console.log(`Prova criada: ${provaTitulo} com ID: ${prova._id}`);
+
+                    // Atualizar pasta com a nova prova
+                    await Pasta.findByIdAndUpdate(
+                        pasta._id, 
+                        { $push: { provas: prova._id } }
+                    );
+                }
+
+                // Extrair alternativas do formato JSON
+                let alternativasTexto = [];
+                if (Array.isArray(questaoData.alternatives)) {
+                    alternativasTexto = questaoData.alternatives.map(alt => alt.text || alt);
+                }
+
+                // Construir enunciado
+                let enunciado = '';
+                if (questaoData.context) {
+                    enunciado += questaoData.context + '\n\n';
+                }
+                if (questaoData.alternativesIntroduction) {
+                    enunciado += questaoData.alternativesIntroduction;
+                } else if (questaoData.title) {
+                    enunciado += questaoData.title;
+                }
+
+                // Extrair imagens se existirem
+                let img1 = null;
+                if (questaoData.files && questaoData.files.length > 0) {
+                    img1 = questaoData.files[0];
+                }
+
+                // Criar a questão
+                const novaQuestao = new Questao({
+                    disciplina: mapearDisciplina(questaoData.discipline),
+                    materia: mapearMateria(questaoData.discipline),
+                    assunto: questaoData.title || 'ENEM',
+                    ano: ano,
+                    instituicao: 'ENEM',
+                    enunciado: enunciado,
+                    alternativas: alternativasTexto,
+                    resposta: questaoData.correctAlternative,
+                    prova: prova._id,
+                    index: index,
+                    img1: img1
+                });
+
+                await novaQuestao.save();
+                console.log(`Questão ${index} criada com ID: ${novaQuestao._id}`);
+
+                // Atualizar a prova com a nova questão
+                await Prova.findByIdAndUpdate(
+                    prova._id, 
+                    { $push: { questoes: novaQuestao._id } }
+                );
+
+                resultados.push({
+                    questao: i + 1,
+                    index: index,
+                    ano: ano,
+                    pasta: pastaNome,
+                    prova: provaTitulo,
+                    sucesso: true
+                });
+
+            } catch (error) {
+                console.error(`Erro ao processar questão ${i + 1}:`, error);
+                erros.push({
+                    questao: i + 1,
+                    erro: error.message
+                });
+            }
+        }
+
+        res.status(200).json({
+            message: `Processamento concluído. ${resultados.length} questões inseridas com sucesso.`,
+            sucessos: resultados,
+            erros: erros,
+            total: questoes.length
+        });
+
+    } catch (error) {
+        console.error('Erro no processamento em lote:', error);
+        res.status(500).json({
+            error: 'Erro interno do servidor',
+            details: error.message
+        });
+    }
+});
 
 // Rotas da API para Pastas
 app.post('/api/pastas', async (req, res) => {
@@ -419,9 +600,6 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota POST para Questões (completa e corrigida)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
-// Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 app.post('/api/questoes', async (req, res) => {
     try {
@@ -486,7 +664,7 @@ app.post('/api/questoes', async (req, res) => {
             }
 
             // Verificar/Criar pasta
-            const pastaNome = `ENEM ${ano}`;
+            const pastaNome = `Enem ${ano}`;
             let pasta = await Pasta.findOne({ nome: pastaNome });
             
             if (!pasta) {
@@ -506,7 +684,7 @@ app.post('/api/questoes', async (req, res) => {
             }
 
             // Verificar/Criar prova
-            const provaTitulo = `ENEM ${ano} ${dia}`;
+            const provaTitulo = `Enem ${ano} ${dia}`;
             let prova = await Prova.findOne({ titulo: provaTitulo, pasta: pasta._id });
             
             if (!prova) {
@@ -672,3 +850,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
+
