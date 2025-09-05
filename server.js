@@ -126,6 +126,22 @@ const questaoSchema = new mongoose.Schema({
     index: {
         type: Number
     },
+    title: {
+        type: String,
+        trim: true
+    },
+    context: {
+        type: String,
+        trim: true
+    },
+    alternativesIntroduction: {
+        type: String,
+        trim: true
+    },
+    files: {
+        type: [String],
+        default: []
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -311,13 +327,7 @@ app.post('/api/questoes/bulk', async (req, res) => {
                     enunciado += questaoData.title;
                 }
 
-                // Extrair imagens se existirem
-                let img1 = null;
-                if (questaoData.files && questaoData.files.length > 0) {
-                    img1 = questaoData.files[0];
-                }
-
-                // Criar a questão
+                // Criar a questão com todos os campos
                 const novaQuestao = new Questao({
                     disciplina: mapearDisciplina(questaoData.discipline),
                     materia: mapearMateria(questaoData.discipline),
@@ -329,7 +339,11 @@ app.post('/api/questoes/bulk', async (req, res) => {
                     resposta: questaoData.correctAlternative,
                     prova: prova._id,
                     index: index,
-                    img1: img1
+                    title: questaoData.title || null,
+                    context: questaoData.context || null,
+                    alternativesIntroduction: questaoData.alternativesIntroduction || null,
+                    files: questaoData.files || [],
+                    img1: questaoData.files && questaoData.files[0] ? questaoData.files[0] : null
                 });
 
                 await novaQuestao.save();
@@ -722,7 +736,7 @@ app.post('/api/questoes', async (req, res) => {
             conteudo: req.body.conteudo || null,
             topico: req.body.topico || null,
             ano: ano, // Já convertido para número
-            instituicao: 'ENEM',
+            instituicao: req.body.instituicao || 'ENEM',
             enunciado: req.body.enunciado,
             alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
             resposta: req.body.resposta,
@@ -733,7 +747,11 @@ app.post('/api/questoes', async (req, res) => {
             conhecimento1: req.body.conhecimento1 ? req.body.conhecimento1.toLowerCase() : null,
             conhecimento2: req.body.conhecimento2 ? req.body.conhecimento2.toLowerCase() : null,
             conhecimento3: req.body.conhecimento3 ? req.body.conhecimento3.toLowerCase() : null,
-            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
+            conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null,
+            title: req.body.title || null,
+            context: req.body.context || null,
+            alternativesIntroduction: req.body.alternativesIntroduction || null,
+            files: req.body.files || []
         };
 
         // Adicionar index da questão se fornecido (já convertido para número)
