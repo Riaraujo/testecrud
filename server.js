@@ -70,9 +70,13 @@ const questaoSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    context: {
+        type: String,
+        required: false // Texto de apoio/contexto
+    },
     enunciado: {
         type: String,
-        required: [true, 'O campo enunciado é obrigatório']
+        required: [true, 'O campo enunciado é obrigatório'] // alternativesIntroduction
     },
     alternativas: {
         type: [String],
@@ -300,15 +304,18 @@ app.post('/api/questoes/bulk', async (req, res) => {
                     alternativasTexto = questaoData.alternatives.map(alt => alt.text || alt);
                 }
 
-                // Construir enunciado
+                // Construir context e enunciado separadamente
+                let context = '';
                 let enunciado = '';
+                
                 if (questaoData.context) {
-                    enunciado += questaoData.context + '\n\n';
+                    context = questaoData.context;
                 }
+                
                 if (questaoData.alternativesIntroduction) {
-                    enunciado += questaoData.alternativesIntroduction;
+                    enunciado = questaoData.alternativesIntroduction;
                 } else if (questaoData.title) {
-                    enunciado += questaoData.title;
+                    enunciado = questaoData.title;
                 }
 
                 // Extrair imagens se existirem
@@ -324,6 +331,7 @@ app.post('/api/questoes/bulk', async (req, res) => {
                     assunto: questaoData.title || 'ENEM',
                     ano: ano,
                     instituicao: 'ENEM',
+                    context: context,
                     enunciado: enunciado,
                     alternativas: alternativasTexto,
                     resposta: questaoData.correctAlternative,
@@ -723,6 +731,7 @@ app.post('/api/questoes', async (req, res) => {
             topico: req.body.topico || null,
             ano: ano, // Já convertido para número
             instituicao: 'ENEM',
+            context: req.body.context || null,
             enunciado: req.body.enunciado,
             alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
             resposta: req.body.resposta,
