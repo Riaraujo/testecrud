@@ -300,12 +300,17 @@ app.post('/api/questoes/bulk', async (req, res) => {
                 let alternativasTexto = [];
                 if (Array.isArray(questaoData.alternatives)) {
                     alternativasTexto = questaoData.alternatives.map(alt => {
-                        // Se é um objeto com propriedade text, usar o text
-                        if (typeof alt === 'object' && alt.text) {
-                            return alt.text;
+                        // Se é um objeto com as propriedades letter, text e isCorrect, usar o objeto completo
+                        if (typeof alt === 'object' && alt.letter && alt.text) {
+                            return { letter: alt.letter, text: alt.text, isCorrect: alt.isCorrect || false };
                         }
-                        // Senão, usar o valor diretamente
-                        return alt;
+                        // Senão, tentar inferir a letra e usar o valor diretamente como texto
+                        const letterMatch = String(alt).match(/^([A-E])\)\s*(.*)$/);
+                        if (letterMatch) {
+                            return { letter: letterMatch[1], text: letterMatch[2], isCorrect: false };
+                        } else {
+                            return { letter: 'A', text: String(alt), isCorrect: false }; // Fallback
+                        }
                     });
                 }
 
@@ -338,7 +343,11 @@ app.post('/api/questoes/bulk', async (req, res) => {
                     instituicao: 'ENEM',
                     context: context,
                     enunciado: enunciado,
-                    alternativas: alternativasTexto,
+                    alternativas: questaoData.alternatives.map(alt => ({
+                        letter: alt.letter,
+                        text: alt.text,
+                        isCorrect: alt.isCorrect || false
+                    })),
                     resposta: questaoData.correctAlternative,
                     prova: prova._id,
                     index: index,
