@@ -1254,6 +1254,10 @@
                 <div class="arquivos-lista" id="arquivos-lista">
                     <!-- Arquivos serão renderizados aqui -->
                 </div>
+                <div class="arquivos-controles">
+                    <input type="text" id="novo-arquivo-url" placeholder="URL do arquivo (imagem, PDF, etc.)" class="form-control" onkeypress="if(event.key==='Enter') adicionarArquivo()">
+                    <button onclick="adicionarArquivo()" class="btn-add-bloco">+ Adicionar Arquivo</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1583,20 +1587,6 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
         
         // Funções para selects hierárquicos
         function inicializarSelectsHierarquicos() {
-            const disciplinaSelect = document.getElementById('disciplina');
-            
-            // Limpar e popular disciplinas
-            disciplinaSelect.innerHTML = '<option value="">Selecione uma disciplina</option>';
-            
-            Object.keys(estruturaDados).forEach(disciplina => {
-                const option = document.createElement('option');
-                option.value = disciplina;
-                option.textContent = disciplina;
-                disciplinaSelect.appendChild(option);
-            });
-        }
-        
-        function atualizarDisciplinas() {
             const disciplinaSelect = document.getElementById('disciplina');
             
             // Limpar e popular disciplinas
@@ -2438,32 +2428,22 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 return;
             }
 
-            // Converter blocos para HTML do enunciado
-            let enunciadoHTML = '';
-            let imagens = [];
+            // Construir enunciado preservando quebras de linha
+            let enunciado = '';
             
-            linhas.forEach(linha => {
+            linhas.forEach((linha, index) => {
                 linha.blocos.forEach(bloco => {
-                    if (bloco.tipo === 'texto' && bloco.texto.trim() !== '') {
-                        let texto = bloco.texto.trim();
-                        let classe = '';
-                        
-                        if (bloco.tipoTexto !== 'normal') {
-                            classe = bloco.tipoTexto;
+                    if (bloco.tipo === 'texto' && bloco.conteudo) {
+                        if (enunciado) {
+                            enunciado += '\n\n'; // Adicionar quebra de linha dupla entre blocos
                         }
-                        if (bloco.alinhamento !== 'esquerda') {
-                            classe += (classe ? ' ' : '') + bloco.alinhamento;
-                        }
-                        
-                        enunciadoHTML += `<div${classe ? ` class="${classe}"` : ''}>${texto}</div>\n`;
-                    } else if (bloco.tipo === 'imagem' && bloco.url.trim() !== '') {
-                        imagens.push(bloco.url.trim());
+                        enunciado += bloco.conteudo;
                     }
                 });
             });
 
-            if (enunciadoHTML === '' && imagens.length === 0) {
-                alert('Por favor, adicione conteúdo ao enunciado ou imagens');
+            if (enunciado === '') {
+                alert('Por favor, adicione conteúdo ao enunciado');
                 return;
             }
 
@@ -2481,7 +2461,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 materia: materia,
                 assunto: assunto || null,
                 resposta: resposta,
-                enunciado: enunciadoHTML,
+                enunciado: enunciado,
                 alternativas: alternativasArray,
                 prova: provaSelecionada._id,
                 conteudo: document.getElementById('conteudo').value.trim() || null,
@@ -2552,46 +2532,19 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 return;
             }
             
-            // Dividir o HTML em divs
-            const divs = enunciadoHTML.split('</div>').filter(div => div.trim() !== '');
-            
-            if (divs.length === 0) {
-                // Se não há divs, tratar como texto simples
-                const novaLinha = {
-                    id: nextLinhaId++,
-                    blocos: [{
-                        id: Date.now(),
-                        tipo: 'texto',
-                        conteudo: enunciadoHTML,
-                        texto: enunciadoHTML,
-                        tipoTexto: 'normal',
-                        alinhamento: 'esquerda'
-                    }]
-                };
-                linhas.push(novaLinha);
-            } else {
-                // Processar cada div
-                divs.forEach(divHTML => {
-                    const match = divHTML.match(/<div[^>]*>(.*)/);
-                    if (match) {
-                        const texto = match[1].trim();
-                        if (texto) {
-                            const novaLinha = {
-                                id: nextLinhaId++,
-                                blocos: [{
-                                    id: Date.now() + Math.random(),
-                                    tipo: 'texto',
-                                    conteudo: texto,
-                                    texto: texto,
-                                    tipoTexto: 'normal',
-                                    alinhamento: 'esquerda'
-                                }]
-                            };
-                            linhas.push(novaLinha);
-                        }
-                    }
-                });
-            }
+            // Tratar o enunciado como um único bloco de texto
+            const novaLinha = {
+                id: nextLinhaId++,
+                blocos: [{
+                    id: Date.now(),
+                    tipo: 'texto',
+                    conteudo: enunciadoHTML,
+                    texto: enunciadoHTML,
+                    tipoTexto: 'normal',
+                    alinhamento: 'esquerda'
+                }]
+            };
+            linhas.push(novaLinha);
             
             // Se não há linhas, criar uma vazia
             if (linhas.length === 0) {
@@ -2835,199 +2788,6 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             if (confirm('Tem certeza que deseja remover esta pasta?')) {
                 console.log('Remover pasta');
             }
-        }
-
-        // Funções para processar dados da questão para edição
-        function processarEnunciadoParaEdicao(enunciado) {
-            try {
-                // Limpar linhas existentes
-                linhas = [];
-                nextLinhaId = 1;
-                
-                if (!enunciado || enunciado.trim() === '') {
-                    // Se não há enunciado, criar uma linha vazia
-                    adicionarLinha();
-                    return;
-                }
-                
-                // Dividir o enunciado em parágrafos
-                const paragrafos = enunciado.split('\n\n').filter(p => p.trim() !== '');
-                
-                if (paragrafos.length === 0) {
-                    // Se não há parágrafos válidos, criar uma linha vazia
-                    adicionarLinha();
-                    return;
-                }
-                
-                // Criar uma linha para cada parágrafo
-                paragrafos.forEach(paragrafo => {
-                    const novaLinha = {
-                        id: nextLinhaId++,
-                        blocos: [{
-                            id: Date.now() + Math.random(),
-                            tipo: 'texto',
-                            conteudo: paragrafo.trim(),
-                            texto: paragrafo.trim(),
-                            tipoTexto: 'normal',
-                            alinhamento: 'esquerda'
-                        }]
-                    };
-                    linhas.push(novaLinha);
-                });
-                
-                // Renderizar o editor com as novas linhas
-                renderizarEditor();
-                
-            } catch (error) {
-                console.error('Erro ao processar enunciado para edição:', error);
-                // Em caso de erro, criar uma linha vazia
-                linhas = [];
-                nextLinhaId = 1;
-                adicionarLinha();
-            }
-        }
-
-        function processarAlternativasParaEdicao(alternativasArray) {
-            try {
-                // Resetar alternativas
-                alternativas = [
-                    { letra: 'A', texto: '' },
-                    { letra: 'B', texto: '' },
-                    { letra: 'C', texto: '' },
-                    { letra: 'D', texto: '' },
-                    { letra: 'E', texto: '' }
-                ];
-                
-                if (!alternativasArray || !Array.isArray(alternativasArray)) {
-                    renderizarAlternativas();
-                    return;
-                }
-                
-                // Preencher as alternativas com os dados recebidos
-                alternativasArray.forEach((alternativa, index) => {
-                    if (index < alternativas.length) {
-                        alternativas[index].texto = alternativa || '';
-                    }
-                });
-                
-                // Renderizar as alternativas
-                renderizarAlternativas();
-                
-            } catch (error) {
-                console.error('Erro ao processar alternativas para edição:', error);
-                // Em caso de erro, manter alternativas vazias
-                alternativas = [
-                    { letra: 'A', texto: '' },
-                    { letra: 'B', texto: '' },
-                    { letra: 'C', texto: '' },
-                    { letra: 'D', texto: '' },
-                    { letra: 'E', texto: '' }
-                ];
-                renderizarAlternativas();
-            }
-        }
-
-        function processarArquivosParaEdicao(questao) {
-            try {
-                // Resetar arquivos
-                arquivosQuestao = [];
-                
-                if (!questao) {
-                    return;
-                }
-                
-                // Processar campos de imagem (img1, img2, img3)
-                ['img1', 'img2', 'img3'].forEach((campo, index) => {
-                    if (questao[campo] && questao[campo].trim() !== '') {
-                        arquivosQuestao.push({
-                            id: `img${index + 1}`,
-                            url: questao[campo],
-                            tipo: 'imagem',
-                            nome: `Imagem ${index + 1}`
-                        });
-                    }
-                });
-                
-                // Atualizar interface de arquivos se existir
-                atualizarInterfaceArquivos();
-                
-            } catch (error) {
-                console.error('Erro ao processar arquivos para edição:', error);
-                arquivosQuestao = [];
-            }
-        }
-
-        function atualizarInterfaceArquivos() {
-            // Usar o container específico de arquivos
-            const container = document.getElementById('arquivos-lista');
-            
-            if (!container) {
-                console.warn('Container de arquivos não encontrado');
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            if (arquivosQuestao.length === 0) {
-                container.innerHTML = '<div class="arquivos-vazio">Nenhum arquivo adicionado</div>';
-            } else {
-                arquivosQuestao.forEach(arquivo => {
-                    const arquivoDiv = document.createElement('div');
-                    arquivoDiv.className = 'arquivo-item';
-                    arquivoDiv.innerHTML = `
-                        <div class="arquivo-info">
-                            <span class="arquivo-nome">${arquivo.nome}</span>
-                            <span class="arquivo-tipo">(${arquivo.tipo})</span>
-                        </div>
-                        <div class="arquivo-controles">
-                            <input type="text" value="${arquivo.url}" placeholder="URL do arquivo" class="form-control arquivo-url" data-arquivo-id="${arquivo.id}">
-                            <button type="button" class="btn-remover-arquivo" onclick="removerArquivo('${arquivo.id}')">×</button>
-                        </div>
-                    `;
-                    container.appendChild(arquivoDiv);
-                });
-            }
-            
-            // Adicionar botão para adicionar novo arquivo
-            const btnAdicionar = document.createElement('button');
-            btnAdicionar.type = 'button';
-            btnAdicionar.className = 'btn-add-bloco';
-            btnAdicionar.textContent = '+ Adicionar Arquivo';
-            btnAdicionar.onclick = adicionarNovoArquivo;
-            container.appendChild(btnAdicionar);
-        }
-
-        function adicionarNovoArquivo() {
-            const novoId = `arquivo_${Date.now()}`;
-            arquivosQuestao.push({
-                id: novoId,
-                url: '',
-                tipo: 'arquivo',
-                nome: `Arquivo ${arquivosQuestao.length + 1}`
-            });
-            atualizarInterfaceArquivos();
-        }
-
-        function removerArquivo(arquivoId) {
-            arquivosQuestao = arquivosQuestao.filter(arquivo => arquivo.id !== arquivoId);
-            atualizarInterfaceArquivos();
-        }
-
-        // Função auxiliar para coletar dados dos arquivos da interface
-        function coletarDadosArquivos() {
-            const dadosArquivos = {};
-            
-            arquivosQuestao.forEach((arquivo, index) => {
-                const input = document.querySelector(`input[data-arquivo-id="${arquivo.id}"]`);
-                if (input && input.value.trim() !== '') {
-                    // Mapear para os campos img1, img2, img3 se for imagem
-                    if (arquivo.tipo === 'imagem' && index < 3) {
-                        dadosArquivos[`img${index + 1}`] = input.value.trim();
-                    }
-                }
-            });
-            
-            return dadosArquivos;
         }
     </script>
 </body>
