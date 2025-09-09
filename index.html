@@ -1040,7 +1040,6 @@
                 </div>
                 <div class="action-buttons">
                     <button id="btn-voltar-prova" class="btn-voltar">Voltar para Prova</button>
-                    <button onclick="adicionarLinha()" class="btn-add-linha">+ Adicionar Nova Linha</button>
                     <button onclick="salvarQuestao()" class="btn-salvar" id="btn-salvar-questao">Salvar Questão</button>
                 </div>
             </div>
@@ -1246,7 +1245,31 @@
                 </div>
             </div>
             
-            <div id="linhas-container" class="linhas-container"></div>
+            <div id="linhas-container" class="linhas-container">
+                <!-- Campo para Context (Texto de Apoio) -->
+                <div class="linha">
+                    <div class="bloco bloco-texto">
+                        <div class="bloco-header">
+                            <span class="bloco-tipo">Texto de Apoio (Context)</span>
+                        </div>
+                        <div class="texto-content">
+                            <textarea id="context-textarea" placeholder="Digite o texto de apoio/contexto aqui..." style="min-height: 120px; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campo para Enunciado (alternativesIntroduction) -->
+                <div class="linha">
+                    <div class="bloco bloco-texto">
+                        <div class="bloco-header">
+                            <span class="bloco-tipo">Enunciado da Questão</span>
+                        </div>
+                        <div class="texto-content">
+                            <textarea id="enunciado-textarea" placeholder="Digite o enunciado da questão aqui..." style="min-height: 80px; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <!-- Seção de Arquivos -->
             <div class="arquivos-container">
@@ -1572,8 +1595,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             // Inicializar selects hierárquicos
             inicializarSelectsHierarquicos();
             
-            adicionarLinha();
-            renderizarEditor();
+            renderizarAlternativas();
             
             // Event listeners para modais
             setupEventListeners();
@@ -2165,91 +2187,17 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             menu.style.top = y + 'px';
         }
 
-        // Funções básicas do editor
-        function adicionarLinha() {
-            const novaLinha = {
-                id: nextLinhaId++,
-                blocos: [{
-                    id: Date.now(),
-                    tipo: 'texto',
-                    conteudo: '',
-                    texto: '',
-                    tipoTexto: 'normal',
-                    alinhamento: 'esquerda'
-                }]
-            };
-            
-            linhas.push(novaLinha);
-            renderizarEditor();
-        }
-
-        function renderizarEditor() {
-            const container = document.getElementById('linhas-container');
-            container.innerHTML = '';
-            
-            linhas.forEach(linha => {
-                renderizarLinha(linha);
-            });
-            
-            renderizarAlternativas();
-        }
-
-        function renderizarLinha(linha) {
-            const container = document.getElementById('linhas-container');
-            
-            const linhaDiv = document.createElement('div');
-            linhaDiv.className = 'linha';
-            linhaDiv.dataset.linhaId = linha.id;
-            
-            linhaDiv.innerHTML = `
-                <div class="blocos-na-linha" data-linha-id="${linha.id}">
-                    ${linha.blocos.map(bloco => renderizarBloco(bloco)).join('')}
-                </div>
-                <div class="controles-linha">
-                    <button class="btn-add-bloco" onclick="adicionarBloco(${linha.id}, 'texto')">+ Adicionar Texto</button>
-                </div>
-            `;
-            
-            container.appendChild(linhaDiv);
-        }
-
-        function renderizarBloco(bloco) {
-            if (bloco.tipo === 'texto') {
-                return `
-                    <div class="bloco bloco-texto" data-bloco-id="${bloco.id}">
-                        <div class="bloco-header">
-                            <span class="bloco-tipo">Texto</span>
-                            <div class="controles-bloco">
-                                <button onclick="removerBloco(${bloco.id})" title="Remover">×</button>
-                            </div>
-                        </div>
-                        <div class="texto-content">
-                            <textarea placeholder="Digite o texto aqui..." onchange="atualizarTextoBloco(${bloco.id}, this.value)">${bloco.conteudo || bloco.texto || ''}</textarea>
-                        </div>
-                    </div>
-                `;
-            } else if (bloco.tipo === 'imagem') {
-                return `
-                    <div class="bloco bloco-imagem" data-bloco-id="${bloco.id}">
-                        <div class="bloco-header">
-                            <span class="bloco-tipo">Imagem</span>
-                            <div class="controles-bloco">
-                                <button onclick="removerBloco(${bloco.id})" title="Remover">×</button>
-                            </div>
-                        </div>
-                        <div class="imagem-content">
-                            <input type="text" placeholder="URL da imagem" value="${bloco.url || ''}" onchange="atualizarImagemBloco(${bloco.id}, this.value)">
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
         function renderizarAlternativas() {
             const container = document.getElementById('linhas-container');
             
-            const alternativasDiv = document.createElement('div');
-            alternativasDiv.className = 'alternativas-container';
+            // Verificar se já existe a seção de alternativas
+            let alternativasDiv = container.querySelector('.alternativas-container');
+            if (!alternativasDiv) {
+                alternativasDiv = document.createElement('div');
+                alternativasDiv.className = 'alternativas-container';
+                container.appendChild(alternativasDiv);
+            }
+            
             alternativasDiv.innerHTML = `
                 <h3>Alternativas</h3>
                 ${alternativas.map(alt => `
@@ -2262,8 +2210,6 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 `).join('')}
                 <button class="btn-add-bloco" onclick="adicionarAlternativa()" style="margin-top: 10px;">+ Adicionar Alternativa</button>
             `;
-            
-            container.appendChild(alternativasDiv);
             
             // Renderizar arquivos
             renderizarArquivos();
@@ -2311,77 +2257,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             renderizarArquivos();
         }
 
-        function adicionarBloco(linhaId, tipo) {
-            const linha = linhas.find(l => l.id === linhaId);
-            if (!linha) return;
-            
-            const novoBloco = {
-                id: Date.now(),
-                tipo: tipo,
-                conteudo: '',
-                texto: '',
-                url: '',
-                tipoTexto: 'normal',
-                alinhamento: 'esquerda'
-            };
-            
-            linha.blocos.push(novoBloco);
-            renderizarEditor();
-        }
 
-        function removerBloco(blocoId) {
-            linhas.forEach(linha => {
-                linha.blocos = linha.blocos.filter(bloco => bloco.id !== blocoId);
-            });
-            renderizarEditor();
-        }
-
-        function removerLinha(linhaId) {
-            if (linhas.length <= 1) {
-                alert('Deve haver pelo menos uma linha.');
-                return;
-            }
-            
-            linhas = linhas.filter(linha => linha.id !== linhaId);
-            renderizarEditor();
-        }
-
-        function atualizarTextoBloco(blocoId, texto) {
-            linhas.forEach(linha => {
-                const bloco = linha.blocos.find(b => b.id === blocoId);
-                if (bloco) {
-                    bloco.conteudo = texto;
-                    bloco.texto = texto;
-                }
-            });
-        }
-
-        function atualizarImagemBloco(blocoId, url) {
-            linhas.forEach(linha => {
-                const bloco = linha.blocos.find(b => b.id === blocoId);
-                if (bloco) {
-                    bloco.url = url;
-                }
-            });
-        }
-
-        function atualizarTipoTexto(blocoId, tipo) {
-            linhas.forEach(linha => {
-                const bloco = linha.blocos.find(b => b.id === blocoId);
-                if (bloco) {
-                    bloco.tipoTexto = tipo;
-                }
-            });
-        }
-
-        function atualizarAlinhamento(blocoId, alinhamento) {
-            linhas.forEach(linha => {
-                const bloco = linha.blocos.find(b => b.id === blocoId);
-                if (bloco) {
-                    bloco.alinhamento = alinhamento;
-                }
-            });
-        }
 
         function atualizarAlternativa(letra, texto) {
             const alternativa = alternativas.find(alt => alt.letra === letra);
@@ -2412,20 +2288,11 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
         }
 
         function construirEnunciado() {
-            let enunciado = '';
-            
-            linhas.forEach((linha, index) => {
-                linha.blocos.forEach(bloco => {
-                    if (bloco.tipo === 'texto' && bloco.conteudo) {
-                        enunciado += bloco.conteudo;
-                        if (index < linhas.length - 1) {
-                            enunciado += '\n\n';
-                        }
-                    }
-                });
-            });
-            
-            return enunciado;
+            return document.getElementById('enunciado-textarea').value.trim();
+        }
+        
+        function construirContext() {
+            return document.getElementById('context-textarea').value.trim();
         }
 
         async function salvarQuestao() {
@@ -2445,11 +2312,12 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 return;
             }
 
-            // Construir enunciado preservando quebras de linha
+            // Construir enunciado e context
             const enunciado = construirEnunciado();
+            const context = construirContext();
             
             if (!enunciado.trim()) {
-                alert('Por favor, adicione conteúdo ao enunciado');
+                alert('Por favor, adicione o enunciado da questão');
                 return;
             }
 
@@ -2472,6 +2340,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 materia: materia,
                 assunto: assunto || null,
                 resposta: resposta,
+                context: context || null,
                 enunciado: enunciado,
                 alternativas: alternativasArray,
                 prova: provaSelecionada._id,
@@ -2532,38 +2401,10 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             }
         }
 
-        function processarEnunciadoParaEdicao(enunciadoHTML) {
-            // Limpar linhas existentes
-            linhas = [];
-            nextLinhaId = 1;
-            
-            if (!enunciadoHTML || enunciadoHTML.trim() === '') {
-                // Se não há enunciado, criar uma linha vazia
-                adicionarLinha();
-                return;
-            }
-            
-            // Tratar o enunciado como um único bloco de texto
-            const novaLinha = {
-                id: nextLinhaId++,
-                blocos: [{
-                    id: Date.now(),
-                    tipo: 'texto',
-                    conteudo: enunciadoHTML,
-                    texto: enunciadoHTML,
-                    tipoTexto: 'normal',
-                    alinhamento: 'esquerda'
-                }]
-            };
-            linhas.push(novaLinha);
-            
-            // Se não há linhas, criar uma vazia
-            if (linhas.length === 0) {
-                adicionarLinha();
-            }
-            
-            // Renderizar o editor
-            renderizarEditor();
+        function processarEnunciadoParaEdicao(enunciado, context) {
+            // Preencher os campos de texto separados
+            document.getElementById('context-textarea').value = context || '';
+            document.getElementById('enunciado-textarea').value = enunciado || '';
         }
 
         function processarAlternativasParaEdicao(alternativasArray) {
@@ -2631,11 +2472,14 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             document.getElementById('conhecimento3').value = '';
             document.getElementById('conhecimento4').value = '';
             
+            // Limpar campos de texto
+            document.getElementById('context-textarea').value = '';
+            document.getElementById('enunciado-textarea').value = '';
+            
             // Resetar selects dependentes
             atualizarMaterias();
             
-            // Limpar linhas e alternativas
-            linhas = [];
+            // Limpar alternativas
             alternativas = [
                 { letra: 'A', texto: '' },
                 { letra: 'B', texto: '' },
@@ -2644,7 +2488,6 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 { letra: 'E', texto: '' }
             ];
             
-            nextLinhaId = 1;
             modoEdicao = false;
             questaoEditando = null;
             arquivosQuestao = [];
@@ -2653,8 +2496,8 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             document.getElementById('titulo-questao').textContent = 'Nova Questão';
             document.getElementById('btn-salvar').textContent = 'Salvar Questão';
             
-            // Adicionar linha inicial
-            adicionarLinha();
+            // Renderizar alternativas
+            renderizarAlternativas();
         }
 
         // Funções placeholder para outras funcionalidades
@@ -2711,8 +2554,8 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                     }, 100);
                 }, 100);
                 
-                // Processar enunciado HTML para linhas e blocos
-                processarEnunciadoParaEdicao(questao.enunciado || '');
+                // Processar enunciado e context para campos separados
+                processarEnunciadoParaEdicao(questao.enunciado || '', questao.context || '');
                 
                 // Processar alternativas
                 processarAlternativasParaEdicao(questao.alternativas || []);
