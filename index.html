@@ -2411,6 +2411,23 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             renderizarEditor();
         }
 
+        function construirEnunciado() {
+            let enunciado = '';
+            
+            linhas.forEach((linha, index) => {
+                linha.blocos.forEach(bloco => {
+                    if (bloco.tipo === 'texto' && bloco.conteudo) {
+                        enunciado += bloco.conteudo;
+                        if (index < linhas.length - 1) {
+                            enunciado += '\n\n';
+                        }
+                    }
+                });
+            });
+            
+            return enunciado;
+        }
+
         async function salvarQuestao() {
             // Validação dos campos obrigatórios
             const disciplina = document.getElementById('disciplina').value.trim();
@@ -2429,20 +2446,9 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             }
 
             // Construir enunciado preservando quebras de linha
-            let enunciado = '';
+            const enunciado = construirEnunciado();
             
-            linhas.forEach((linha, index) => {
-                linha.blocos.forEach(bloco => {
-                    if (bloco.tipo === 'texto' && bloco.conteudo) {
-                        if (enunciado) {
-                            enunciado += '\n\n'; // Adicionar quebra de linha dupla entre blocos
-                        }
-                        enunciado += bloco.conteudo;
-                    }
-                });
-            });
-
-            if (enunciado === '') {
+            if (!enunciado.trim()) {
                 alert('Por favor, adicione conteúdo ao enunciado');
                 return;
             }
@@ -2455,6 +2461,11 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 alert('Por favor, preencha pelo menos duas alternativas');
                 return;
             }
+
+            // Extrair imagens dos arquivos
+            const imagens = arquivosQuestao.filter(arquivo => 
+                arquivo.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)
+            );
 
             const questao = {
                 disciplina: disciplina,
@@ -2567,15 +2578,20 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             
             // Preencher com dados da questão
             if (Array.isArray(alternativasArray)) {
-                alternativasArray.forEach(alt => {
-                    // Formato esperado: "A) texto da alternativa"
-                    const match = alt.match(/^([A-E])\)\s*(.*)$/);
-                    if (match) {
-                        const letra = match[1];
-                        const texto = match[2];
-                        const alternativa = alternativas.find(a => a.letra === letra);
-                        if (alternativa) {
-                            alternativa.texto = texto;
+                alternativasArray.forEach((alt, index) => {
+                    if (index < alternativas.length) {
+                        // Tentar extrair formato "A) texto"
+                        const match = alt.match(/^([A-E])\)\s*(.*)$/);
+                        if (match) {
+                            const letra = match[1];
+                            const texto = match[2];
+                            const alternativa = alternativas.find(a => a.letra === letra);
+                            if (alternativa) {
+                                alternativa.texto = texto;
+                            }
+                        } else {
+                            // Se não tem formato específico, usar o texto diretamente
+                            alternativas[index].texto = alt;
                         }
                     }
                 });
@@ -2674,7 +2690,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
                 
                 // Atualizar dropdowns em cascata
-                atualizarDisciplinas();
+                inicializarSelectsHierarquicos();
                 setTimeout(() => {
                     document.getElementById('disciplina').value = questao.disciplina || '';
                     atualizarMaterias();
