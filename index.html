@@ -2273,7 +2273,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                     letra: proximaLetra,
                     texto: ''
                 });
-                renderizarEditor();
+                renderizarAlternativas();
             }
         }
 
@@ -2284,7 +2284,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             }
             
             alternativas = alternativas.filter(alt => alt.letra !== letra);
-            renderizarEditor();
+            renderizarAlternativas();
         }
 
         function construirEnunciado() {
@@ -2670,7 +2670,63 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 console.log('Remover pasta');
             }
         }
+
+        function processarAlternativasParaEdicao(alternativasQuestao) {
+            // Mapear as alternativas do formato do banco para o formato do editor
+            alternativas = alternativasQuestao.map(alt => ({
+                letra: alt.letter,
+                texto: alt.text,
+                isCorrect: alt.isCorrect
+            }));
+            
+            // Se não há alternativas suficientes, completar com as padrão
+            const letrasDisponiveis = ['A', 'B', 'C', 'D', 'E'];
+            const letrasExistentes = alternativas.map(alt => alt.letra);
+            
+            letrasDisponiveis.forEach(letra => {
+                if (!letrasExistentes.includes(letra)) {
+                    alternativas.push({
+                        letra: letra,
+                        texto: '',
+                        isCorrect: false
+                    });
+                }
+            });
+            
+            // Ordenar por letra
+            alternativas.sort((a, b) => a.letra.localeCompare(b.letra));
+            
+            // Renderizar as alternativas na interface
+            renderizarAlternativas();
+        }
+
+        function processarEnunciadoParaEdicao(enunciado, context) {
+            // Preencher os campos de texto separados
+            document.getElementById('context-textarea').value = context || '';
+            document.getElementById('enunciado-textarea').value = enunciado || '';
+        }
+
+        function processarArquivosParaEdicao(questao) {
+            // Limpar array de arquivos
+            arquivosQuestao = [];
+            
+            // Adicionar imagens se existirem
+            if (questao.img1) arquivosQuestao.push(questao.img1);
+            if (questao.img2) arquivosQuestao.push(questao.img2);
+            if (questao.img3) arquivosQuestao.push(questao.img3);
+            
+            // Adicionar outros arquivos se existirem no campo files
+            if (questao.files && Array.isArray(questao.files)) {
+                questao.files.forEach(arquivo => {
+                    if (!arquivosQuestao.includes(arquivo)) {
+                        arquivosQuestao.push(arquivo);
+                    }
+                });
+            }
+            
+            // Renderizar arquivos na interface
+            renderizarArquivos();
+        }
     </script>
 </body>
 </html>
-
