@@ -2552,7 +2552,9 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 return;
             }
             
-            // Dividir o HTML em divs                const paragrafos = enunciado.split(/\n\s*\n/).filter(p => p.trim() !== "");            
+            // Dividir o HTML em divs
+            const divs = enunciadoHTML.split('</div>').filter(div => div.trim() !== '');
+            
             if (divs.length === 0) {
                 // Se não há divs, tratar como texto simples
                 const novaLinha = {
@@ -2848,8 +2850,8 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                     return;
                 }
                 
-                // Dividir o enunciado em parágrafos (quebras de linha duplas separam parágrafos)
-                const paragrafos = enunciado.split(/\n{2,}/).filter(p => p.trim() !== "");
+                // Dividir o enunciado em parágrafos
+                const paragrafos = enunciado.split('\n\n').filter(p => p.trim() !== '');
                 
                 if (paragrafos.length === 0) {
                     // Se não há parágrafos válidos, criar uma linha vazia
