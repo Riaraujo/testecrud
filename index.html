@@ -2322,8 +2322,12 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             }
 
             let alternativasArray = alternativas
-                .filter(alt => alt.texto.trim() !== '')
-                .map(alt => `${alt.letra}) ${alt.texto.trim()}`);
+                .filter(alt => alt.texto.trim() !== "")
+                .map(alt => ({
+                    letter: alt.letra,
+                    text: alt.texto.trim(),
+                    isCorrect: false // Definir como false por padrão, a menos que haja uma lógica para isso
+                }));
 
             if (alternativasArray.length < 2) {
                 alert('Por favor, preencha pelo menos duas alternativas');
@@ -2422,32 +2426,36 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 alternativasArray.forEach((alt, index) => {
                     if (index < alternativas.length) {
                         let textoAlternativa = '';
+                        let letraAlternativa = '';
                         
-                        // Se é um objeto com propriedade text, usar o text
-                        if (typeof alt === 'object' && alt.text) {
+                        // Se é um objeto com propriedades letter e text
+                        if (typeof alt === 'object' && alt.letter && alt.text) {
+                            letraAlternativa = alt.letter;
                             textoAlternativa = alt.text;
+                            
+                            // Encontrar a alternativa correspondente pela letra
+                            const alternativa = alternativas.find(a => a.letra === letraAlternativa);
+                            if (alternativa) {
+                                alternativa.texto = textoAlternativa;
+                            }
                         } else if (typeof alt === 'string') {
                             // Tentar extrair formato "A) texto"
                             const match = alt.match(/^([A-E])\)\s*(.*)$/);
                             if (match) {
-                                const letra = match[1];
+                                letraAlternativa = match[1];
                                 textoAlternativa = match[2];
-                                const alternativa = alternativas.find(a => a.letra === letra);
+                                const alternativa = alternativas.find(a => a.letra === letraAlternativa);
                                 if (alternativa) {
                                     alternativa.texto = textoAlternativa;
-                                    return; // Pular para próxima iteração
                                 }
                             } else {
-                                // Se não tem formato específico, usar o texto diretamente
-                                textoAlternativa = alt;
+                                // Se não tem formato específico, usar o texto diretamente no índice
+                                alternativas[index].texto = alt;
                             }
                         } else {
-                            // Usar o valor diretamente convertido para string
-                            textoAlternativa = String(alt);
+                            // Usar o valor diretamente convertido para string no índice
+                            alternativas[index].texto = String(alt);
                         }
-                        
-                        // Atribuir ao índice correspondente
-                        alternativas[index].texto = textoAlternativa;
                     }
                 });
             }
