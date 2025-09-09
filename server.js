@@ -301,7 +301,14 @@ app.post('/api/questoes/bulk', async (req, res) => {
                 // Extrair alternativas do formato JSON
                 let alternativasTexto = [];
                 if (Array.isArray(questaoData.alternatives)) {
-                    alternativasTexto = questaoData.alternatives.map(alt => alt.text || alt);
+                    alternativasTexto = questaoData.alternatives.map(alt => {
+                        // Se é um objeto com propriedade text, usar o text
+                        if (typeof alt === 'object' && alt.text) {
+                            return alt.text;
+                        }
+                        // Senão, usar o valor diretamente
+                        return alt;
+                    });
                 }
 
                 // Construir context e enunciado separadamente
