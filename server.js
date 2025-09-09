@@ -738,7 +738,22 @@ app.post('/api/questoes', async (req, res) => {
             instituicao: 'ENEM',
             context: req.body.context || null,
             enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
+            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas.map(alt => {
+                if (typeof alt === 'string') {
+                    const match = alt.match(/^([A-E])\)\s*(.*)$/);
+                    if (match) {
+                        return { letter: match[1], text: match[2], isCorrect: false };
+                    } else {
+                        // Fallback if no specific format, use A as letter
+                        return { letter: 'A', text: alt, isCorrect: false };
+                    }
+                } else if (typeof alt === 'object' && alt.letter && alt.text) {
+                    return alt;
+                } else {
+                    // Fallback for unexpected formats
+                    return { letter: 'A', text: String(alt), isCorrect: false };
+                }
+            }) : [],
             resposta: req.body.resposta,
             prova: provaId,
             img1: req.body.img1 || null,
