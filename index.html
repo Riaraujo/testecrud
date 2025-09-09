@@ -2421,19 +2421,33 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             if (Array.isArray(alternativasArray)) {
                 alternativasArray.forEach((alt, index) => {
                     if (index < alternativas.length) {
-                        // Tentar extrair formato "A) texto"
-                        const match = alt.match(/^([A-E])\)\s*(.*)$/);
-                        if (match) {
-                            const letra = match[1];
-                            const texto = match[2];
-                            const alternativa = alternativas.find(a => a.letra === letra);
-                            if (alternativa) {
-                                alternativa.texto = texto;
+                        let textoAlternativa = '';
+                        
+                        // Se é um objeto com propriedade text, usar o text
+                        if (typeof alt === 'object' && alt.text) {
+                            textoAlternativa = alt.text;
+                        } else if (typeof alt === 'string') {
+                            // Tentar extrair formato "A) texto"
+                            const match = alt.match(/^([A-E])\)\s*(.*)$/);
+                            if (match) {
+                                const letra = match[1];
+                                textoAlternativa = match[2];
+                                const alternativa = alternativas.find(a => a.letra === letra);
+                                if (alternativa) {
+                                    alternativa.texto = textoAlternativa;
+                                    return; // Pular para próxima iteração
+                                }
+                            } else {
+                                // Se não tem formato específico, usar o texto diretamente
+                                textoAlternativa = alt;
                             }
                         } else {
-                            // Se não tem formato específico, usar o texto diretamente
-                            alternativas[index].texto = alt;
+                            // Usar o valor diretamente convertido para string
+                            textoAlternativa = String(alt);
                         }
+                        
+                        // Atribuir ao índice correspondente
+                        alternativas[index].texto = textoAlternativa;
                     }
                 });
             }
