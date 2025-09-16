@@ -289,6 +289,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
+            position: relative;
         }
         
         .bloco-tipo {
@@ -1273,7 +1274,7 @@
             
             <!-- Seção de Arquivos -->
             <div class="arquivos-container">
-                <h3>Arquivos da Questão</h3>
+                <h3>Arquivos da Questão</3>
                 <div class="arquivos-lista" id="arquivos-lista">
                     <!-- Arquivos serão renderizados aqui -->
                 </div>
@@ -1947,9 +1948,6 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             }
         }
 
-        // Resto das funções JavaScript permanecem iguais...
-        // (Incluindo todas as outras funções do arquivo original)
-
         function setupEventListeners() {
             // Modal de inserir SQL
             document.getElementById('btn-inserir-sql').addEventListener('click', () => {
@@ -1972,11 +1970,22 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             document.getElementById('confirmar-inserir-sql').addEventListener('click', inserirQuestaoSQL);
 
             // Outros event listeners...
-            // (Resto dos event listeners do arquivo original)
+            document.getElementById('btn-criar-pasta').addEventListener('click', () => {
+                document.getElementById('criar-pasta-modal').style.display = 'block';
+            });
+            
+            document.getElementById('close-criar-pasta').addEventListener('click', () => {
+                document.getElementById('criar-pasta-modal').style.display = 'none';
+            });
+            
+            document.getElementById('cancelar-criar-pasta').addEventListener('click', () => {
+                document.getElementById('criar-pasta-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-nova-prova-pasta').addEventListener('click', () => {
+                document.getElementById('criar-prova-modal').style.display = 'block';
+            });
         }
-
-        // Adicionar todas as outras funções do arquivo original aqui...
-        // (Por brevidade, não incluí todas as funções, mas elas devem estar presentes)
 
         function mostrarTelaInicial() {
             document.getElementById('tela-pasta').style.display = 'none';
@@ -2042,7 +2051,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                     provaLi.className = 'prova-item';
                     provaLi.style.marginLeft = `${(nivel + 1) * 20}px`;
                     
-                    const numQuestoes = prova.questoes ? prova.questoes.length : 0;
+                    const numQuestoes = questoesPorProva[prova._id] ? questoesPorProva[prova._id].length : 0;
                     
                     provaLi.innerHTML = `
                         <span>${prova.titulo}</span>
@@ -2142,7 +2151,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             } else {
                 semProvas.style.display = 'none';
                 tbody.innerHTML = provasDaPasta.map((prova, index) => {
-                    const numQuestoes = prova.questoes ? prova.questoes.length : 0;
+                    const numQuestoes = questoesPorProva[prova._id] ? questoesPorProva[prova._id].length : 0;
                     return `
                         <tr>
                             <td>${index + 1}</td>
@@ -2591,7 +2600,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 
             } catch (error) {
                 console.error('Erro ao carregar questão para edição:', error);
-
+                alert('Erro ao carregar questão para edição. Tente novamente.');
             }
         }
 
