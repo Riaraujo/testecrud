@@ -463,6 +463,77 @@
             font-size: 14px;
         }
         
+        /* Modal de Senha */
+        .modal-senha {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+        }
+        
+        .modal-senha-content {
+            background: white;
+            margin: 15% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .modal-senha h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .modal-senha p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .modal-senha input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .modal-senha input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .modal-senha button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .modal-senha button:hover {
+            background: #2980b9;
+        }
+        
+        .modal-senha .erro {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -936,6 +1007,20 @@
         <div class="context-menu-item" onclick="moverPasta()">Mover</div>
         <div class="context-menu-item danger" onclick="removerPasta()">Remover Pasta</div>
     </div>
+
+    <!-- Modal de Senha -->
+    <div id="modal-senha" class="modal-senha">
+        <div class="modal-senha-content">
+            <h2>🔒 Acesso Restrito</h2>
+            <p>Este sistema possui acesso restrito. Por favor, insira a senha de segurança para continuar.</p>
+            <input type="password" id="senha-input" placeholder="Digite a senha" maxlength="50">
+            <button onclick="verificarSenha()">Acessar Sistema</button>
+            <div id="erro-senha" class="erro" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal (inicialmente oculto) -->
+    <div id="conteudo-principal" style="display: none;">
     
     <!-- Sidebar -->
     <div class="sidebar">
@@ -1597,10 +1682,10 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
         let pastaOrigemProva = null;
         let arquivosQuestao = []; // Para gerenciar arquivos da questão
 
-        // Inicializa o editor
-        document.addEventListener('DOMContentLoaded', () => {
+        // Função para inicializar o sistema após verificação de senha
+        async function inicializar() {
             // Carregar dados da API
-            carregarDados();
+            await carregarDados();
             
             // Inicializar selects hierárquicos
             inicializarSelectsHierarquicos();
@@ -1615,6 +1700,11 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             
             // Mostrar tela inicial
             mostrarTelaInicial();
+        }
+
+        // Inicializa apenas o modal de senha
+        document.addEventListener('DOMContentLoaded', () => {
+            // O sistema só será inicializado após verificação da senha
         });
         
         // Funções para selects hierárquicos
@@ -2409,9 +2499,9 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
 
                 limparFormulario();
                 mostrarTelaProva();
+                atualizarListaProvas(); // Atualizar contador do sidebar
             } catch (error) {
                 console.error('Erro ao salvar questão:', error);
-                alert(`Erro ao salvar questão: ${error.message}`);
             }
         }
 
@@ -2601,7 +2691,6 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 
             } catch (error) {
                 console.error('Erro ao carregar questão para edição:', error);
-                alert('Erro ao carregar questão para edição. Tente novamente.');
             }
         }
 
@@ -2619,6 +2708,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                     
                     // Atualizar a tela
                     mostrarTelaProva();
+                    atualizarListaProvas(); // Atualizar contador do sidebar
                 } else {
                     const erro = await response.json();
                     alert(`Erro ao excluir questão: ${erro.error || 'Erro desconhecido'}`);
@@ -2737,7 +2827,48 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             // Renderizar arquivos na interface
             renderizarArquivos();
         }
+
+        // Função para verificar senha
+        function verificarSenha() {
+            const senhaInput = document.getElementById('senha-input');
+            const erroDiv = document.getElementById('erro-senha');
+            const senha = senhaInput.value.trim();
+            
+            // Senha definida (você pode alterar aqui)
+            const senhaCorreta = 'senha';
+            
+            if (senha === senhaCorreta) {
+                // Senha correta - ocultar modal e mostrar conteúdo
+                document.getElementById('modal-senha').style.display = 'none';
+                document.getElementById('conteudo-principal').style.display = 'flex';
+                
+                // Inicializar o sistema
+                inicializar();
+            } else {
+                // Senha incorreta - mostrar erro
+                erroDiv.textContent = 'Senha incorreta. Tente novamente.';
+                erroDiv.style.display = 'block';
+                senhaInput.value = '';
+                senhaInput.focus();
+            }
+        }
+
+        // Permitir Enter para verificar senha
+        document.addEventListener('DOMContentLoaded', function() {
+            const senhaInput = document.getElementById('senha-input');
+            if (senhaInput) {
+                senhaInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        verificarSenha();
+                    }
+                });
+                senhaInput.focus();
+            }
+        });
     </script>
+    
+    </div> <!-- Fim do conteúdo principal -->
 </body>
 </html>
+
 
