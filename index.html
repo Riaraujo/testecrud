@@ -1031,9 +1031,9 @@ select[multiple] option {
                 <thead>
                     <tr>
                         <th width="5%">#</th>
-                        <th width="20%">Disciplinas</th>
-                        <th width="20%">Matérias</th>
-                        <th width="20%">Assuntos</th>
+                        <th width="20%">Disciplina</th>
+                        <th width="20%">Matéria</th>
+                        <th width="20%">Assunto</th>
                         <th width="10%">Resposta</th>
                         <th width="25%">Ações</th>
                     </tr>
@@ -1626,12 +1626,27 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             mostrarTelaInicial();
         });
         
-        // Funções para selects hierárquicos - REMOVIDO (agora usa classe SelectsHierarquicos)
+        // Funções para selects hierárquicos
+        function inicializarSelectsHierarquicos() {
+            const disciplinaSelect = document.getElementById('disciplina');
+            
+            // Limpar e popular disciplinas
+            disciplinaSelect.innerHTML = '<option value="">Selecione uma disciplina</option>';
+            
+            Object.keys(estruturaDados).forEach(disciplina => {
+                const option = document.createElement('option');
+                option.value = disciplina;
+                option.textContent = disciplina;
+                disciplinaSelect.appendChild(option);
+            });
+        }
         
         // Atualize as funções de atualização para trabalhar com múltiplas seleções
 // Função para atualizar matérias baseado nas disciplinas selecionadas
 // Função para atualizar matérias baseado nas disciplinas selecionadas
-// Sistema de Selects Hierárquicos baseado no banco de dados
+// Sistema de Selects Hierárquicos Otimizado
+// Aplica a mesma lógica de disciplinas → matérias para toda a cadeia hierárquica
+
 class SelectsHierarquicos {
     constructor() {
         this.hierarquia = ['disciplina', 'materia', 'assunto', 'conteudo', 'topico'];
@@ -1647,9 +1662,6 @@ class SelectsHierarquicos {
         
         // Configurar event listeners
         this.configurarEventListeners();
-        
-        // Carregar disciplinas iniciais
-        this.carregarDisciplinas();
     }
     
     configurarEventListeners() {
@@ -1660,28 +1672,6 @@ class SelectsHierarquicos {
         this.selects.conteudo?.addEventListener('change', () => this.atualizarProximoNivel('conteudo'));
     }
     
-    async carregarDisciplinas() {
-        try {
-            const response = await fetch(`${API_URL}/api/dados/disciplinas`);
-            if (!response.ok) throw new Error('Erro ao carregar disciplinas');
-            
-            const disciplinas = await response.json();
-            const select = this.selects.disciplina;
-            
-            if (select) {
-                select.innerHTML = '<option value="">Selecione uma ou mais disciplinas</option>';
-                disciplinas.forEach(disciplina => {
-                    const option = document.createElement('option');
-                    option.value = disciplina;
-                    option.textContent = disciplina;
-                    select.appendChild(option);
-                });
-            }
-        } catch (error) {
-            console.error('Erro ao carregar disciplinas:', error);
-        }
-    }
-    
     obterSelecoes(nivel) {
         const select = this.selects[nivel];
         if (!select) return [];
@@ -1689,6 +1679,56 @@ class SelectsHierarquicos {
         return Array.from(select.selectedOptions)
             .map(option => option.value)
             .filter(value => value !== "");
+    }
+    
+    obterTodasSelecoesPrevias(nivelAtual) {
+        const indiceAtual = this.hierarquia.indexOf(nivelAtual);
+        const selecoesPrevias = {};
+        
+        for (let i = 0; i < indiceAtual; i++) {
+            const nivel = this.hierarquia[i];
+            selecoesPrevias[nivel] = this.obterSelecoes(nivel);
+        }
+        
+        return selecoesPrevias;
+    }
+    
+    coletarOpcoesHierarquicas(nivelDestino, selecoesPrevias) {
+        const opcoes = new Set();
+        const indiceDestino = this.hierarquia.indexOf(nivelDestino);
+        
+        // Função recursiva para navegar na estrutura
+        const navegar = (dados, nivelAtual = 0) => {
+            if (nivelAtual === indiceDestino) {
+                // Chegamos no nível desejado
+                if (typeof dados === 'object' && dados !== null) {
+                    Object.keys(dados).forEach(chave => opcoes.add(chave));
+                }
+                return;
+            }
+            
+            if (nivelAtual < indiceDestino && typeof dados === 'object' && dados !== null) {
+                const nomeNivelAtual = this.hierarquia[nivelAtual];
+                const selecoesNivel = selecoesPrevias[nomeNivelAtual] || [];
+                
+                if (selecoesNivel.length > 0) {
+                    // Há seleções específicas para este nível
+                    selecoesNivel.forEach(selecao => {
+                        if (dados[selecao]) {
+                            navegar(dados[selecao], nivelAtual + 1);
+                        }
+                    });
+                } else {
+                    // Não há seleções, navegar por todas as opções
+                    Object.keys(dados).forEach(chave => {
+                        navegar(dados[chave], nivelAtual + 1);
+                    });
+                }
+            }
+        };
+        
+        navegar(estruturaDados);
+        return Array.from(opcoes).sort();
     }
     
     limparSelectsPosteriores(nivelAtual) {
@@ -1706,7 +1746,7 @@ class SelectsHierarquicos {
         }
     }
     
-    async atualizarProximoNivel(nivelAtual) {
+    atualizarProximoNivel(nivelAtual) {
         const indiceAtual = this.hierarquia.indexOf(nivelAtual);
         const proximoNivel = this.hierarquia[indiceAtual + 1];
         
@@ -1729,76 +1769,32 @@ class SelectsHierarquicos {
             return;
         }
         
-        try {
-            // Construir parâmetros da query baseado na hierarquia
-            const params = new URLSearchParams();
-            
-            if (nivelAtual === 'disciplina') {
-                params.append('disciplinas', selecoesAtuais.join(','));
-            } else if (nivelAtual === 'materia') {
-                const disciplinas = this.obterSelecoes('disciplina');
-                if (disciplinas.length > 0) {
-                    params.append('disciplinas', disciplinas.join(','));
-                }
-                params.append('materias', selecoesAtuais.join(','));
-            } else if (nivelAtual === 'assunto') {
-                const disciplinas = this.obterSelecoes('disciplina');
-                const materias = this.obterSelecoes('materia');
-                if (disciplinas.length > 0) {
-                    params.append('disciplinas', disciplinas.join(','));
-                }
-                if (materias.length > 0) {
-                    params.append('materias', materias.join(','));
-                }
-                params.append('assuntos', selecoesAtuais.join(','));
-            } else if (nivelAtual === 'conteudo') {
-                const disciplinas = this.obterSelecoes('disciplina');
-                const materias = this.obterSelecoes('materia');
-                const assuntos = this.obterSelecoes('assunto');
-                if (disciplinas.length > 0) {
-                    params.append('disciplinas', disciplinas.join(','));
-                }
-                if (materias.length > 0) {
-                    params.append('materias', materias.join(','));
-                }
-                if (assuntos.length > 0) {
-                    params.append('assuntos', assuntos.join(','));
-                }
-                params.append('conteudos', selecoesAtuais.join(','));
-            }
-            
-            // Fazer requisição para o endpoint apropriado
-            let endpoint = '';
-            if (proximoNivel === 'materia') {
-                endpoint = '/api/dados/materias';
-            } else if (proximoNivel === 'assunto') {
-                endpoint = '/api/dados/assuntos';
-            } else if (proximoNivel === 'conteudo') {
-                endpoint = '/api/dados/conteudos';
-            } else if (proximoNivel === 'topico') {
-                endpoint = '/api/dados/topicos';
-            }
-            
-            const response = await fetch(`${API_URL}${endpoint}?${params.toString()}`);
-            if (!response.ok) throw new Error(`Erro ao carregar ${proximoNivel}s`);
-            
-            const opcoes = await response.json();
-            
-            console.log(`Opções para ${proximoNivel}:`, opcoes);
-            
-            // Habilitar e popular o próximo select
-            selectProximo.disabled = false;
-            
-            opcoes.forEach(opcao => {
-                const option = document.createElement('option');
-                option.value = opcao;
-                option.textContent = opcao;
-                selectProximo.appendChild(option);
-            });
-            
-        } catch (error) {
-            console.error(`Erro ao carregar ${proximoNivel}s:`, error);
-            selectProximo.disabled = true;
+        // Obter todas as seleções prévias
+        const selecoesPrevias = this.obterTodasSelecoesPrevias(proximoNivel);
+        
+        // Incluir seleções do nível atual
+        selecoesPrevias[nivelAtual] = selecoesAtuais;
+        
+        console.log('Seleções prévias:', selecoesPrevias);
+        
+        // Coletar TODAS as opções do próximo nível
+        const opcoes = this.coletarOpcoesHierarquicas(proximoNivel, selecoesPrevias);
+        
+        console.log(`Opções para ${proximoNivel}:`, opcoes);
+        
+        // Habilitar e popular o próximo select
+        selectProximo.disabled = false;
+        
+        opcoes.forEach(opcao => {
+            const option = document.createElement('option');
+            option.value = opcao;
+            option.textContent = opcao;
+            selectProximo.appendChild(option);
+        });
+        
+        // Atualizar contadores se a função existir
+        if (typeof atualizarContadoresSelect === 'function') {
+            atualizarContadoresSelect();
         }
     }
     
@@ -2213,9 +2209,9 @@ if (typeof module !== 'undefined' && module.exports) {
                 tbody.innerHTML = questoes.map((questao, index) => `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${Array.isArray(questao.disciplinas) && questao.disciplinas.length > 0 ? questao.disciplinas.join(', ') : (questao.disciplina || 'N/A')}</td>
-                        <td>${Array.isArray(questao.materias) && questao.materias.length > 0 ? questao.materias.join(', ') : (questao.materia || 'N/A')}</td>
-                        <td>${Array.isArray(questao.assuntos) && questao.assuntos.length > 0 ? questao.assuntos.join(', ') : (questao.assunto || 'N/A')}</td>
+                        <td>${questao.disciplina || 'N/A'}</td>
+                        <td>${questao.materia || 'N/A'}</td>
+                        <td>${questao.assunto || 'N/A'}</td>
                         <td><strong>${questao.resposta}</strong></td>
                         <td>
                             <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
