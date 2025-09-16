@@ -925,21 +925,23 @@
             }
         }
 
+
+
         select[multiple] {
-            height: 220px;
-            padding: 8px;
-        }
+    height: 220px;
+    padding: 8px;
+}
 
-        select[multiple] option {
-            padding: 4px 8px;
-            margin: 2px 0;
-        }
+select[multiple] option {
+    padding: 4px 8px;
+    margin: 2px 0;
+}
 
-        .multi-select-info {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-        }
+.multi-select-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
     </style>
 </head>
 <body>
@@ -1066,27 +1068,24 @@
                     <div class="form-group">
                         <label for="disciplina">Disciplina:</label>
                         <select id="disciplina" class="form-control" multiple onchange="atualizarMaterias()">
-                            <option value="">Selecione uma ou mais disciplinas</option>
-                        </select>
-                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
+    <option value="">Selecione uma ou mais disciplinas</option>
+</select>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="materia">Matéria:</label>
                         <select id="materia" class="form-control" multiple onchange="atualizarAssuntos()" disabled>
-                            <option value="">Selecione uma ou mais matérias</option>
-                        </select>
-                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
+    <option value="">Selecione uma ou mais matérias</option>
+</select>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="assunto">Assunto:</label>
                         <select id="assunto" class="form-control" multiple onchange="atualizarConteudos()" disabled>
-                            <option value="">Selecione um ou mais assuntos</option>
-                        </select>
-                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
+    <option value="">Selecione um ou mais assuntos</option>
+</select>
                     </div>
                 </div>
             </div>
@@ -1096,18 +1095,16 @@
                     <div class="form-group">
                         <label for="conteudo">Conteúdo (opcional):</label>
                         <select id="conteudo" class="form-control" multiple onchange="atualizarTopicos()" disabled>
-                            <option value="">Selecione um ou mais conteúdos</option>
-                        </select>
-                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
+    <option value="">Selecione um ou mais conteúdos</option>
+</select>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="topico">Tópico (opcional):</label>
                         <select id="topico" class="form-control" multiple disabled>
-                            <option value="">Selecione um ou mais tópicos</option>
-                        </select>
-                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
+    <option value="">Selecione um ou mais tópicos</option>
+</select>
                     </div>
                 </div>
             </div>
@@ -1199,7 +1196,7 @@
                             <option value="raciocínio lógico">Raciocínio Lógico</option>
                             <option value="interpretação de texto">Interpretação de Texto</option>
                             <option value="análise de gráficos">Análise de Gráficos</option>
-                            <option value="resolução de problemas">Resolução de Problemas</option>
+                            <option value="resolução de problemas">Resolução de Problemas</n>
                             <option value="pensamento crítico">Pensamento Crítico</option>
                             <option value="aplicação de conceitos">Aplicação de Conceitos</option>
                             <option value="síntese de informações">Síntese de Informações</option>
@@ -1239,7 +1236,7 @@
                             <option value="análise de gráficos">Análise de Gráficos</option>
                             <option value="resolução de problemas">Resolução de Problemas</option>
                             <option value="pensamento crítico">Pensamento Crítico</option>
-                            <option value="aplicação de conceitos">Aplicação de Conceitos</option>
+                            <option value="aplicação de conceitos">Aplicção de Conceitos</option>
                             <option value="síntese de informações">Síntese de Informações</option>
                             <option value="comparação e contraste">Comparação e Contraste</option>
                             <option value="análise contextual">Análise Contextual</option>
@@ -1293,1522 +1290,1235 @@
                 </div>
             </div>
             
-            <!-- Seção de Alternativas -->
+            <div class="arquivos-container">
+                <h3>Imagens (opcional)</h3>
+                <div class="arquivos-lista" id="arquivos-lista">
+                    <div class="arquivos-vazio">Nenhuma imagem adicionada.</div>
+                </div>
+                <div class="arquivos-controles">
+                    <input type="text" id="input-url-imagem" class="form-control" placeholder="URL da imagem">
+                    <button class="btn-salvar" onclick="adicionarImagem()">Adicionar Imagem</button>
+                </div>
+            </div>
+
             <div class="alternativas-container">
                 <h3>Alternativas</h3>
                 <div id="alternativas-lista">
                     <!-- Alternativas serão adicionadas aqui dinamicamente -->
                 </div>
-                <button class="btn-add-bloco" onclick="adicionarAlternativa()" style="margin-top: 10px;">+ Adicionar Alternativa</button>
+                <button class="btn-add-linha" onclick="adicionarAlternativa()">+ Adicionar Alternativa</button>
             </div>
-            
-            <!-- Seção de Arquivos -->
-            <div class="arquivos-container">
-                <h3>Arquivos/Imagens (opcional)</h3>
-                <div id="arquivos-lista" class="arquivos-lista">
-                    <!-- Arquivos serão adicionados aqui dinamicamente -->
+
+            <div class="action-buttons">
+                <button id="btn-voltar-prova-bottom" class="btn-voltar">Voltar para Prova</button>
+                <button onclick="salvarQuestao()" class="btn-salvar">Salvar Questão</button>
+            </div>
+        </div>
+
+        <!-- Modal de Visualização de SQL -->
+        <div id="modal-sql" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharModalSQL()">&times;</span>
+                <h2>SQL Gerado</h2>
+                <div class="preview-area">
+                    <pre><code id="codigo-gerado"></code></pre>
                 </div>
-                <div class="arquivos-controles">
-                    <input type="text" id="novo-arquivo-url" placeholder="URL do arquivo/imagem" class="form-control">
-                    <button class="btn-add-bloco" onclick="adicionarArquivo()">Adicionar</button>
+                <button class="btn-copiar" onclick="copiarSQL()">Copiar</button>
+            </div>
+        </div>
+
+        <!-- Modal de Criar Pasta -->
+        <div id="modal-criar-pasta" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharModalCriarPasta()">&times;</span>
+                <h2>Criar Nova Pasta</h2>
+                <div class="modal-form">
+                    <div class="modal-form-group">
+                        <label for="nome-pasta">Nome da Pasta:</label>
+                        <input type="text" id="nome-pasta" placeholder="Ex: Enem 2023">
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="descricao-pasta">Descrição (opcional):</label>
+                        <input type="text" id="descricao-pasta" placeholder="Ex: Provas do Enem de 2023">
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="parent-pasta">Pasta Pai (opcional):</label>
+                        <select id="parent-pasta" class="form-control">
+                            <option value="">Nenhuma (Pasta Raiz)</option>
+                        </select>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancelar" onclick="fecharModalCriarPasta()">Cancelar</button>
+                        <button class="btn-confirmar" onclick="criarPasta()">Criar Pasta</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Modal para criar pasta -->
-    <div id="criar-pasta-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-criar-pasta">&times;</span>
-            <h2>Criar Nova Pasta</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="pasta-nome">Nome da Pasta:</label>
-                    <input type="text" id="pasta-nome" placeholder="Digite o nome da pasta">
-                </div>
-                <div class="modal-form-group">
-                    <label for="pasta-descricao">Descrição (opcional):</label>
-                    <input type="text" id="pasta-descricao" placeholder="Digite uma descrição">
-                </div>
-                <div class="modal-buttons">
-                    <button id="cancelar-criar-pasta" class="btn-cancelar">Cancelar</button>
-                    <button onclick="criarPasta()" class="btn-confirmar">Criar Pasta</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal para criar prova -->
-    <div id="criar-prova-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('criar-prova-modal').style.display='none'">&times;</span>
-            <h2>Criar Nova Prova</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="prova-titulo">Título da Prova:</label>
-                    <input type="text" id="prova-titulo" placeholder="Digite o título da prova">
-                </div>
-                <div class="modal-form-group">
-                    <label for="prova-descricao-modal">Descrição (opcional):</label>
-                    <input type="text" id="prova-descricao-modal" placeholder="Digite uma descrição">
-                </div>
-                <div class="modal-buttons">
-                    <button onclick="document.getElementById('criar-prova-modal').style.display='none'" class="btn-cancelar">Cancelar</button>
-                    <button onclick="criarProva()" class="btn-confirmar">Criar Prova</button>
+
+        <!-- Modal de Criar Prova -->
+        <div id="modal-criar-prova" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharModalCriarProva()">&times;</span>
+                <h2>Criar Nova Prova</h2>
+                <div class="modal-form">
+                    <div class="modal-form-group">
+                        <label for="titulo-prova">Título da Prova:</label>
+                        <input type="text" id="titulo-prova" placeholder="Ex: Enem 2023 - Primeiro Dia">
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="descricao-prova">Descrição (opcional):</label>
+                        <input type="text" id="descricao-prova" placeholder="Ex: Prova do Enem 2023 - Questões 1 a 45">
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancelar" onclick="fecharModalCriarProva()">Cancelar</button>
+                        <button class="btn-confirmar" onclick="criarProva()">Criar Prova</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Modal para inserir SQL direto -->
-    <div id="inserir-sql-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-inserir-sql">&times;</span>
-            <h2>Inserir Questões via JSON</h2>
-            <p>Cole o JSON das questões no campo abaixo:</p>
-            <textarea id="json-questao" placeholder="Cole o JSON aqui..." style="width: 100%; height: 300px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;"></textarea>
-            <div id="resultado-insercao" class="resultado-insercao" style="display: none;"></div>
-            <div class="modal-buttons">
-                <button id="cancelar-inserir-sql" class="btn-cancelar">Cancelar</button>
-                <button id="confirmar-inserir-sql" class="btn-confirmar">Inserir Questões</button>
+
+        <!-- Modal de Inserção SQL Direta -->
+        <div id="modal-inserir-sql" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharModalInserirSQL()">&times;</span>
+                <h2>Inserir Questões via SQL Direto</h2>
+                <div class="modal-form">
+                    <div class="modal-form-group">
+                        <label for="sql-input">Cole o JSON das questões aqui:</label>
+                        <textarea id="sql-input" class="form-control" rows="10" placeholder="[{ \"index\": 1, \"year\": 2023, ... }, { ... }]"></textarea>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancelar" onclick="fecharModalInserirSQL()">Cancelar</button>
+                        <button class="btn-confirmar" onclick="inserirSQLDireto()">Inserir Questões</button>
+                    </div>
+                </div>
+                <div id="resultado-insercao" class="resultado-insercao" style="display: none;">
+                    <h3>Resultado da Inserção:</h3>
+                    <div id="resultado-lista"></div>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Modal para visualizar SQL -->
-    <div id="sql-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('sql-modal').style.display='none'">&times;</span>
-            <h2>Código SQL Gerado</h2>
-            <button class="btn-copiar" onclick="copiarSQL()">Copiar</button>
-            <div class="preview-area">
-                <pre id="codigo-gerado"></pre>
+
+        <!-- Modal de Mover Pasta -->
+        <div id="modal-mover-pasta" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharModalMoverPasta()">&times;</span>
+                <h2>Mover Pasta</h2>
+                <div class="modal-form">
+                    <div class="modal-form-group">
+                        <label for="destino-pasta">Mover para:</label>
+                        <select id="destino-pasta" class="form-control">
+                            <option value="">Nenhuma (Pasta Raiz)</option>
+                        </select>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancelar" onclick="fecharModalMoverPasta()">Cancelar</button>
+                        <button class="btn-confirmar" onclick="confirmarMoverPasta()">Mover</button>
+                    </div>
+                </div>
             </div>
         </div>
+
     </div>
 
     <script>
-        // Configuração da API
-        const API_BASE = 'https://repositoriodequestoes.com';
-        
-        // Variáveis globais
-        let pastas = [];
-        let provas = [];
-        let questoes = [];
-        let provasPorPasta = {};
-        let questoesPorProva = {};
-        let pastaSelecionada = null;
-        let provaSelecionada = null;
-        let pastaOrigemProva = null;
-        let questaoEditando = null;
-        let pastasExpandidas = new Set();
-        let contextMenuTarget = null;
-        
-        // Dados hierárquicos para os selects
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : 'https://repositoriodequestoes.com/api';
+        let currentProvaId = null;
+        let currentPastaId = null;
+        let currentQuestaoId = null;
+        let currentPastaParentId = null;
+
+        // Dados para os selects hierárquicos
         const dadosHierarquicos = {
             "Ciências da Natureza": {
                 "Química": {
-                    "Química Geral": {
-                        "Estrutura Atômica": ["Modelos Atômicos", "Distribuição Eletrônica", "Propriedades Periódicas"],
-                        "Ligações Químicas": ["Ligação Iônica", "Ligação Covalente", "Ligação Metálica"],
-                        "Funções Inorgânicas": ["Ácidos", "Bases", "Sais", "Óxidos"]
-                    },
-                    "Físico-Química": {
-                        "Termoquímica": ["Entalpia", "Entropia", "Energia Livre"],
-                        "Cinética Química": ["Velocidade de Reação", "Catalisadores", "Mecanismos"],
-                        "Equilíbrio Químico": ["Constante de Equilíbrio", "Princípio de Le Chatelier", "pH e pOH"]
-                    },
-                    "Química Orgânica": {
-                        "Hidrocarbonetos": ["Alcanos", "Alcenos", "Alcinos", "Aromáticos"],
-                        "Funções Orgânicas": ["Álcoois", "Aldeídos", "Cetonas", "Ácidos Carboxílicos"],
-                        "Reações Orgânicas": ["Substituição", "Adição", "Eliminação", "Oxidação"]
-                    }
+                    "Atomística": ["Modelos Atômicos", "Estrutura do Átomo"],
+                    "Ligações Químicas": ["Iônicas", "Covalentes", "Metálicas"],
+                    "Reações Químicas": ["Balanceamento", "Estequiometria"]
                 },
                 "Física": {
-                    "Mecânica": {
-                        "Cinemática": ["Movimento Uniforme", "Movimento Uniformemente Variado", "Movimento Circular"],
-                        "Dinâmica": ["Leis de Newton", "Força e Movimento", "Trabalho e Energia"],
-                        "Estática": ["Equilíbrio de Forças", "Centro de Massa", "Momento Angular"]
-                    },
-                    "Termodinâmica": {
-                        "Temperatura e Calor": ["Escalas Termométricas", "Dilatação Térmica", "Calorimetria"],
-                        "Leis da Termodinâmica": ["Primeira Lei", "Segunda Lei", "Máquinas Térmicas"],
-                        "Gases": ["Lei dos Gases Ideais", "Transformações Gasosas", "Teoria Cinética"]
-                    },
-                    "Eletromagnetismo": {
-                        "Eletrostática": ["Carga Elétrica", "Campo Elétrico", "Potencial Elétrico"],
-                        "Eletrodinâmica": ["Corrente Elétrica", "Resistência", "Circuitos Elétricos"],
-                        "Magnetismo": ["Campo Magnético", "Indução Eletromagnética", "Ondas Eletromagnéticas"]
-                    }
+                    "Mecânica": ["Cinemática", "Dinâmica", "Estática"],
+                    "Termodinâmica": ["Calor", "Temperatura", "Leis da Termodinâmica"]
                 },
                 "Biologia": {
-                    "Biologia Celular": {
-                        "Citologia": ["Membrana Plasmática", "Organelas", "Núcleo Celular"],
-                        "Metabolismo": ["Respiração Celular", "Fotossíntese", "Fermentação"],
-                        "Divisão Celular": ["Mitose", "Meiose", "Ciclo Celular"]
-                    },
-                    "Genética": {
-                        "Genética Clássica": ["Leis de Mendel", "Herança", "Linkage"],
-                        "Genética Molecular": ["DNA", "RNA", "Síntese Proteica"],
-                        "Biotecnologia": ["Engenharia Genética", "Clonagem", "Transgênicos"]
-                    },
-                    "Ecologia": {
-                        "Ecossistemas": ["Cadeias Alimentares", "Ciclos Biogeoquímicos", "Sucessão Ecológica"],
-                        "Populações": ["Dinâmica Populacional", "Interações", "Biodiversidade"],
-                        "Conservação": ["Impactos Ambientais", "Sustentabilidade", "Preservação"]
-                    }
+                    "Ecologia": ["Cadeias Alimentares", "Ciclos Biogeoquímicos"],
+                    "Genética": ["Leis de Mendel", "DNA e RNA"]
                 }
             },
             "Ciências Humanas": {
                 "História": {
-                    "História Antiga": {
-                        "Civilizações Antigas": ["Egito", "Mesopotâmia", "Grécia", "Roma"],
-                        "Idade Média": ["Feudalismo", "Igreja", "Cruzadas", "Renascimento Comercial"],
-                        "Transição": ["Renascimento", "Reformas Religiosas", "Grandes Navegações"]
-                    },
-                    "História Moderna": {
-                        "Absolutismo": ["Monarquias Absolutas", "Mercantilismo", "Colonialismo"],
-                        "Revoluções": ["Revolução Francesa", "Revolução Industrial", "Independências"],
-                        "Século XIX": ["Nacionalismo", "Imperialismo", "Liberalismo"]
-                    },
-                    "História Contemporânea": {
-                        "Guerras Mundiais": ["Primeira Guerra", "Segunda Guerra", "Guerra Fria"],
-                        "Brasil República": ["República Velha", "Era Vargas", "Ditadura Militar"],
-                        "Mundo Atual": ["Globalização", "Neoliberalismo", "Conflitos Contemporâneos"]
-                    }
+                    "Antiguidade": ["Grécia Antiga", "Roma Antiga"],
+                    "Idade Média": ["Feudalismo", "Cruzadas"]
                 },
                 "Geografia": {
-                    "Geografia Física": {
-                        "Geologia": ["Estrutura da Terra", "Rochas e Minerais", "Tectonismo"],
-                        "Climatologia": ["Fatores Climáticos", "Tipos de Clima", "Mudanças Climáticas"],
-                        "Hidrografia": ["Ciclo da Água", "Bacias Hidrográficas", "Recursos Hídricos"]
-                    },
-                    "Geografia Humana": {
-                        "Demografia": ["População Mundial", "Migração", "Urbanização"],
-                        "Economia": ["Globalização", "Blocos Econômicos", "Desenvolvimento"],
-                        "Geopolítica": ["Conflitos", "Fronteiras", "Organizações Internacionais"]
-                    },
-                    "Geografia do Brasil": {
-                        "Aspectos Físicos": ["Relevo", "Clima", "Vegetação", "Hidrografia"],
-                        "Aspectos Humanos": ["População", "Urbanização", "Migração Interna"],
-                        "Aspectos Econômicos": ["Agricultura", "Indústria", "Serviços", "Transportes"]
-                    }
-                },
-                "Filosofia": {
-                    "Filosofia Antiga": {
-                        "Pré-Socráticos": ["Tales", "Heráclito", "Parmênides"],
-                        "Filosofia Clássica": ["Sócrates", "Platão", "Aristóteles"],
-                        "Filosofia Helenística": ["Estoicismo", "Epicurismo", "Ceticismo"]
-                    },
-                    "Filosofia Medieval": {
-                        "Patrística": ["Santo Agostinho", "Filosofia Cristã"],
-                        "Escolástica": ["São Tomás de Aquino", "Razão e Fé"],
-                        "Nominalismo": ["Guilherme de Ockham", "Universais"]
-                    },
-                    "Filosofia Moderna": {
-                        "Racionalismo": ["Descartes", "Spinoza", "Leibniz"],
-                        "Empirismo": ["Locke", "Berkeley", "Hume"],
-                        "Iluminismo": ["Kant", "Voltaire", "Rousseau"]
-                    }
-                },
-                "Sociologia": {
-                    "Fundamentos": {
-                        "Clássicos": ["Durkheim", "Weber", "Marx"],
-                        "Conceitos": ["Sociedade", "Cultura", "Socialização"],
-                        "Métodos": ["Pesquisa Social", "Estatística", "Etnografia"]
-                    },
-                    "Instituições": {
-                        "Família": ["Tipos de Família", "Mudanças", "Funções"],
-                        "Educação": ["Sistema Educacional", "Desigualdades", "Políticas"],
-                        "Religião": ["Secularização", "Diversidade", "Fundamentalismo"]
-                    },
-                    "Problemas Sociais": {
-                        "Desigualdade": ["Classes Sociais", "Pobreza", "Mobilidade"],
-                        "Violência": ["Criminalidade", "Violência Urbana", "Direitos Humanos"],
-                        "Movimentos Sociais": ["Sindicalismo", "Feminismo", "Ambientalismo"]
-                    }
+                    "Geografia Física": ["Clima", "Relevo"],
+                    "Geografia Humana": ["População", "Urbanização"]
                 }
             },
             "Linguagens": {
                 "Português": {
-                    "Gramática": {
-                        "Morfologia": ["Classes de Palavras", "Formação de Palavras", "Flexões"],
-                        "Sintaxe": ["Análise Sintática", "Período Composto", "Concordância"],
-                        "Semântica": ["Significado", "Polissemia", "Figuras de Linguagem"]
-                    },
-                    "Literatura": {
-                        "Literatura Brasileira": ["Barroco", "Romantismo", "Realismo", "Modernismo"],
-                        "Literatura Portuguesa": ["Trovadorismo", "Classicismo", "Pessoa"],
-                        "Teoria Literária": ["Gêneros", "Escolas", "Análise Literária"]
-                    },
-                    "Redação": {
-                        "Tipos Textuais": ["Narrativo", "Descritivo", "Dissertativo"],
-                        "Gêneros Textuais": ["Artigo", "Editorial", "Crônica", "Ensaio"],
-                        "Técnicas": ["Coesão", "Coerência", "Argumentação"]
-                    }
-                },
-                "Literatura": {
-                    "Épocas Literárias": {
-                        "Medieval": ["Trovadorismo", "Humanismo"],
-                        "Clássica": ["Classicismo", "Barroco"],
-                        "Moderna": ["Romantismo", "Realismo", "Parnasianismo", "Simbolismo"]
-                    },
-                    "Literatura Brasileira": {
-                        "Colonial": ["Literatura de Informação", "Barroco"],
-                        "Nacional": ["Romantismo", "Realismo", "Pré-Modernismo"],
-                        "Contemporânea": ["Modernismo", "Pós-Modernismo"]
-                    },
-                    "Análise Literária": {
-                        "Elementos": ["Narrador", "Personagem", "Tempo", "Espaço"],
-                        "Figuras": ["Metáfora", "Metonímia", "Ironia", "Antítese"],
-                        "Versificação": ["Metro", "Rima", "Ritmo", "Estrofe"]
-                    }
+                    "Gramática": ["Morfologia", "Sintaxe"],
+                    "Literatura": ["Romantismo", "Modernismo"]
                 },
                 "Inglês": {
-                    "Grammar": {
-                        "Tenses": ["Present", "Past", "Future", "Perfect"],
-                        "Modal Verbs": ["Can", "Must", "Should", "Would"],
-                        "Passive Voice": ["Formation", "Usage", "Transformation"]
-                    },
-                    "Vocabulary": {
-                        "Everyday": ["Family", "Work", "Travel", "Food"],
-                        "Academic": ["Science", "Technology", "Environment"],
-                        "Business": ["Economics", "Marketing", "Management"]
-                    },
-                    "Reading": {
-                        "Comprehension": ["Main Ideas", "Details", "Inference"],
-                        "Text Types": ["Articles", "Essays", "Reports"],
-                        "Strategies": ["Skimming", "Scanning", "Critical Reading"]
-                    }
-                },
-                "Espanhol": {
-                    "Gramática": {
-                        "Verbos": ["Presente", "Pretérito", "Futuro", "Subjuntivo"],
-                        "Sustantivos": ["Género", "Número", "Artículos"],
-                        "Pronombres": ["Personales", "Posesivos", "Demostrativos"]
-                    },
-                    "Vocabulario": {
-                        "Cotidiano": ["Familia", "Trabajo", "Viajes", "Comida"],
-                        "Cultura": ["Tradiciones", "Fiestas", "Arte", "Historia"],
-                        "Sociedad": ["Educación", "Política", "Economía"]
-                    },
-                    "Comprensión": {
-                        "Lectura": ["Ideas Principales", "Detalles", "Inferencias"],
-                        "Tipos de Texto": ["Narrativo", "Descriptivo", "Argumentativo"],
-                        "Estrategias": ["Predicción", "Contextualización", "Síntesis"]
-                    }
+                    "Grammar": ["Verb Tenses", "Modals"],
+                    "Vocabulary": ["Phrasal Verbs", "Idioms"]
                 }
             },
             "Matemática": {
                 "Álgebra": {
-                    "Álgebra Básica": {
-                        "Expressões": ["Monômios", "Polinômios", "Fatoração"],
-                        "Equações": ["1º Grau", "2º Grau", "Sistemas"],
-                        "Inequações": ["1º Grau", "2º Grau", "Modulares"]
-                    },
-                    "Funções": {
-                        "Função Afim": ["Definição", "Gráfico", "Aplicações"],
-                        "Função Quadrática": ["Parábola", "Vértice", "Raízes"],
-                        "Função Exponencial": ["Crescimento", "Decaimento", "Logaritmos"],
-                        "Função Logarítmica": ["Propriedades", "Equações", "Gráficos"]
-                    },
-                    "Progressões": {
-                        "PA": ["Termo Geral", "Soma", "Propriedades"],
-                        "PG": ["Termo Geral", "Soma", "Limite"],
-                        "Aplicações": ["Juros", "Crescimento", "Modelagem"]
-                    }
+                    "Equações": ["1º Grau", "2º Grau"],
+                    "Funções": ["Afim", "Quadrática"]
                 },
                 "Geometria": {
-                    "Geometria Plana": {
-                        "Figuras Básicas": ["Triângulos", "Quadriláteros", "Círculos"],
-                        "Áreas": ["Polígonos", "Círculo", "Figuras Compostas"],
-                        "Teoremas": ["Pitágoras", "Tales", "Trigonometria"]
-                    },
-                    "Geometria Espacial": {
-                        "Poliedros": ["Prismas", "Pirâmides", "Regulares"],
-                        "Corpos Redondos": ["Cilindro", "Cone", "Esfera"],
-                        "Volumes": ["Cálculo", "Aplicações", "Otimização"]
-                    },
-                    "Geometria Analítica": {
-                        "Ponto e Reta": ["Distância", "Equações", "Posições"],
-                        "Circunferência": ["Equação", "Posições", "Tangentes"],
-                        "Cônicas": ["Parábola", "Elipse", "Hipérbole"]
-                    }
-                },
-                "Estatística": {
-                    "Estatística Descritiva": {
-                        "Medidas": ["Tendência Central", "Dispersão", "Posição"],
-                        "Gráficos": ["Histograma", "Boxplot", "Dispersão"],
-                        "Distribuições": ["Frequência", "Probabilidade", "Normal"]
-                    },
-                    "Probabilidade": {
-                        "Conceitos": ["Espaço Amostral", "Eventos", "Probabilidade"],
-                        "Regras": ["Adição", "Multiplicação", "Condicional"],
-                        "Distribuições": ["Binomial", "Normal", "Poisson"]
-                    },
-                    "Análise Combinatória": {
-                        "Princípios": ["Fundamental", "Aditivo", "Multiplicativo"],
-                        "Arranjos": ["Simples", "Com Repetição"],
-                        "Combinações": ["Simples", "Com Repetição", "Binômio de Newton"]
-                    }
+                    "Plana": ["Áreas", "Perímetros"],
+                    "Espacial": ["Volumes", "Superfícies"]
                 }
             }
         };
-        
-        // Variáveis para alternativas e arquivos
-        let alternativas = [
-            { letra: 'A', texto: '' },
-            { letra: 'B', texto: '' },
-            { letra: 'C', texto: '' },
-            { letra: 'D', texto: '' },
-            { letra: 'E', texto: '' }
-        ];
-        
-        let arquivosQuestao = [];
-        
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', async function() {
-            await carregarDados();
-            setupEventListeners();
-            setupContextMenu();
-            carregarDisciplinas();
-            renderizarAlternativas();
-            atualizarBreadcrumb();
-        });
-        
-        // Função para carregar dados da API
-        async function carregarDados() {
-            try {
-                // Carregar pastas
-                const pastasResponse = await fetch(`${API_BASE}/api/pastas`);
-                if (pastasResponse.ok) {
-                    pastas = await pastasResponse.json();
-                }
-                
-                // Carregar provas
-                const provasResponse = await fetch(`${API_BASE}/api/provas`);
-                if (provasResponse.ok) {
-                    provas = await provasResponse.json();
-                    
-                    // Organizar provas por pasta
-                    provasPorPasta = {};
-                    provas.forEach(prova => {
-                        const pastaId = prova.pasta?._id || prova.pasta;
-                        if (!provasPorPasta[pastaId]) {
-                            provasPorPasta[pastaId] = [];
-                        }
-                        provasPorPasta[pastaId].push(prova);
+
+        // Elementos do DOM
+        const provaList = document.getElementById("prova-list");
+        const telaPasta = document.getElementById("tela-pasta");
+        const telaProva = document.getElementById("tela-prova");
+        const telaQuestao = document.getElementById("tela-questao");
+        const pastaNomeTitulo = document.getElementById("pasta-nome-titulo");
+        const pastaDescricaoTitulo = document.getElementById("pasta-descricao-titulo");
+        const provasPastaLista = document.getElementById("provas-pasta-lista");
+        const semProvasPasta = document.getElementById("sem-provas-pasta");
+        const provaNomeTitulo = document.getElementById("prova-nome-titulo");
+        const provaDescricaoTitulo = document.getElementById("prova-descricao-titulo");
+        const questoesLista = document.getElementById("questoes-lista");
+        const semQuestoes = document.getElementById("sem-questoes");
+        const tituloQuestao = document.getElementById("titulo-questao");
+        const provaSelecionadaSpan = document.getElementById("prova-selecionada");
+        const btnVoltarProva = document.getElementById("btn-voltar-prova");
+        const btnVoltarProvaBottom = document.getElementById("btn-voltar-prova-bottom");
+        const btnVoltarPasta = document.getElementById("btn-voltar-pasta");
+        const btnNovaQuestao = document.getElementById("btn-nova-questao");
+        const btnNovaProvaPasta = document.getElementById("btn-nova-prova-pasta");
+        const btnExcluirPasta = document.getElementById("btn-excluir-pasta");
+        const btnCriarPasta = document.getElementById("btn-criar-pasta");
+        const btnInserirSQL = document.getElementById("btn-inserir-sql");
+        const breadcrumbPasta = document.getElementById("breadcrumb-pasta");
+        const breadcrumbProva = document.getElementById("breadcrumb-prova");
+        const breadcrumbQuestao = document.getElementById("breadcrumb-questao");
+
+        // Campos do formulário de questão
+        const selectDisciplina = document.getElementById("disciplina");
+        const selectMateria = document.getElementById("materia");
+        const selectAssunto = document.getElementById("assunto");
+        const selectConteudo = document.getElementById("conteudo");
+        const selectTopico = document.getElementById("topico");
+        const inputAno = document.getElementById("ano");
+        const inputInstituicao = document.getElementById("instituicao");
+        const selectResposta = document.getElementById("resposta");
+        const inputContext = document.getElementById("context-textarea");
+        const inputEnunciado = document.getElementById("enunciado-textarea");
+        const alternativasLista = document.getElementById("alternativas-lista");
+        const arquivosLista = document.getElementById("arquivos-lista");
+        const inputUrlImagem = document.getElementById("input-url-imagem");
+        const conhecimento1 = document.getElementById("conhecimento1");
+        const conhecimento2 = document.getElementById("conhecimento2");
+        const conhecimento3 = document.getElementById("conhecimento3");
+        const conhecimento4 = document.getElementById("conhecimento4");
+
+        // Modais
+        const modalSQL = document.getElementById("modal-sql");
+        const codigoGerado = document.getElementById("codigo-gerado");
+        const modalCriarPasta = document.getElementById("modal-criar-pasta");
+        const inputNomePasta = document.getElementById("nome-pasta");
+        const inputDescricaoPasta = document.getElementById("descricao-pasta");
+        const selectParentPasta = document.getElementById("parent-pasta");
+        const modalCriarProva = document.getElementById("modal-criar-prova");
+        const inputTituloProva = document.getElementById("titulo-prova");
+        const inputDescricaoProva = document.getElementById("descricao-prova");
+        const modalInserirSQL = document.getElementById("modal-inserir-sql");
+        const sqlInput = document.getElementById("sql-input");
+        const resultadoInsercaoDiv = document.getElementById("resultado-insercao");
+        const resultadoListaDiv = document.getElementById("resultado-lista");
+        const modalMoverPasta = document.getElementById("modal-mover-pasta");
+        const selectDestinoPasta = document.getElementById("destino-pasta");
+
+        // Context Menus
+        const contextMenu = document.getElementById("context-menu");
+        const contextMenuPasta = document.getElementById("context-menu-pasta");
+        let provaContextMenuId = null;
+        let pastaContextMenuId = null;
+
+        // Funções de utilidade
+        function showLoading() {
+            // Implementar um spinner ou mensagem de carregamento
+            console.log("Carregando...");
+        }
+
+        function hideLoading() {
+            // Esconder spinner/mensagem
+            console.log("Carregamento concluído.");
+        }
+
+        function showToast(message, type = "success") {
+            // Implementar um toast notification
+            console.log(`Toast (${type}): ${message}`);
+            alert(message); // Temporário
+        }
+
+        // Navegação
+        function showScreen(screenId) {
+            telaPasta.style.display = "none";
+            telaProva.style.display = "none";
+            telaQuestao.style.display = "none";
+            document.getElementById(screenId).style.display = "block";
+        }
+
+        function goToHome() {
+            currentPastaId = null;
+            currentProvaId = null;
+            currentQuestaoId = null;
+            renderSidebar();
+            showScreen("tela-questao"); // Ou uma tela inicial vazia
+            resetForm();
+            tituloQuestao.textContent = "Adicionar Questão";
+            provaSelecionadaSpan.textContent = "Nenhuma";
+            breadcrumbQuestao.innerHTML = "";
+        }
+
+        function goToPasta(pastaId) {
+            currentPastaId = pastaId;
+            currentProvaId = null;
+            currentQuestaoId = null;
+            renderPastaScreen(pastaId);
+            showScreen("tela-pasta");
+        }
+
+        function goToProva(provaId) {
+            currentProvaId = provaId;
+            currentQuestaoId = null;
+            renderProvaScreen(provaId);
+            showScreen("tela-prova");
+        }
+
+        function goToQuestao(questaoId = null) {
+            currentQuestaoId = questaoId;
+            resetForm();
+            if (questaoId) {
+                tituloQuestao.textContent = "Editar Questão";
+                carregarQuestaoParaEdicao(questaoId);
+            } else {
+                tituloQuestao.textContent = "Adicionar Questão";
+                provaSelecionadaSpan.textContent = currentProvaId ? `ID: ${currentProvaId}` : "Nenhuma";
+            }
+            updateBreadcrumbQuestao();
+            showScreen("tela-questao");
+        }
+
+        // Breadcrumbs
+        async function updateBreadcrumbPasta() {
+            let breadcrumbHtml = 
+                `<a href="#" onclick="goToHome()">Início</a> > `;
+            if (currentPastaId) {
+                const pasta = await fetchPasta(currentPastaId);
+                if (pasta) {
+                    const path = await getPastaPath(pasta);
+                    path.forEach((p, index) => {
+                        breadcrumbHtml += 
+                            `<a href="#" onclick="goToPasta(\'${p._id}\')">${p.nome}</a>${index < path.length - 1 ? ' > ' : ''}`;
                     });
                 }
-                
-                atualizarListaProvas();
-                
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
             }
+            breadcrumbPasta.innerHTML = breadcrumbHtml;
         }
-        
-        // Função para carregar questões de uma prova
-        async function carregarQuestoesDaProva(provaId) {
-            try {
-                const response = await fetch(`${API_BASE}/api/provas/${provaId}?populate=questoes`);
-                if (response.ok) {
-                    const prova = await response.json();
-                    questoesPorProva[provaId] = prova.questoes || [];
-                }
-            } catch (error) {
-                console.error('Erro ao carregar questões:', error);
-                questoesPorProva[provaId] = [];
-            }
-        }
-        
-        // Função para carregar disciplinas no select
-        function carregarDisciplinas() {
-            const select = document.getElementById('disciplina');
-            select.innerHTML = '<option value="">Selecione uma ou mais disciplinas</option>';
-            
-            Object.keys(dadosHierarquicos).forEach(disciplina => {
-                const option = document.createElement('option');
-                option.value = disciplina;
-                option.textContent = disciplina;
-                select.appendChild(option);
-            });
-        }
-        
-        // Função para atualizar matérias baseado nas disciplinas selecionadas
-        function atualizarMaterias() {
-            const disciplinaSelect = document.getElementById('disciplina');
-            const materiaSelect = document.getElementById('materia');
-            const assuntoSelect = document.getElementById('assunto');
-            const conteudoSelect = document.getElementById('conteudo');
-            const topicoSelect = document.getElementById('topico');
-            
-            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
-            
-            // Limpar selects dependentes
-            materiaSelect.innerHTML = '<option value="">Selecione uma ou mais matérias</option>';
-            assuntoSelect.innerHTML = '<option value="">Selecione um ou mais assuntos</option>';
-            conteudoSelect.innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
-            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
-            
-            // Desabilitar selects dependentes
-            materiaSelect.disabled = disciplinasSelecionadas.length === 0;
-            assuntoSelect.disabled = true;
-            conteudoSelect.disabled = true;
-            topicoSelect.disabled = true;
-            
-            if (disciplinasSelecionadas.length > 0) {
-                const materiasDisponiveis = new Set();
-                
-                disciplinasSelecionadas.forEach(disciplina => {
-                    if (dadosHierarquicos[disciplina]) {
-                        Object.keys(dadosHierarquicos[disciplina]).forEach(materia => {
-                            materiasDisponiveis.add(materia);
-                        });
-                    }
-                });
-                
-                Array.from(materiasDisponiveis).sort().forEach(materia => {
-                    const option = document.createElement('option');
-                    option.value = materia;
-                    option.textContent = materia;
-                    materiaSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Função para atualizar assuntos baseado nas matérias selecionadas
-        function atualizarAssuntos() {
-            const disciplinaSelect = document.getElementById('disciplina');
-            const materiaSelect = document.getElementById('materia');
-            const assuntoSelect = document.getElementById('assunto');
-            const conteudoSelect = document.getElementById('conteudo');
-            const topicoSelect = document.getElementById('topico');
-            
-            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
-            const materiasSelecionadas = Array.from(materiaSelect.selectedOptions).map(option => option.value);
-            
-            // Limpar selects dependentes
-            assuntoSelect.innerHTML = '<option value="">Selecione um ou mais assuntos</option>';
-            conteudoSelect.innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
-            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
-            
-            // Desabilitar selects dependentes
-            assuntoSelect.disabled = materiasSelecionadas.length === 0;
-            conteudoSelect.disabled = true;
-            topicoSelect.disabled = true;
-            
-            if (materiasSelecionadas.length > 0) {
-                const assuntosDisponiveis = new Set();
-                
-                disciplinasSelecionadas.forEach(disciplina => {
-                    if (dadosHierarquicos[disciplina]) {
-                        materiasSelecionadas.forEach(materia => {
-                            if (dadosHierarquicos[disciplina][materia]) {
-                                Object.keys(dadosHierarquicos[disciplina][materia]).forEach(assunto => {
-                                    assuntosDisponiveis.add(assunto);
-                                });
-                            }
-                        });
-                    }
-                });
-                
-                Array.from(assuntosDisponiveis).sort().forEach(assunto => {
-                    const option = document.createElement('option');
-                    option.value = assunto;
-                    option.textContent = assunto;
-                    assuntoSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Função para atualizar conteúdos baseado nos assuntos selecionados
-        function atualizarConteudos() {
-            const disciplinaSelect = document.getElementById('disciplina');
-            const materiaSelect = document.getElementById('materia');
-            const assuntoSelect = document.getElementById('assunto');
-            const conteudoSelect = document.getElementById('conteudo');
-            const topicoSelect = document.getElementById('topico');
-            
-            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
-            const materiasSelecionadas = Array.from(materiaSelect.selectedOptions).map(option => option.value);
-            const assuntosSelecionados = Array.from(assuntoSelect.selectedOptions).map(option => option.value);
-            
-            // Limpar selects dependentes
-            conteudoSelect.innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
-            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
-            
-            // Desabilitar selects dependentes
-            conteudoSelect.disabled = assuntosSelecionados.length === 0;
-            topicoSelect.disabled = true;
-            
-            if (assuntosSelecionados.length > 0) {
-                const conteudosDisponiveis = new Set();
-                
-                disciplinasSelecionadas.forEach(disciplina => {
-                    if (dadosHierarquicos[disciplina]) {
-                        materiasSelecionadas.forEach(materia => {
-                            if (dadosHierarquicos[disciplina][materia]) {
-                                assuntosSelecionados.forEach(assunto => {
-                                    if (dadosHierarquicos[disciplina][materia][assunto]) {
-                                        Object.keys(dadosHierarquicos[disciplina][materia][assunto]).forEach(conteudo => {
-                                            conteudosDisponiveis.add(conteudo);
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-                
-                Array.from(conteudosDisponiveis).sort().forEach(conteudo => {
-                    const option = document.createElement('option');
-                    option.value = conteudo;
-                    option.textContent = conteudo;
-                    conteudoSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Função para atualizar tópicos baseado nos conteúdos selecionados
-        function atualizarTopicos() {
-            const disciplinaSelect = document.getElementById('disciplina');
-            const materiaSelect = document.getElementById('materia');
-            const assuntoSelect = document.getElementById('assunto');
-            const conteudoSelect = document.getElementById('conteudo');
-            const topicoSelect = document.getElementById('topico');
-            
-            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
-            const materiasSelecionadas = Array.from(materiaSelect.selectedOptions).map(option => option.value);
-            const assuntosSelecionados = Array.from(assuntoSelect.selectedOptions).map(option => option.value);
-            const conteudosSelecionados = Array.from(conteudoSelect.selectedOptions).map(option => option.value);
-            
-            // Limpar select de tópicos
-            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
-            
-            // Habilitar select de tópicos
-            topicoSelect.disabled = conteudosSelecionados.length === 0;
-            
-            if (conteudosSelecionados.length > 0) {
-                const topicosDisponiveis = new Set();
-                
-                disciplinasSelecionadas.forEach(disciplina => {
-                    if (dadosHierarquicos[disciplina]) {
-                        materiasSelecionadas.forEach(materia => {
-                            if (dadosHierarquicos[disciplina][materia]) {
-                                assuntosSelecionados.forEach(assunto => {
-                                    if (dadosHierarquicos[disciplina][materia][assunto]) {
-                                        conteudosSelecionados.forEach(conteudo => {
-                                            if (dadosHierarquicos[disciplina][materia][assunto][conteudo]) {
-                                                dadosHierarquicos[disciplina][materia][assunto][conteudo].forEach(topico => {
-                                                    topicosDisponiveis.add(topico);
-                                                });
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-                
-                Array.from(topicosDisponiveis).sort().forEach(topico => {
-                    const option = document.createElement('option');
-                    option.value = topico;
-                    option.textContent = topico;
-                    topicoSelect.appendChild(option);
-                });
-            }
-        }
-        
-        // Função para salvar questão
-        async function salvarQuestao() {
-            try {
-                // Coletar dados do formulário
-                const disciplinasSelecionadas = Array.from(document.getElementById('disciplina').selectedOptions).map(option => option.value).filter(v => v);
-                const materiasSelecionadas = Array.from(document.getElementById('materia').selectedOptions).map(option => option.value).filter(v => v);
-                const assuntosSelecionados = Array.from(document.getElementById('assunto').selectedOptions).map(option => option.value).filter(v => v);
-                const conteudosSelecionados = Array.from(document.getElementById('conteudo').selectedOptions).map(option => option.value).filter(v => v);
-                const topicosSelecionados = Array.from(document.getElementById('topico').selectedOptions).map(option => option.value).filter(v => v);
-                
-                const context = document.getElementById('context-textarea').value.trim();
-                const enunciado = document.getElementById('enunciado-textarea').value.trim();
-                const resposta = document.getElementById('resposta').value;
-                const ano = document.getElementById('ano').value;
-                const instituicao = document.getElementById('instituicao').value;
-                
-                // Validações
-                if (disciplinasSelecionadas.length === 0) {
-                    alert('Selecione pelo menos uma disciplina');
-                    return;
-                }
-                
-                if (materiasSelecionadas.length === 0) {
-                    alert('Selecione pelo menos uma matéria');
-                    return;
-                }
-                
-                if (!enunciado) {
-                    alert('Digite o enunciado da questão');
-                    return;
-                }
-                
-                if (!resposta) {
-                    alert('Selecione a resposta correta');
-                    return;
-                }
-                
-                // Validar alternativas
-                const alternativasValidas = alternativas.filter(alt => alt.texto.trim());
-                if (alternativasValidas.length < 2) {
-                    alert('Digite pelo menos 2 alternativas');
-                    return;
-                }
-                
-                // Preparar dados para envio - usando campos singulares
-                const questaoData = {
-                    disciplina: disciplinasSelecionadas,
-                    materia: materiasSelecionadas,
-                    assunto: assuntosSelecionados,
-                    conteudo: conteudosSelecionados,
-                    topico: topicosSelecionados,
-                    context: context || null,
-                    enunciado: enunciado,
-                    alternativas: alternativasValidas.map(alt => ({
-                        letter: alt.letra,
-                        text: alt.texto,
-                        isCorrect: alt.letra === resposta
-                    })),
-                    resposta: resposta,
-                    ano: ano ? parseInt(ano) : null,
-                    instituicao: instituicao || null,
-                    prova: provaSelecionada._id,
-                    img1: arquivosQuestao[0] || null,
-                    img2: arquivosQuestao[1] || null,
-                    img3: arquivosQuestao[2] || null,
-                    conhecimento1: document.getElementById('conhecimento1').value || null,
-                    conhecimento2: document.getElementById('conhecimento2').value || null,
-                    conhecimento3: document.getElementById('conhecimento3').value || null,
-                    conhecimento4: document.getElementById('conhecimento4').value || null
-                };
-                
-                let response;
-                if (questaoEditando) {
-                    // Atualizar questão existente
-                    response = await fetch(`${API_BASE}/api/questoes/${questaoEditando}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(questaoData)
+
+        async function updateBreadcrumbProva() {
+            let breadcrumbHtml = 
+                `<a href="#" onclick="goToHome()">Início</a> > `;
+            if (currentPastaId) {
+                const pasta = await fetchPasta(currentPastaId);
+                if (pasta) {
+                    const path = await getPastaPath(pasta);
+                    path.forEach((p, index) => {
+                        breadcrumbHtml += 
+                            `<a href="#" onclick="goToPasta(\'${p._id}\')">${p.nome}</a> > `;
                     });
+                }
+            }
+            if (currentProvaId) {
+                const prova = await fetchProva(currentProvaId);
+                if (prova) {
+                    breadcrumbHtml += 
+                        `<span>${prova.titulo}</span>`;
+                }
+            }
+            breadcrumbProva.innerHTML = breadcrumbHtml;
+        }
+
+        async function updateBreadcrumbQuestao() {
+            let breadcrumbHtml = 
+                `<a href="#" onclick="goToHome()">Início</a> > `;
+            if (currentPastaId) {
+                const pasta = await fetchPasta(currentPastaId);
+                if (pasta) {
+                    const path = await getPastaPath(pasta);
+                    path.forEach((p, index) => {
+                        breadcrumbHtml += 
+                            `<a href="#" onclick="goToPasta(\'${p._id}\')">${p.nome}</a> > `;
+                    });
+                }
+            }
+            if (currentProvaId) {
+                const prova = await fetchProva(currentProvaId);
+                if (prova) {
+                    breadcrumbHtml += 
+                        `<a href="#" onclick="goToProva(\'${prova._id}\')">${prova.titulo}</a> > `;
+                }
+            }
+            if (currentQuestaoId) {
+                const questao = await fetchQuestao(currentQuestaoId);
+                if (questao) {
+                    breadcrumbHtml += 
+                        `<span>Questão ${questao.index || questao._id.substring(0, 4)}</span>`;
+                }
+            } else {
+                breadcrumbHtml += 
+                    `<span>Nova Questão</span>`;
+            }
+            breadcrumbQuestao.innerHTML = breadcrumbHtml;
+        }
+
+        async function getPastaPath(pasta) {
+            const path = [];
+            let current = pasta;
+            while (current) {
+                path.unshift(current);
+                if (current.parent) {
+                    current = await fetchPasta(current.parent);
                 } else {
-                    // Criar nova questão
-                    response = await fetch(`${API_BASE}/api/questoes`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(questaoData)
-                    });
+                    current = null;
                 }
-                
-                if (response.ok) {
-                    alert(questaoEditando ? 'Questão atualizada com sucesso!' : 'Questão criada com sucesso!');
-                    
-                    // Recarregar questões da prova
-                    await carregarQuestoesDaProva(provaSelecionada._id);
-                    
-                    // Limpar formulário
-                    limparFormulario();
-                    
-                    // Voltar para a tela da prova
-                    mostrarTelaProva();
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao salvar questão: ${erro.error || 'Erro desconhecido'}`);
-                }
-                
-            } catch (error) {
-                console.error('Erro ao salvar questão:', error);
-                alert(`Erro ao salvar questão: ${error.message}`);
             }
+            return path;
         }
-        
-        // Função para limpar formulário
-        function limparFormulario() {
-            document.getElementById('disciplina').selectedIndex = 0;
-            document.getElementById('materia').innerHTML = '<option value="">Selecione uma ou mais matérias</option>';
-            document.getElementById('assunto').innerHTML = '<option value="">Selecione um ou mais assuntos</option>';
-            document.getElementById('conteudo').innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
-            document.getElementById('topico').innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
-            
-            document.getElementById('materia').disabled = true;
-            document.getElementById('assunto').disabled = true;
-            document.getElementById('conteudo').disabled = true;
-            document.getElementById('topico').disabled = true;
-            
-            document.getElementById('context-textarea').value = '';
-            document.getElementById('enunciado-textarea').value = '';
-            document.getElementById('resposta').selectedIndex = 0;
-            document.getElementById('ano').selectedIndex = 0;
-            document.getElementById('instituicao').selectedIndex = 0;
-            
-            document.getElementById('conhecimento1').selectedIndex = 0;
-            document.getElementById('conhecimento2').selectedIndex = 0;
-            document.getElementById('conhecimento3').selectedIndex = 0;
-            document.getElementById('conhecimento4').selectedIndex = 0;
-            
-            // Resetar alternativas
-            alternativas = [
-                { letra: 'A', texto: '' },
-                { letra: 'B', texto: '' },
-                { letra: 'C', texto: '' },
-                { letra: 'D', texto: '' },
-                { letra: 'E', texto: '' }
-            ];
-            
-            // Resetar arquivos
-            arquivosQuestao = [];
-            
-            // Re-renderizar
-            renderizarAlternativas();
-            
-            questaoEditando = null;
-            document.getElementById('titulo-questao').textContent = 'Adicionar Questão';
-            document.getElementById('btn-salvar-questao').textContent = 'Salvar Questão';
-        }
-        
-        // Função para editar questão
-        async function editarQuestao(questaoId) {
+
+        // API Calls
+        async function fetchData(endpoint) {
+            showLoading();
             try {
-                const response = await fetch(`${API_BASE}/api/questoes/${questaoId}`);
+                const response = await fetch(`${API_URL}/${endpoint}`);
                 if (!response.ok) {
-                    throw new Error('Questão não encontrada');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
-                const questao = await response.json();
-                questaoEditando = questaoId;
-                
-                // Preencher formulário com dados da questão
-                document.getElementById('titulo-questao').textContent = 'Editar Questão';
-                document.getElementById('btn-salvar-questao').textContent = 'Atualizar Questão';
-                
-                // Preencher selects hierárquicos - usando campos singulares
-                if (questao.disciplina && questao.disciplina.length > 0) {
-                    const disciplinaSelect = document.getElementById('disciplina');
-                    questao.disciplina.forEach(disc => {
-                        Array.from(disciplinaSelect.options).forEach(option => {
-                            if (option.value === disc) option.selected = true;
-                        });
-                    });
-                    atualizarMaterias();
-                    
-                    setTimeout(() => {
-                        if (questao.materia && questao.materia.length > 0) {
-                            const materiaSelect = document.getElementById('materia');
-                            questao.materia.forEach(mat => {
-                                Array.from(materiaSelect.options).forEach(option => {
-                                    if (option.value === mat) option.selected = true;
-                                });
-                            });
-                            atualizarAssuntos();
-                            
-                            setTimeout(() => {
-                                if (questao.assunto && questao.assunto.length > 0) {
-                                    const assuntoSelect = document.getElementById('assunto');
-                                    questao.assunto.forEach(ass => {
-                                        Array.from(assuntoSelect.options).forEach(option => {
-                                            if (option.value === ass) option.selected = true;
-                                        });
-                                    });
-                                    atualizarConteudos();
-                                    
-                                    setTimeout(() => {
-                                        if (questao.conteudo && questao.conteudo.length > 0) {
-                                            const conteudoSelect = document.getElementById('conteudo');
-                                            questao.conteudo.forEach(cont => {
-                                                Array.from(conteudoSelect.options).forEach(option => {
-                                                    if (option.value === cont) option.selected = true;
-                                                });
-                                            });
-                                            atualizarTopicos();
-                                            
-                                            setTimeout(() => {
-                                                if (questao.topico && questao.topico.length > 0) {
-                                                    const topicoSelect = document.getElementById('topico');
-                                                    questao.topico.forEach(top => {
-                                                        Array.from(topicoSelect.options).forEach(option => {
-                                                            if (option.value === top) option.selected = true;
-                                                        });
-                                                    });
-                                                }
-                                            }, 100);
-                                        }
-                                    }, 100);
-                                }
-                            }, 100);
-                        }
-                    }, 100);
-                }
-                
-                // Preencher outros campos
-                document.getElementById('context-textarea').value = questao.context || '';
-                document.getElementById('enunciado-textarea').value = questao.enunciado || '';
-                document.getElementById('resposta').value = questao.resposta || 'A';
-                document.getElementById('ano').value = questao.ano || '';
-                document.getElementById('instituicao').value = questao.instituicao || '';
-                
-                document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
-                document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
-                document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
-                document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
-                
-                // Preencher alternativas
-                if (questao.alternativas && questao.alternativas.length > 0) {
-                    alternativas = questao.alternativas.map(alt => ({
-                        letra: alt.letter,
-                        texto: alt.text
-                    }));
-                    
-                    // Adicionar alternativas vazias se necessário
-                    const letras = ['A', 'B', 'C', 'D', 'E'];
-                    letras.forEach(letra => {
-                        if (!alternativas.find(alt => alt.letra === letra)) {
-                            alternativas.push({ letra: letra, texto: '' });
-                        }
-                    });
-                    
-                    // Ordenar por letra
-                    alternativas.sort((a, b) => a.letra.localeCompare(b.letra));
-                }
-                
-                // Preencher arquivos
-                arquivosQuestao = [];
-                if (questao.img1) arquivosQuestao.push(questao.img1);
-                if (questao.img2) arquivosQuestao.push(questao.img2);
-                if (questao.img3) arquivosQuestao.push(questao.img3);
-                
-                // Re-renderizar
-                renderizarAlternativas();
-                
-                // Mostrar tela de questão
-                mostrarTelaQuestao();
-                
+                return await response.json();
             } catch (error) {
-                console.error('Erro ao carregar questão para edição:', error);
-                alert(`Erro ao carregar questão: ${error.message}`);
+                console.error("Erro ao buscar dados:", error);
+                showToast(`Erro ao carregar dados: ${error.message}`, "error");
+                return null;
+            } finally {
+                hideLoading();
             }
         }
-        
-        // Função para excluir questão
-        async function excluirQuestao(questaoId) {
-            if (!confirm('Tem certeza que deseja excluir esta questão?')) {
-                return;
-            }
-            
+
+        async function postData(endpoint, data) {
+            showLoading();
             try {
-                const response = await fetch(`${API_BASE}/api/questoes/${questaoId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    alert('Questão excluída com sucesso!');
-                    await carregarQuestoesDaProva(provaSelecionada._id);
-                    mostrarTelaProva();
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao excluir questão: ${erro.error || 'Erro desconhecido'}`);
-                }
-            } catch (error) {
-                console.error('Erro ao excluir questão:', error);
-                alert(`Erro ao excluir questão: ${error.message}`);
-            }
-        }
-        
-        // Função para criar pasta
-        async function criarPasta() {
-            const nome = document.getElementById('pasta-nome').value.trim();
-            const descricao = document.getElementById('pasta-descricao').value.trim();
-            
-            if (!nome) {
-                alert('Digite o nome da pasta');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE}/api/pastas`, {
-                    method: 'POST',
+                const response = await fetch(`${API_URL}/${endpoint}`, {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json'
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        nome: nome,
-                        descricao: descricao
-                    })
+                    body: JSON.stringify(data),
                 });
-                
-                if (response.ok) {
-                    alert('Pasta criada com sucesso!');
-                    document.getElementById('criar-pasta-modal').style.display = 'none';
-                    document.getElementById('pasta-nome').value = '';
-                    document.getElementById('pasta-descricao').value = '';
-                    await carregarDados();
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao criar pasta: ${erro.error || 'Erro desconhecido'}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
+                return await response.json();
             } catch (error) {
-                console.error('Erro ao criar pasta:', error);
-                alert(`Erro ao criar pasta: ${error.message}`);
+                console.error("Erro ao enviar dados:", error);
+                showToast(`Erro ao salvar dados: ${error.message}`, "error");
+                return null;
+            } finally {
+                hideLoading();
             }
         }
-        
-        // Função para criar prova
-        async function criarProva() {
-            const titulo = document.getElementById('prova-titulo').value.trim();
-            const descricao = document.getElementById('prova-descricao-modal').value.trim();
-            
-            if (!titulo) {
-                alert('Digite o título da prova');
-                return;
-            }
-            
-            if (!pastaSelecionada) {
-                alert('Selecione uma pasta primeiro');
-                return;
-            }
-            
+
+        async function putData(endpoint, data) {
+            showLoading();
             try {
-                const response = await fetch(`${API_BASE}/api/provas`, {
-                    method: 'POST',
+                const response = await fetch(`${API_URL}/${endpoint}`, {
+                    method: "PUT",
                     headers: {
-                        'Content-Type': 'application/json'
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        titulo: titulo,
-                        descricao: descricao,
-                        pasta: pastaSelecionada._id
-                    })
+                    body: JSON.stringify(data),
                 });
-                
-                if (response.ok) {
-                    alert('Prova criada com sucesso!');
-                    document.getElementById('criar-prova-modal').style.display = 'none';
-                    document.getElementById('prova-titulo').value = '';
-                    document.getElementById('prova-descricao-modal').value = '';
-                    await carregarDados();
-                    mostrarTelaPasta(pastaSelecionada);
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao criar prova: ${erro.error || 'Erro desconhecido'}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
+                return await response.json();
             } catch (error) {
-                console.error('Erro ao criar prova:', error);
-                alert(`Erro ao criar prova: ${error.message}`);
+                console.error("Erro ao atualizar dados:", error);
+                showToast(`Erro ao atualizar dados: ${error.message}`, "error");
+                return null;
+            } finally {
+                hideLoading();
             }
         }
-        
-        // Função para excluir prova
-        async function excluirProva(provaId) {
-            if (!confirm('Tem certeza que deseja excluir esta prova e todas as suas questões?')) {
-                return;
-            }
-            
+
+        async function deleteData(endpoint) {
+            showLoading();
             try {
-                const response = await fetch(`${API_BASE}/api/provas/${provaId}`, {
-                    method: 'DELETE'
+                const response = await fetch(`${API_URL}/${endpoint}`, {
+                    method: "DELETE",
                 });
-                
-                if (response.ok) {
-                    alert('Prova excluída com sucesso!');
-                    await carregarDados();
-                    mostrarTelaPasta(pastaSelecionada);
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao excluir prova: ${erro.error || 'Erro desconhecido'}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
+                return await response.json();
             } catch (error) {
-                console.error('Erro ao excluir prova:', error);
-                alert(`Erro ao excluir prova: ${error.message}`);
-            }
-        }
-        
-        // Função para atualizar breadcrumb
-        function atualizarBreadcrumb() {
-            const breadcrumbPasta = document.getElementById('breadcrumb-pasta');
-            const breadcrumbProva = document.getElementById('breadcrumb-prova');
-            const breadcrumbQuestao = document.getElementById('breadcrumb-questao');
-            
-            if (breadcrumbPasta) {
-                if (pastaSelecionada) {
-                    breadcrumbPasta.innerHTML = `<a onclick="mostrarTelaInicial()">Início</a> > <span>${pastaSelecionada.nome}</span>`;
-                } else {
-                    breadcrumbPasta.innerHTML = '<span>Início</span>';
-                }
-            }
-            
-            if (breadcrumbProva) {
-                if (pastaSelecionada && provaSelecionada) {
-                    breadcrumbProva.innerHTML = `<a onclick="mostrarTelaInicial()">Início</a> > <a onclick="mostrarTelaPasta(${JSON.stringify(pastaSelecionada).replace(/"/g, '&quot;')})">${pastaSelecionada.nome}</a> > <span>${provaSelecionada.titulo}</span>`;
-                } else {
-                    breadcrumbProva.innerHTML = '<span>Início</span>';
-                }
-            }
-            
-            if (breadcrumbQuestao) {
-                if (pastaSelecionada && provaSelecionada) {
-                    breadcrumbQuestao.innerHTML = `<a onclick="mostrarTelaInicial()">Início</a> > <a onclick="mostrarTelaPasta(${JSON.stringify(pastaSelecionada).replace(/"/g, '&quot;')})">${pastaSelecionada.nome}</a> > <a onclick="mostrarTelaProva()">${provaSelecionada.titulo}</a> > <span>${questaoEditando ? 'Editar Questão' : 'Nova Questão'}</span>`;
-                } else {
-                    breadcrumbQuestao.innerHTML = '<span>Início > Nova Questão</span>';
-                }
-            }
-        }
-        
-        // Função para inserir questão via SQL/JSON
-        async function inserirQuestaoSQL() {
-            const jsonText = document.getElementById('json-questao').value.trim();
-            const resultadoDiv = document.getElementById('resultado-insercao');
-            
-            if (!jsonText) {
-                alert('Cole o JSON das questões no campo de texto');
-                return;
-            }
-            
-            try {
-                // Tentar fazer parse do JSON
-                const questoes = JSON.parse(jsonText);
-                
-                // Fazer requisição para a API
-                const response = await fetch(`${API_BASE}/api/questoes/bulk`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(questoes)
-                });
-                
-                if (response.ok) {
-                    const resultado = await response.json();
-                    
-                    // Mostrar resultado detalhado
-                    resultadoDiv.style.display = 'block';
-                    resultadoDiv.innerHTML = `
-                        <h3>Resultado da Inserção</h3>
-                        <p><strong>Total processado:</strong> ${resultado.total}</p>
-                        <p><strong>Sucessos:</strong> ${resultado.sucessos.length}</p>
-                        <p><strong>Erros:</strong> ${resultado.erros.length}</p>
-                        
-                        ${resultado.sucessos.length > 0 ? `
-                            <div class="resultado-sucesso">
-                                <h4>Questões inseridas com sucesso:</h4>
-                                ${resultado.sucessos.map(s => `
-                                    <div class="resultado-item">
-                                        Questão ${s.index} (${s.ano}) → ${s.pasta} → ${s.prova}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        
-                        ${resultado.erros.length > 0 ? `
-                            <div class="resultado-erro">
-                                <h4>Erros encontrados:</h4>
-                                ${resultado.erros.map(e => `
-                                    <div class="resultado-item">
-                                        Questão ${e.questao}: ${e.erro}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                    `;
-                    
-                    // Recarregar a lista de pastas para mostrar as atualizações
-                    await carregarDados();
-                    
-                    if (resultado.sucessos.length > 0) {
-                        alert(`${resultado.sucessos.length} questões inseridas com sucesso!`);
-                    }
-                    
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao inserir questões: ${erro.error || 'Erro desconhecido'}`);
-                }
-                
-            } catch (error) {
-                if (error instanceof SyntaxError) {
-                    alert('JSON inválido. Verifique a sintaxe do JSON colado.');
-                } else {
-                    console.error('Erro ao inserir questões:', error);
-                    alert(`Erro ao inserir questões: ${error.message}`);
-                }
+                console.error("Erro ao deletar dados:", error);
+                showToast(`Erro ao deletar dados: ${error.message}`, "error");
+                return null;
+            } finally {
+                hideLoading();
             }
         }
 
-        function setupEventListeners() {
-            // Modal de inserir SQL
-            document.getElementById('btn-inserir-sql').addEventListener('click', () => {
-                document.getElementById('inserir-sql-modal').style.display = 'block';
-                document.getElementById('resultado-insercao').style.display = 'none';
-            });
-            
-            document.getElementById('close-inserir-sql').addEventListener('click', () => {
-                document.getElementById('inserir-sql-modal').style.display = 'none';
-                document.getElementById('json-questao').value = '';
-                document.getElementById('resultado-insercao').style.display = 'none';
-            });
-            
-            document.getElementById('cancelar-inserir-sql').addEventListener('click', () => {
-                document.getElementById('inserir-sql-modal').style.display = 'none';
-                document.getElementById('json-questao').value = '';
-                document.getElementById('resultado-insercao').style.display = 'none';
-            });
-            
-            document.getElementById('confirmar-inserir-sql').addEventListener('click', inserirQuestaoSQL);
-
-            // Outros event listeners...
-            document.getElementById('btn-criar-pasta').addEventListener('click', () => {
-                document.getElementById('criar-pasta-modal').style.display = 'block';
-            });
-            
-            document.getElementById('close-criar-pasta').addEventListener('click', () => {
-                document.getElementById('criar-pasta-modal').style.display = 'none';
-            });
-            
-            document.getElementById('cancelar-criar-pasta').addEventListener('click', () => {
-                document.getElementById('criar-pasta-modal').style.display = 'none';
-            });
-            
-            document.getElementById('btn-nova-prova-pasta').addEventListener('click', () => {
-                document.getElementById('criar-prova-modal').style.display = 'block';
-            });
+        async function fetchPastas() {
+            return fetchData("pastas");
         }
 
-        function mostrarTelaInicial() {
-            document.getElementById('tela-pasta').style.display = 'none';
-            document.getElementById('tela-prova').style.display = 'none';
-            document.getElementById('tela-questao').style.display = 'block';
-            
-            pastaSelecionada = null;
-            provaSelecionada = null;
-            
-            atualizarBreadcrumb();
+        async function fetchPasta(id) {
+            return fetchData(`pastas/${id}`);
         }
 
-        function atualizarListaProvas() {
-            const lista = document.getElementById('prova-list');
-            lista.innerHTML = '';
-            
-            // Organizar pastas em hierarquia
-            const pastasRaiz = pastas.filter(pasta => !pasta.parent);
-            
-            pastasRaiz.forEach(pasta => {
-                adicionarPastaALista(pasta, lista, 0);
-            });
+        async function fetchProvas(pastaId = null) {
+            const endpoint = pastaId ? `pastas/${pastaId}?populate=provas` : "provas";
+            const data = await fetchData(endpoint);
+            return pastaId ? data.provas : data;
         }
 
-        function adicionarPastaALista(pasta, container, nivel) {
-            const li = document.createElement('li');
-            li.className = 'pasta-item';
-            li.style.marginLeft = `${nivel * 20}px`;
-            
-            const provasDaPasta = provasPorPasta[pasta._id] || [];
-            const isExpanded = pastasExpandidas.has(pasta._id);
-            
+        async function fetchProva(id) {
+            return fetchData(`provas/${id}?populate=questoes`);
+        }
+
+        async function fetchQuestoes(provaId = null) {
+            const endpoint = provaId ? `provas/${provaId}?populate=questoes` : "questoes";
+            const data = await fetchData(endpoint);
+            return provaId ? data.questoes : data;
+        }
+
+        async function fetchQuestao(id) {
+            return fetchData(`questoes/${id}`);
+        }
+
+        // Renderização da Sidebar
+        async function renderSidebar() {
+            provaList.innerHTML = "";
+            const pastas = await fetchPastas();
+            if (pastas) {
+                const rootPastas = pastas.filter(p => !p.parent);
+                rootPastas.forEach(pasta => renderPastaItem(pasta, 0));
+            }
+        }
+
+        function renderPastaItem(pasta, level) {
+            const li = document.createElement("li");
+            li.className = "prova-item pasta-item";
+            li.style.paddingLeft = `${10 + level * 15}px`;
             li.innerHTML = `
-                <div style="display: flex; align-items: center; width: 100%;">
-                    <span class="pasta-icon">${isExpanded ? '📂' : '📁'}</span>
-                    <span style="flex-grow: 1;">${pasta.nome}</span>
-                    <span class="prova-item-count">${provasDaPasta.length}</span>
-                </div>
+                <span class="pasta-icon">📁</span>
+                <span class="pasta-nome-item">${pasta.nome}</span>
+                <span class="prova-item-count">${pasta.provas.length}</span>
             `;
-            
-            li.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (pastasExpandidas.has(pasta._id)) {
-                    pastasExpandidas.delete(pasta._id);
-                } else {
-                    pastasExpandidas.add(pasta._id);
+            li.onclick = (event) => {
+                if (!event.target.classList.contains("context-menu-trigger")) {
+                    goToPasta(pasta._id);
                 }
-                atualizarListaProvas();
-            });
-            
-            li.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                contextMenuTarget = pasta;
-                mostrarContextMenuPasta(e.pageX, e.pageY);
-            });
-            
-            container.appendChild(li);
-            
-            // Se expandida, mostrar provas
-            if (isExpanded) {
-                provasDaPasta.forEach(prova => {
-                    const provaLi = document.createElement('li');
-                    provaLi.className = 'prova-item';
-                    provaLi.style.marginLeft = `${(nivel + 1) * 20}px`;
-                    
-                    const numQuestoes = prova.questoes ? prova.questoes.length : 0;
-                    
-                    provaLi.innerHTML = `
-                        <span>${prova.titulo}</span>
-                        <span class="prova-item-count">${numQuestoes}</span>
-                    `;
-                    
-                    provaLi.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        selecionarProva(prova, pasta);
-                    });
-                    
-                    container.appendChild(provaLi);
-                });
-                
-                // Mostrar subpastas
-                const subpastas = pastas.filter(p => p.parent === pasta._id);
-                subpastas.forEach(subpasta => {
-                    adicionarPastaALista(subpasta, container, nivel + 1);
-                });
-            }
-        }
-
-        async function selecionarProva(prova, pasta) {
-            provaSelecionada = prova;
-            pastaSelecionada = pasta;
-            pastaOrigemProva = pasta;
-            
-            await carregarQuestoesDaProva(prova._id);
-            mostrarTelaProva();
-        }
-
-        function mostrarTelaProva() {
-            document.getElementById('tela-pasta').style.display = 'none';
-            document.getElementById('tela-prova').style.display = 'block';
-            document.getElementById('tela-questao').style.display = 'none';
-            
-            // Atualizar informações da prova
-            document.getElementById('prova-nome-titulo').textContent = provaSelecionada.titulo;
-            document.getElementById('prova-descricao-titulo').textContent = provaSelecionada.descricao || 'Sem descrição';
-            
-            // Atualizar lista de questões
-            const questoes = questoesPorProva[provaSelecionada._id] || [];
-            const tbody = document.getElementById('questoes-lista');
-            const semQuestoes = document.getElementById('sem-questoes');
-            
-            if (questoes.length === 0) {
-                tbody.innerHTML = '';
-                semQuestoes.style.display = 'block';
-            } else {
-                semQuestoes.style.display = 'none';
-                tbody.innerHTML = questoes.map((questao, index) => `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${Array.isArray(questao.disciplina) ? questao.disciplina.join(', ') : (questao.disciplina || 'N/A')}</td>
-                        <td>${Array.isArray(questao.materia) ? questao.materia.join(', ') : (questao.materia || 'N/A')}</td>
-                        <td>${Array.isArray(questao.assunto) ? questao.assunto.join(', ') : (questao.assunto || 'N/A')}</td>
-                        <td><strong>${questao.resposta}</strong></td>
-                        <td>
-                            <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
-                            <button class="btn-table btn-ver-sql" onclick="mostrarSQLQuestao('${questao._id}')">Ver SQL</button>
-                            <button class="btn-table btn-excluir" onclick="excluirQuestao('${questao._id}')">Excluir</button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-            
-            atualizarBreadcrumb();
-            
-            // Event listeners para botões da prova
-            document.getElementById('btn-voltar-pasta').onclick = () => mostrarTelaPasta(pastaSelecionada);
-            document.getElementById('btn-nova-questao').onclick = () => {
-                document.getElementById('prova-selecionada').textContent = provaSelecionada.titulo;
-                mostrarTelaQuestao();
             };
+            li.oncontextmenu = (event) => {
+                event.preventDefault();
+                pastaContextMenuId = pasta._id;
+                showContextMenu(event, contextMenuPasta);
+            };
+            provaList.appendChild(li);
+
+            if (pasta.children && pasta.children.length > 0) {
+                pasta.children.sort((a, b) => a.nome.localeCompare(b.nome));
+                pasta.children.forEach(childId => {
+                    // Encontrar a pasta completa pelo ID do child
+                    const childPasta = pastas.find(p => p._id === childId);
+                    if (childPasta) {
+                        renderPastaItem(childPasta, level + 1);
+                    }
+                });
+            }
+
+            if (pasta.provas && pasta.provas.length > 0) {
+                pasta.provas.sort((a, b) => a.titulo.localeCompare(b.titulo));
+                pasta.provas.forEach(prova => renderProvaItem(prova, level + 1));
+            }
         }
 
-        function mostrarTelaPasta(pasta) {
-            pastaSelecionada = pasta;
-            provaSelecionada = null;
-            
-            document.getElementById('tela-pasta').style.display = 'block';
-            document.getElementById('tela-prova').style.display = 'none';
-            document.getElementById('tela-questao').style.display = 'none';
-            
-            // Atualizar informações da pasta
-            document.getElementById('pasta-nome-titulo').textContent = pasta.nome;
-            document.getElementById('pasta-descricao-titulo').textContent = pasta.descricao || 'Sem descrição';
-            
-            // Atualizar lista de provas da pasta
-            const provasDaPasta = provasPorPasta[pasta._id] || [];
-            const tbody = document.getElementById('provas-pasta-lista');
-            const semProvas = document.getElementById('sem-provas-pasta');
-            
-            if (provasDaPasta.length === 0) {
-                tbody.innerHTML = '';
-                semProvas.style.display = 'block';
-            } else {
-                semProvas.style.display = 'none';
-                tbody.innerHTML = provasDaPasta.map((prova, index) => {
-                    const numQuestoes = prova.questoes ? prova.questoes.length : 0;
-                    return `
-                        <tr>
+        function renderProvaItem(prova, level) {
+            const li = document.createElement("li");
+            li.className = "prova-item";
+            li.style.paddingLeft = `${10 + level * 15}px`;
+            li.innerHTML = `
+                <span>📄 ${prova.titulo}</span>
+                <span class="prova-item-count">${prova.questoes.length}</span>
+            `;
+            li.onclick = (event) => {
+                if (!event.target.classList.contains("context-menu-trigger")) {
+                    goToProva(prova._id);
+                }
+            };
+            li.oncontextmenu = (event) => {
+                event.preventDefault();
+                provaContextMenuId = prova._id;
+                showContextMenu(event, contextMenu);
+            };
+            provaList.appendChild(li);
+        }
+
+        // Renderização da Tela de Pasta
+        async function renderPastaScreen(pastaId) {
+            const pasta = await fetchPasta(pastaId);
+            if (pasta) {
+                pastaNomeTitulo.textContent = pasta.nome;
+                pastaDescricaoTitulo.textContent = pasta.descricao || "";
+                
+                provasPastaLista.innerHTML = "";
+                if (pasta.provas && pasta.provas.length > 0) {
+                    semProvasPasta.style.display = "none";
+                    pasta.provas.forEach((prova, index) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
                             <td>${index + 1}</td>
                             <td>${prova.titulo}</td>
-                            <td>${prova.descricao || 'Sem descrição'}</td>
-                            <td>${numQuestoes}</td>
+                            <td>${prova.descricao || "-"}</td>
+                            <td>${prova.questoes.length}</td>
                             <td>
-                                <button class="btn-table btn-abrir" onclick="selecionarProva(${JSON.stringify(prova).replace(/"/g, '&quot;')}, ${JSON.stringify(pasta).replace(/"/g, '&quot;')})">Abrir</button>
-                                <button class="btn-table btn-excluir" onclick="excluirProva('${prova._id}')">Excluir</button>
+                                <button class="btn-table btn-abrir" onclick="goToProva(\'${prova._id}\')">Abrir</button>
+                                <button class="btn-table btn-editar" onclick="editarProva(\'${prova._id}\')">Editar</button>
+                                <button class="btn-table btn-excluir" onclick="removerProva(\'${prova._id}\')">Excluir</button>
                             </td>
-                        </tr>
-                    `;
-                }).join('');
+                        `;
+                        provasPastaLista.appendChild(tr);
+                    });
+                } else {
+                    semProvasPasta.style.display = "block";
+                }
+                currentPastaParentId = pasta.parent; // Armazenar o parent da pasta atual
             }
-            
-            atualizarBreadcrumb();
+            updateBreadcrumbPasta();
         }
 
-        function mostrarTelaQuestao() {
-            document.getElementById('tela-pasta').style.display = 'none';
-            document.getElementById('tela-prova').style.display = 'none';
-            document.getElementById('tela-questao').style.display = 'block';
-            
-            atualizarBreadcrumb();
-            
-            // Event listener para voltar à prova
-            document.getElementById('btn-voltar-prova').onclick = mostrarTelaProva;
+        // Renderização da Tela de Prova
+        async function renderProvaScreen(provaId) {
+            const prova = await fetchProva(provaId);
+            if (prova) {
+                provaNomeTitulo.textContent = prova.titulo;
+                provaDescricaoTitulo.textContent = prova.descricao || "";
+                
+                questoesLista.innerHTML = "";
+                if (prova.questoes && prova.questoes.length > 0) {
+                    semQuestoes.style.display = "none";
+                    prova.questoes.forEach((questao, index) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${questao.index || index + 1}</td>
+                            <td>${questao.disciplina ? questao.disciplina.join(', ') : '-'}</td>
+                            <td>${questao.materia ? questao.materia.join(', ') : '-'}</td>
+                            <td>${questao.assunto ? questao.assunto.join(', ') : '-'}</td>
+                            <td>${questao.resposta}</td>
+                            <td>
+                                <button class="btn-table btn-abrir" onclick="goToQuestao(\'${questao._id}\')">Ver/Editar</button>
+                                <button class="btn-table btn-ver-sql" onclick="mostrarSQLQuestao(\'${questao._id}\')">Ver SQL</button>
+                                <button class="btn-table btn-excluir" onclick="removerQuestao(\'${questao._id}\')">Excluir</button>
+                            </td>
+                        `;
+                        questoesLista.appendChild(tr);
+                    });
+                } else {
+                    semQuestoes.style.display = "block";
+                }
+            }
+            updateBreadcrumbProva();
         }
 
-        function setupContextMenu() {
-            // Context menu para pastas
-            document.addEventListener('click', () => {
-                document.getElementById('context-menu-pasta').style.display = 'none';
-                document.getElementById('context-menu').style.display = 'none';
+        // Funções de Formulário de Questão
+        function resetForm() {
+            currentQuestaoId = null;
+            selectDisciplina.value = "";
+            selectMateria.value = "";
+            selectAssunto.value = "";
+            selectConteudo.value = "";
+            selectTopico.value = "";
+            inputAno.value = "";
+            inputInstituicao.value = "";
+            selectResposta.value = "A";
+            inputContext.value = "";
+            inputEnunciado.value = "";
+            alternativasLista.innerHTML = "";
+            arquivosLista.innerHTML = `<div class="arquivos-vazio">Nenhuma imagem adicionada.</div>`;
+            inputUrlImagem.value = "";
+            conhecimento1.value = "";
+            conhecimento2.value = "";
+            conhecimento3.value = "";
+            conhecimento4.value = "";
+
+            // Resetar selects múltiplos
+            Array.from(selectDisciplina.options).forEach(option => option.selected = false);
+            Array.from(selectMateria.options).forEach(option => option.selected = false);
+            Array.from(selectAssunto.options).forEach(option => option.selected = false);
+            Array.from(selectConteudo.options).forEach(option => option.selected = false);
+            Array.from(selectTopico.options).forEach(option => option.selected = false);
+
+            // Desabilitar selects dependentes
+            selectMateria.disabled = true;
+            selectAssunto.disabled = true;
+            selectConteudo.disabled = true;
+            selectTopico.disabled = true;
+
+            // Adicionar alternativas padrão
+            adicionarAlternativa("A");
+            adicionarAlternativa("B");
+            adicionarAlternativa("C");
+            adicionarAlternativa("D");
+            adicionarAlternativa("E");
+        }
+
+        async function carregarQuestaoParaEdicao(id) {
+            const questao = await fetchQuestao(id);
+            if (questao) {
+                // Preencher selects hierárquicos
+                if (questao.disciplina && questao.disciplina.length > 0) {
+                    populateSelect(selectDisciplina, Object.keys(dadosHierarquicos), questao.disciplina);
+                    atualizarMaterias(questao.materia);
+                }
+                if (questao.materia && questao.materia.length > 0) {
+                    atualizarAssuntos(questao.assunto);
+                }
+                if (questao.assunto && questao.assunto.length > 0) {
+                    atualizarConteudos(questao.conteudo);
+                }
+                if (questao.conteudo && questao.conteudo.length > 0) {
+                    atualizarTopicos(questao.topico);
+                }
+
+                inputAno.value = questao.ano || "";
+                inputInstituicao.value = questao.instituicao || "";
+                selectResposta.value = questao.resposta || "A";
+                inputContext.value = questao.context || "";
+                inputEnunciado.value = questao.enunciado || "";
+
+                // Conhecimentos
+                conhecimento1.value = questao.conhecimento1 || "";
+                conhecimento2.value = questao.conhecimento2 || "";
+                conhecimento3.value = questao.conhecimento3 || "";
+                conhecimento4.value = questao.conhecimento4 || "";
+
+                // Alternativas
+                alternativasLista.innerHTML = "";
+                questao.alternativas.forEach(alt => {
+                    adicionarAlternativa(alt.letter, alt.text);
+                });
+
+                // Imagens
+                arquivosLista.innerHTML = "";
+                if (questao.img1) adicionarImagem(questao.img1);
+                if (questao.img2) adicionarImagem(questao.img2);
+                if (questao.img3) adicionarImagem(questao.img3);
+
+                // Atualizar span da prova
+                if (questao.prova) {
+                    const prova = await fetchProva(questao.prova);
+                    if (prova) {
+                        provaSelecionadaSpan.textContent = prova.titulo;
+                        currentProvaId = prova._id;
+                        currentPastaId = prova.pasta;
+                    }
+                }
+            }
+        }
+
+        async function salvarQuestao() {
+            const disciplina = getSelectedOptions(selectDisciplina);
+            const materia = getSelectedOptions(selectMateria);
+            const assunto = getSelectedOptions(selectAssunto);
+            const conteudo = getSelectedOptions(selectConteudo);
+            const topico = getSelectedOptions(selectTopico);
+
+            const alternativas = Array.from(alternativasLista.children).map(item => ({
+                letter: item.querySelector(".alternativa-letra").textContent.trim(),
+                text: item.querySelector(".alternativa-input").value,
+                isCorrect: false // Será definido pelo campo resposta
+            }));
+
+            const imagens = Array.from(arquivosLista.children).map(item => 
+                item.querySelector(".arquivo-url").textContent.trim()
+            );
+
+            const questaoData = {
+                disciplina: disciplina,
+                materia: materia,
+                assunto: assunto,
+                conteudo: conteudo,
+                topico: topico,
+                ano: inputAno.value ? parseInt(inputAno.value) : undefined,
+                instituicao: inputInstituicao.value || undefined,
+                context: inputContext.value || undefined,
+                enunciado: inputEnunciado.value,
+                alternativas: alternativas,
+                resposta: selectResposta.value,
+                prova: currentProvaId,
+                img1: imagens[0] || undefined,
+                img2: imagens[1] || undefined,
+                img3: imagens[2] || undefined,
+                conhecimento1: conhecimento1.value || undefined,
+                conhecimento2: conhecimento2.value || undefined,
+                conhecimento3: conhecimento3.value || undefined,
+                conhecimento4: conhecimento4.value || undefined,
+            };
+
+            let result;
+            if (currentQuestaoId) {
+                result = await putData(`questoes/${currentQuestaoId}`, questaoData);
+            } else {
+                result = await postData("questoes", questaoData);
+            }
+
+            if (result) {
+                showToast("Questão salva com sucesso!");
+                if (currentProvaId) {
+                    goToProva(currentProvaId);
+                } else {
+                    goToHome();
+                }
+            }
+        }
+
+        function adicionarAlternativa(letter = null, text = "") {
+            const currentCount = alternativasLista.children.length;
+            const newLetter = letter || String.fromCharCode(65 + currentCount);
+
+            const div = document.createElement("div");
+            div.className = "alternativa-item";
+            div.innerHTML = `
+                <span class="alternativa-letra">${newLetter})</span>
+                <input type="text" class="alternativa-input" value="${text}" placeholder="Texto da alternativa ${newLetter}">
+                <button class="btn-remover-alternativa" onclick="removerAlternativa(this)">X</button>
+            `;
+            alternativasLista.appendChild(div);
+        }
+
+        function removerAlternativa(button) {
+            button.parentElement.remove();
+            // Reorganizar letras
+            Array.from(alternativasLista.children).forEach((item, index) => {
+                item.querySelector(".alternativa-letra").textContent = String.fromCharCode(65 + index) + ")";
             });
         }
 
-        function mostrarContextMenuPasta(x, y) {
-            const menu = document.getElementById('context-menu-pasta');
-            menu.style.display = 'block';
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
-        }
+        function adicionarImagem(url = null) {
+            const imageUrl = url || inputUrlImagem.value.trim();
+            if (!imageUrl) return;
 
-        function renderizarAlternativas() {
-            const container = document.getElementById('alternativas-lista');
-            
-            container.innerHTML = alternativas.map(alt => `
-                <div class="alternativa-item">
-                    <span class="alternativa-letra">${alt.letra})</span>
-                    <input type="text" class="alternativa-input" placeholder="Digite a alternativa ${alt.letra}" 
-                           value="${alt.texto}" onchange="atualizarAlternativa('${alt.letra}', this.value)">
-                    ${alternativas.length > 2 ? `<button class="btn-remover-alternativa" onclick="removerAlternativa('${alt.letra}')" title="Remover">×</button>` : ''}
+            if (arquivosLista.querySelector(".arquivos-vazio")) {
+                arquivosLista.innerHTML = "";
+            }
+
+            const div = document.createElement("div");
+            div.className = "arquivo-item";
+            div.innerHTML = `
+                <span class="arquivo-url">${imageUrl}</span>
+                <div class="arquivo-acoes">
+                    <button class="btn-remover-arquivo" onclick="removerImagem(this)">X</button>
                 </div>
-            `).join('');
-            
-            // Renderizar arquivos
-            renderizarArquivos();
+            `;
+            arquivosLista.appendChild(div);
+            inputUrlImagem.value = "";
         }
 
-        function renderizarArquivos() {
-            const container = document.getElementById('arquivos-lista');
-            
-            if (arquivosQuestao.length === 0) {
-                container.innerHTML = '<div class="arquivos-vazio">Nenhum arquivo adicionado</div>';
-                return;
-            }
-            
-            container.innerHTML = arquivosQuestao.map((arquivo, index) => `
-                <div class="arquivo-item">
-                    <div class="arquivo-url">${arquivo}</div>
-                    <div class="arquivo-acoes">
-                        <button class="btn-remover-arquivo" onclick="removerArquivo(${index})" title="Remover">×</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function adicionarArquivo() {
-            const input = document.getElementById('novo-arquivo-url');
-            const url = input.value.trim();
-            
-            if (!url) {
-                alert('Digite a URL do arquivo');
-                return;
-            }
-            
-            if (arquivosQuestao.length >= 3) {
-                alert('Máximo de 3 arquivos por questão');
-                return;
-            }
-            
-            arquivosQuestao.push(url);
-            input.value = '';
-            renderizarArquivos();
-        }
-
-        function removerArquivo(index) {
-            arquivosQuestao.splice(index, 1);
-            renderizarArquivos();
-        }
-
-        function atualizarAlternativa(letra, texto) {
-            const alternativa = alternativas.find(alt => alt.letra === letra);
-            if (alternativa) {
-                alternativa.texto = texto;
+        function removerImagem(button) {
+            button.parentElement.parentElement.remove();
+            if (arquivosLista.children.length === 0) {
+                arquivosLista.innerHTML = `<div class="arquivos-vazio">Nenhuma imagem adicionada.</div>`;
             }
         }
 
-        function adicionarAlternativa() {
-            if (alternativas.length >= 5) {
-                alert('Máximo de 5 alternativas');
-                return;
-            }
-            
-            const letras = ['A', 'B', 'C', 'D', 'E'];
-            const proximaLetra = letras[alternativas.length];
-            
-            alternativas.push({ letra: proximaLetra, texto: '' });
-            renderizarAlternativas();
+        // Funções para selects hierárquicos
+        function populateSelect(selectElement, options, selectedValues = []) {
+            selectElement.innerHTML = "";
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = `Selecione uma ou mais ${selectElement.id === 'disciplina' ? 'disciplinas' : selectElement.id === 'materia' ? 'matérias' : selectElement.id === 'assunto' ? 'assuntos' : selectElement.id === 'conteudo' ? 'conteúdos' : 'tópicos'}`;
+            selectElement.appendChild(defaultOption);
+
+            options.forEach(optionText => {
+                const option = document.createElement("option");
+                option.value = optionText;
+                option.textContent = optionText;
+                if (selectedValues.includes(optionText)) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+            selectElement.disabled = options.length === 0;
         }
 
-        function removerAlternativa(letra) {
-            if (alternativas.length <= 2) {
-                alert('Mínimo de 2 alternativas');
-                return;
-            }
-            
-            alternativas = alternativas.filter(alt => alt.letra !== letra);
-            renderizarAlternativas();
+        function getSelectedOptions(selectElement) {
+            return Array.from(selectElement.selectedOptions).map(option => option.value).filter(value => value !== "");
         }
 
-        function mostrarSQLQuestao(questaoId) {
-            // Implementar visualização de SQL para questão específica
-            alert('Funcionalidade em desenvolvimento');
+        function atualizarMaterias(selectedMaterias = []) {
+            const selectedDisciplinas = getSelectedOptions(selectDisciplina);
+            let materiasDisponiveis = new Set();
+
+            selectedDisciplinas.forEach(disciplina => {
+                if (dadosHierarquicos[disciplina]) {
+                    Object.keys(dadosHierarquicos[disciplina]).forEach(materia => materiasDisponiveis.add(materia));
+                }
+            });
+            populateSelect(selectMateria, Array.from(materiasDisponiveis), selectedMaterias);
+            atualizarAssuntos(); // Limpar ou atualizar assuntos ao mudar matérias
         }
 
-        function mostrarSQLProva() {
-            // Implementar visualização de SQL para toda a prova
-            alert('Funcionalidade em desenvolvimento');
+        function atualizarAssuntos(selectedAssuntos = []) {
+            const selectedDisciplinas = getSelectedOptions(selectDisciplina);
+            const selectedMaterias = getSelectedOptions(selectMateria);
+            let assuntosDisponiveis = new Set();
+
+            selectedDisciplinas.forEach(disciplina => {
+                selectedMaterias.forEach(materia => {
+                    if (dadosHierarquicos[disciplina] && dadosHierarquicos[disciplina][materia]) {
+                        Object.keys(dadosHierarquicos[disciplina][materia]).forEach(assunto => assuntosDisponiveis.add(assunto));
+                    }
+                });
+            });
+            populateSelect(selectAssunto, Array.from(assuntosDisponiveis), selectedAssuntos);
+            atualizarConteudos(); // Limpar ou atualizar conteúdos ao mudar assuntos
+        }
+
+        function atualizarConteudos(selectedConteudos = []) {
+            const selectedDisciplinas = getSelectedOptions(selectDisciplina);
+            const selectedMaterias = getSelectedOptions(selectMateria);
+            const selectedAssuntos = getSelectedOptions(selectAssunto);
+            let conteudosDisponiveis = new Set();
+
+            selectedDisciplinas.forEach(disciplina => {
+                selectedMaterias.forEach(materia => {
+                    selectedAssuntos.forEach(assunto => {
+                        if (dadosHierarquicos[disciplina] && dadosHierarquicos[disciplina][materia] && dadosHierarquicos[disciplina][materia][assunto]) {
+                            dadosHierarquicos[disciplina][materia][assunto].forEach(conteudo => conteudosDisponiveis.add(conteudo));
+                        }
+                    });
+                });
+            });
+            populateSelect(selectConteudo, Array.from(conteudosDisponiveis), selectedConteudos);
+            atualizarTopicos(); // Limpar ou atualizar tópicos ao mudar conteúdos
+        }
+
+        function atualizarTopicos(selectedTopicos = []) {
+            const selectedDisciplinas = getSelectedOptions(selectDisciplina);
+            const selectedMaterias = getSelectedOptions(selectMateria);
+            const selectedAssuntos = getSelectedOptions(selectAssunto);
+            const selectedConteudos = getSelectedOptions(selectConteudo);
+            let topicosDisponiveis = new Set();
+
+            // A lógica para tópicos é um pouco diferente, pois eles são o último nível.
+            // Se um conteúdo for selecionado, os tópicos são os do conteúdo.
+            // Se não, mas um assunto for selecionado, os tópicos são os dos assuntos.
+            // Por simplicidade, vamos considerar que tópicos são filhos diretos de conteúdos.
+
+            selectedDisciplinas.forEach(disciplina => {
+                selectedMaterias.forEach(materia => {
+                    selectedAssuntos.forEach(assunto => {
+                        selectedConteudos.forEach(conteudo => {
+                            // No seu modelo, tópicos são o último nível dentro de conteúdo.
+                            // Se o 'conteudo' já é o array final, então não há mais um nível para 'topico'.
+                            // Assumindo que 'topico' seria um sub-item de 'conteudo' se existisse.
+                            // Como não há um nível 'topico' explícito no `dadosHierarquicos` fornecido,
+                            // vamos popular o select de tópicos com os próprios conteúdos selecionados, se for o caso,
+                            // ou deixar vazio se não houver um nível mais profundo.
+                            // Para este exemplo, vou deixar o select de tópicos vazio ou com uma mensagem indicativa.
+                            // Se você tiver dados para tópicos, precisará estender `dadosHierarquicos`.
+                        });
+                    });
+                });
+            });
+            // Por enquanto, o select de tópicos será populado com base nos conteúdos, se houver uma estrutura para isso.
+            // Como o `dadosHierarquicos` não tem um nível 'topico' explícito, ele ficará vazio por padrão.
+            populateSelect(selectTopico, [], selectedTopicos);
+        }
+
+        // Inicializar selects hierárquicos
+        populateSelect(selectDisciplina, Object.keys(dadosHierarquicos));
+
+        // Event Listeners para botões de navegação
+        btnVoltarProva.addEventListener("click", () => goToProva(currentProvaId));
+        btnVoltarProvaBottom.addEventListener("click", () => goToProva(currentProvaId));
+        btnVoltarPasta.addEventListener("click", () => goToPasta(currentPastaId));
+        btnNovaQuestao.addEventListener("click", () => goToQuestao());
+        btnNovaProvaPasta.addEventListener("click", abrirModalCriarProva);
+        btnExcluirPasta.addEventListener("click", () => removerPasta(currentPastaId));
+        btnCriarPasta.addEventListener("click", abrirModalCriarPasta);
+        btnInserirSQL.addEventListener("click", abrirModalInserirSQL);
+
+        // Funções para Modais
+        function abrirModalSQL() {
+            modalSQL.style.display = "block";
+        }
+
+        function fecharModalSQL() {
+            modalSQL.style.display = "none";
+            codigoGerado.textContent = "";
         }
 
         function copiarSQL() {
-            // Implementar cópia do SQL
-            alert('Funcionalidade em desenvolvimento');
+            navigator.clipboard.writeText(codigoGerado.textContent);
+            showToast("SQL copiado para a área de transferência!");
         }
 
-        function moverPasta() {
-            // Implementar movimentação de pasta
-            alert('Funcionalidade em desenvolvimento');
+        function abrirModalCriarPasta() {
+            inputNomePasta.value = "";
+            inputDescricaoPasta.value = "";
+            populateParentPastaSelect();
+            modalCriarPasta.style.display = "block";
         }
 
-        function removerPasta() {
-            // Implementar remoção de pasta
-            alert('Funcionalidade em desenvolvimento');
+        function fecharModalCriarPasta() {
+            modalCriarPasta.style.display = "none";
         }
 
-        function removerProva() {
-            // Implementar remoção de prova
-            alert('Funcionalidade em desenvolvimento');
+        async function populateParentPastaSelect() {
+            selectParentPasta.innerHTML = 
+                `<option value="">Nenhuma (Pasta Raiz)</option>`;
+            const pastas = await fetchPastas();
+            if (pastas) {
+                pastas.forEach(pasta => {
+                    const option = document.createElement("option");
+                    option.value = pasta._id;
+                    option.textContent = pasta.nome;
+                    selectParentPasta.appendChild(option);
+                });
+            }
         }
+
+        async function criarPasta() {
+            const nome = inputNomePasta.value.trim();
+            const descricao = inputDescricaoPasta.value.trim();
+            const parent = selectParentPasta.value || null;
+
+            if (!nome) {
+                showToast("O nome da pasta é obrigatório!", "error");
+                return;
+            }
+
+            const novaPasta = await postData("pastas", { nome, descricao, parent });
+            if (novaPasta) {
+                showToast("Pasta criada com sucesso!");
+                fecharModalCriarPasta();
+                renderSidebar();
+            }
+        }
+
+        async function removerPasta(id = pastaContextMenuId) {
+            if (!id) return;
+            if (confirm("Tem certeza que deseja excluir esta pasta e todas as suas provas e questões?")) {
+                const result = await deleteData(`pastas/${id}`);
+                if (result) {
+                    showToast("Pasta excluída com sucesso!");
+                    contextMenuPasta.style.display = "none";
+                    goToHome();
+                }
+            }
+        }
+
+        function abrirModalCriarProva() {
+            inputTituloProva.value = "";
+            inputDescricaoProva.value = "";
+            modalCriarProva.style.display = "block";
+        }
+
+        function fecharModalCriarProva() {
+            modalCriarProva.style.display = "none";
+        }
+
+        async function criarProva() {
+            const titulo = inputTituloProva.value.trim();
+            const descricao = inputDescricaoProva.value.trim();
+
+            if (!titulo) {
+                showToast("O título da prova é obrigatório!", "error");
+                return;
+            }
+
+            const novaProva = await postData("provas", { titulo, descricao, pasta: currentPastaId });
+            if (novaProva) {
+                showToast("Prova criada com sucesso!");
+                fecharModalCriarProva();
+                goToPasta(currentPastaId);
+            }
+        }
+
+        async function removerProva(id = provaContextMenuId) {
+            if (!id) return;
+            if (confirm("Tem certeza que deseja excluir esta prova e todas as suas questões?")) {
+                const result = await deleteData(`provas/${id}`);
+                if (result) {
+                    showToast("Prova excluída com sucesso!");
+                    contextMenu.style.display = "none";
+                    if (currentPastaId) {
+                        goToPasta(currentPastaId);
+                    } else {
+                        goToHome();
+                    }
+                }
+            }
+        }
+
+        function abrirModalInserirSQL() {
+            sqlInput.value = "";
+            resultadoInsercaoDiv.style.display = "none";
+            resultadoListaDiv.innerHTML = "";
+            modalInserirSQL.style.display = "block";
+        }
+
+        function fecharModalInserirSQL() {
+            modalInserirSQL.style.display = "none";
+        }
+
+        async function inserirSQLDireto() {
+            const jsonString = sqlInput.value.trim();
+            if (!jsonString) {
+                showToast("Por favor, cole o JSON das questões.", "error");
+                return;
+            }
+
+            try {
+                const questoesData = JSON.parse(jsonString);
+                const result = await postData("questoes/bulk", questoesData);
+                if (result) {
+                    resultadoInsercaoDiv.style.display = "block";
+                    resultadoListaDiv.innerHTML = "";
+
+                    result.sucessos.forEach(s => {
+                        const div = document.createElement("div");
+                        div.className = "resultado-item resultado-sucesso";
+                        div.textContent = `Questão ${s.index} (Ano: ${s.ano}, Pasta: ${s.pasta}, Prova: ${s.prova}) inserida com sucesso.`;
+                        resultadoListaDiv.appendChild(div);
+                    });
+
+                    result.erros.forEach(e => {
+                        const div = document.createElement("div");
+                        div.className = "resultado-item resultado-erro";
+                        div.textContent = `Erro na questão ${e.questao}: ${e.erro}`; 
+                        resultadoListaDiv.appendChild(div);
+                    });
+
+                    showToast(`Inserção em lote concluída: ${result.sucessos.length} sucessos, ${result.erros.length} erros.`, "info");
+                    renderSidebar();
+                }
+            } catch (error) {
+                console.error("Erro ao parsear JSON:", error);
+                showToast(`Erro ao parsear JSON: ${error.message}`, "error");
+            }
+        }
+
+        let pastaParaMoverId = null;
+        function moverPasta(id = pastaContextMenuId) {
+            pastaParaMoverId = id;
+            populateDestinoPastaSelect(id);
+            modalMoverPasta.style.display = "block";
+        }
+
+        function fecharModalMoverPasta() {
+            modalMoverPasta.style.display = "none";
+            pastaParaMoverId = null;
+        }
+
+        async function populateDestinoPastaSelect(pastaAtualId) {
+            selectDestinoPasta.innerHTML = 
+                `<option value="">Nenhuma (Pasta Raiz)</option>`;
+            const pastas = await fetchPastas();
+            if (pastas) {
+                pastas.forEach(pasta => {
+                    // Não permitir mover para a própria pasta ou para uma de suas subpastas
+                    if (pasta._id !== pastaAtualId && !isDescendant(pastaAtualId, pasta._id, pastas)) {
+                        const option = document.createElement("option");
+                        option.value = pasta._id;
+                        option.textContent = pasta.nome;
+                        selectDestinoPasta.appendChild(option);
+                    }
+                });
+            }
+        }
+
+        function isDescendant(ancestorId, descendantId, allPastas) {
+            let current = allPastas.find(p => p._id === descendantId);
+            while (current) {
+                if (current.parent === ancestorId) {
+                    return true;
+                }
+                current = allPastas.find(p => p._id === current.parent);
+            }
+            return false;
+        }
+
+        async function confirmarMoverPasta() {
+            const novoParentId = selectDestinoPasta.value || null;
+            if (!pastaParaMoverId) return;
+
+            const result = await putData(`pastas/${pastaParaMoverId}/mover`, { novoParentId });
+            if (result) {
+                showToast("Pasta movida com sucesso!");
+                fecharModalMoverPasta();
+                renderSidebar();
+                goToHome(); // Voltar para o início ou para a nova pasta pai
+            }
+        }
+
+        // Context Menu Logic
+        function showContextMenu(event, menuElement) {
+            menuElement.style.display = "block";
+            menuElement.style.left = event.pageX + "px";
+            menuElement.style.top = event.pageY + "px";
+        }
+
+        document.addEventListener("click", () => {
+            contextMenu.style.display = "none";
+            contextMenuPasta.style.display = "none";
+        });
+
+        // Inicialização
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSidebar();
+            goToQuestao(); // Iniciar na tela de adicionar questão
+        });
+
+        // Função para mostrar SQL de uma questão específica
+        async function mostrarSQLQuestao(questaoId) {
+            const questao = await fetchQuestao(questaoId);
+            if (questao) {
+                codigoGerado.textContent = JSON.stringify(questao, null, 2);
+                abrirModalSQL();
+            }
+        }
+
+        // Função para mostrar SQL de todas as questões de uma prova
+        async function mostrarSQLProva() {
+            if (!currentProvaId) return;
+            const prova = await fetchProva(currentProvaId);
+            if (prova && prova.questoes) {
+                const questoes = prova.questoes;
+                codigoGerado.textContent = JSON.stringify(questoes, null, 2);
+                abrirModalSQL();
+            }
+        }
+
     </script>
 </body>
 </html>
