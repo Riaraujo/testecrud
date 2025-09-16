@@ -925,23 +925,21 @@
             }
         }
 
-
-
         select[multiple] {
-    height: 220px;
-    padding: 8px;
-}
+            height: 220px;
+            padding: 8px;
+        }
 
-select[multiple] option {
-    padding: 4px 8px;
-    margin: 2px 0;
-}
+        select[multiple] option {
+            padding: 4px 8px;
+            margin: 2px 0;
+        }
 
-.multi-select-info {
-    font-size: 12px;
-    color: #666;
-    margin-top: 4px;
-}
+        .multi-select-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -1068,24 +1066,27 @@ select[multiple] option {
                     <div class="form-group">
                         <label for="disciplina">Disciplina:</label>
                         <select id="disciplina" class="form-control" multiple onchange="atualizarMaterias()">
-    <option value="">Selecione uma ou mais disciplinas</option>
-</select>
+                            <option value="">Selecione uma ou mais disciplinas</option>
+                        </select>
+                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="materia">Matéria:</label>
                         <select id="materia" class="form-control" multiple onchange="atualizarAssuntos()" disabled>
-    <option value="">Selecione uma ou mais matérias</option>
-</select>
+                            <option value="">Selecione uma ou mais matérias</option>
+                        </select>
+                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="assunto">Assunto:</label>
                         <select id="assunto" class="form-control" multiple onchange="atualizarConteudos()" disabled>
-    <option value="">Selecione um ou mais assuntos</option>
-</select>
+                            <option value="">Selecione um ou mais assuntos</option>
+                        </select>
+                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
                     </div>
                 </div>
             </div>
@@ -1095,16 +1096,18 @@ select[multiple] option {
                     <div class="form-group">
                         <label for="conteudo">Conteúdo (opcional):</label>
                         <select id="conteudo" class="form-control" multiple onchange="atualizarTopicos()" disabled>
-    <option value="">Selecione um ou mais conteúdos</option>
-</select>
+                            <option value="">Selecione um ou mais conteúdos</option>
+                        </select>
+                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
                         <label for="topico">Tópico (opcional):</label>
                         <select id="topico" class="form-control" multiple disabled>
-    <option value="">Selecione um ou mais tópicos</option>
-</select>
+                            <option value="">Selecione um ou mais tópicos</option>
+                        </select>
+                        <div class="multi-select-info">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplas opções</div>
                     </div>
                 </div>
             </div>
@@ -1290,301 +1293,369 @@ select[multiple] option {
                 </div>
             </div>
             
+            <!-- Seção de Alternativas -->
+            <div class="alternativas-container">
+                <h3>Alternativas</h3>
+                <div id="alternativas-lista">
+                    <!-- Alternativas serão adicionadas aqui dinamicamente -->
+                </div>
+                <button class="btn-add-bloco" onclick="adicionarAlternativa()" style="margin-top: 10px;">+ Adicionar Alternativa</button>
+            </div>
+            
             <!-- Seção de Arquivos -->
             <div class="arquivos-container">
-                <h3>Arquivos da Questão</3>
-                <div class="arquivos-lista" id="arquivos-lista">
-                    <!-- Arquivos serão renderizados aqui -->
+                <h3>Arquivos/Imagens (opcional)</h3>
+                <div id="arquivos-lista" class="arquivos-lista">
+                    <!-- Arquivos serão adicionados aqui dinamicamente -->
                 </div>
                 <div class="arquivos-controles">
-                    <input type="text" id="novo-arquivo-url" placeholder="URL do arquivo (imagem, PDF, etc.)" class="form-control" onkeypress="if(event.key==='Enter') adicionarArquivo()">
-                    <button onclick="adicionarArquivo()" class="btn-add-bloco">+ Adicionar Arquivo</button>
+                    <input type="text" id="novo-arquivo-url" placeholder="URL do arquivo/imagem" class="form-control">
+                    <button class="btn-add-bloco" onclick="adicionarArquivo()">Adicionar</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Modal de Visualização SQL -->
-    <div id="preview-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Código SQL para Inserção</h2>
-            <div class="preview-area">
-                <pre id="codigo-gerado"></pre>
-            </div>
-            <button onclick="copiarCodigo()" class="btn-copiar">Copiar Código</button>
-        </div>
-    </div>
-    
-    <!-- Modal de Criar Prova -->
-    <div id="criar-prova-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-criar-prova">&times;</span>
-            <h2>Criar Nova Prova</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="nome-prova">Nome da Prova:</label>
-                    <input type="text" id="nome-prova" placeholder="Ex: ENEM 2023 - Biologia">
-                </div>
-                <div class="modal-form-group">
-                    <label for="descricao-prova">Descrição (opcional):</label>
-                    <input type="text" id="descricao-prova" placeholder="Ex: Questões de biologia do ENEM 2023">
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn-cancelar" id="cancelar-criar-prova">Cancelar</button>
-                    <button class="btn-confirmar" id="confirmar-criar-prova">Criar Prova</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Criar Pasta -->
+    <!-- Modal para criar pasta -->
     <div id="criar-pasta-modal" class="modal">
         <div class="modal-content">
             <span class="close" id="close-criar-pasta">&times;</span>
             <h2>Criar Nova Pasta</h2>
             <div class="modal-form">
                 <div class="modal-form-group">
-                    <label for="nome-pasta">Nome da Pasta:</label>
-                    <input type="text" id="nome-pasta" placeholder="Ex: ENEM 2023">
+                    <label for="pasta-nome">Nome da Pasta:</label>
+                    <input type="text" id="pasta-nome" placeholder="Digite o nome da pasta">
                 </div>
                 <div class="modal-form-group">
-                    <label for="descricao-pasta">Descrição (opcional):</label>
-                    <input type="text" id="descricao-pasta" placeholder="Ex: Provas do ENEM 2023">
-                </div>
-                <div class="modal-form-group">
-                    <label for="pasta-pai">Pasta Pai (opcional):</label>
-                    <select id="pasta-pai">
-                        <option value="">Nenhuma (pasta raiz)</option>
-                    </select>
+                    <label for="pasta-descricao">Descrição (opcional):</label>
+                    <input type="text" id="pasta-descricao" placeholder="Digite uma descrição">
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn-cancelar" id="cancelar-criar-pasta">Cancelar</button>
-                    <button class="btn-confirmar" id="confirmar-criar-pasta">Criar Pasta</button>
+                    <button id="cancelar-criar-pasta" class="btn-cancelar">Cancelar</button>
+                    <button onclick="criarPasta()" class="btn-confirmar">Criar Pasta</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Modal de Senha -->
-    <div id="senha-modal" class="modal">
+    <!-- Modal para criar prova -->
+    <div id="criar-prova-modal" class="modal">
         <div class="modal-content">
-            <span class="close" id="close-senha">&times;</span>
-            <h2>Senha Necessária</h2>
+            <span class="close" onclick="document.getElementById('criar-prova-modal').style.display='none'">&times;</span>
+            <h2>Criar Nova Prova</h2>
             <div class="modal-form">
                 <div class="modal-form-group">
-                    <label for="senha-input">Digite a senha:</label>
-                    <input type="password" id="senha-input" placeholder="Digite a senha">
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn-cancelar" id="cancelar-senha">Cancelar</button>
-                    <button class="btn-confirmar" id="confirmar-senha">Confirmar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Mover Pasta -->
-    <div id="mover-pasta-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-mover-pasta">&times;</span>
-            <h2>Mover Pasta</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label>Pasta a ser movida:</label>
-                    <p id="pasta-sendo-movida" style="font-weight: bold; color: #333;"></p>
+                    <label for="prova-titulo">Título da Prova:</label>
+                    <input type="text" id="prova-titulo" placeholder="Digite o título da prova">
                 </div>
                 <div class="modal-form-group">
-                    <label for="nova-pasta-pai">Nova Pasta Pai:</label>
-                    <select id="nova-pasta-pai">
-                        <option value="">Nenhuma (pasta raiz)</option>
-                    </select>
+                    <label for="prova-descricao-modal">Descrição (opcional):</label>
+                    <input type="text" id="prova-descricao-modal" placeholder="Digite uma descrição">
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn-cancelar" id="cancelar-mover-pasta">Cancelar</button>
-                    <button class="btn-confirmar" id="confirmar-mover-pasta">Mover Pasta</button>
+                    <button onclick="document.getElementById('criar-prova-modal').style.display='none'" class="btn-cancelar">Cancelar</button>
+                    <button onclick="criarProva()" class="btn-confirmar">Criar Prova</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Modal de Visualizar SQL da Prova -->
-    <div id="questoes-prova-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="close-questoes-prova">&times;</span>
-            <h2>SQL da Prova: <span id="nome-prova-questoes"></span></h2>
-            <div class="preview-area">
-                <pre id="sql-questoes-prova"></pre>
-            </div>
-            <button onclick="copiarSQLProva()" class="btn-copiar">Copiar Todos os SQLs</button>
-        </div>
-    </div>
-    
-    <!-- Modal de Inserir SQL Direto -->
+    <!-- Modal para inserir SQL direto -->
     <div id="inserir-sql-modal" class="modal">
         <div class="modal-content">
             <span class="close" id="close-inserir-sql">&times;</span>
             <h2>Inserir Questões via JSON</h2>
-            <div class="modal-form">
-                <div class="modal-form-group">
-                    <label for="json-questao">Cole o JSON das questões (um ou múltiplos objetos):</label>
-                    <textarea id="json-questao" placeholder='Cole aqui o JSON das questões. Pode ser um único objeto ou múltiplos objetos separados por quebras de linha.
-
-Exemplo de um objeto:
-{
-    "title": "Questão 175 - ENEM 2018",
-    "index": 175,
-    "year": 2018,
-    "discipline": "matematica",
-    "context": "Uma loja vende automóveis...",
-    "correctAlternative": "B",
-    "alternativesIntroduction": "Nessas condições...",
-    "alternatives": [
-        {
-            "letter": "A",
-            "text": "20",
-            "isCorrect": false
-        },
-        {
-            "letter": "B", 
-            "text": "25",
-            "isCorrect": true
-        }
-    ]
-}
-
-Campos obrigatórios: index, year, correctAlternative, alternatives' style="width: 100%; height: 400px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 14px;"></textarea>
-                </div>
-                <div id="resultado-insercao" class="resultado-insercao" style="display: none;">
-                    <!-- Resultado da inserção será mostrado aqui -->
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn-cancelar" id="cancelar-inserir-sql">Cancelar</button>
-                    <button class="btn-confirmar" id="confirmar-inserir-sql">Inserir Questões</button>
-                </div>
+            <p>Cole o JSON das questões no campo abaixo:</p>
+            <textarea id="json-questao" placeholder="Cole o JSON aqui..." style="width: 100%; height: 300px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;"></textarea>
+            <div id="resultado-insercao" class="resultado-insercao" style="display: none;"></div>
+            <div class="modal-buttons">
+                <button id="cancelar-inserir-sql" class="btn-cancelar">Cancelar</button>
+                <button id="confirmar-inserir-sql" class="btn-confirmar">Inserir Questões</button>
             </div>
         </div>
     </div>
     
+    <!-- Modal para visualizar SQL -->
+    <div id="sql-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('sql-modal').style.display='none'">&times;</span>
+            <h2>Código SQL Gerado</h2>
+            <button class="btn-copiar" onclick="copiarSQL()">Copiar</button>
+            <div class="preview-area">
+                <pre id="codigo-gerado"></pre>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // URL da API - substitua pela URL do seu serviço Node.js
-        const API_URL = 'https://api.repositoriodequestoes.com';
+        // Configuração da API
+        const API_BASE = 'https://repositoriodequestoes.com';
         
-         // Estrutura de dados hierárquica para os selects dinâmicos
-        const estruturaDados = {
-            "Matemática": {
-                "Álgebra": {
-                    "Álgebra linear": {
-                        "Determinante": [],
-                        "Matriz": []
-                    },
-                    "Equações": {
-                        "Equação do 1º grau": [],
-                        "Equação do 2º grau": [],
-                        "Sistema de equações": []
-                    }
-                },
-                "Geometria": {
-                    "Geometria plana": {
-                        "Área": [],
-                        "Perímetro": [],
-                        "Teorema de Pitágoras": []
-                    },
-                    "Geometria espacial": {
-                        "Volume": [],
-                        "Área de superfície": []
-                    }
-                }
-            },
+        // Variáveis globais
+        let pastas = [];
+        let provas = [];
+        let questoes = [];
+        let provasPorPasta = {};
+        let questoesPorProva = {};
+        let pastaSelecionada = null;
+        let provaSelecionada = null;
+        let pastaOrigemProva = null;
+        let questaoEditando = null;
+        let pastasExpandidas = new Set();
+        let contextMenuTarget = null;
+        
+        // Dados hierárquicos para os selects
+        const dadosHierarquicos = {
             "Ciências da Natureza": {
                 "Química": {
                     "Química Geral": {
-                        "Átomos": [],
-                        "Moléculas": [],
-                        "Ligações químicas": []
+                        "Estrutura Atômica": ["Modelos Atômicos", "Distribuição Eletrônica", "Propriedades Periódicas"],
+                        "Ligações Químicas": ["Ligação Iônica", "Ligação Covalente", "Ligação Metálica"],
+                        "Funções Inorgânicas": ["Ácidos", "Bases", "Sais", "Óxidos"]
+                    },
+                    "Físico-Química": {
+                        "Termoquímica": ["Entalpia", "Entropia", "Energia Livre"],
+                        "Cinética Química": ["Velocidade de Reação", "Catalisadores", "Mecanismos"],
+                        "Equilíbrio Químico": ["Constante de Equilíbrio", "Princípio de Le Chatelier", "pH e pOH"]
                     },
                     "Química Orgânica": {
-                        "Hidrocarbonetos": [],
-                        "Funções orgânicas": []
+                        "Hidrocarbonetos": ["Alcanos", "Alcenos", "Alcinos", "Aromáticos"],
+                        "Funções Orgânicas": ["Álcoois", "Aldeídos", "Cetonas", "Ácidos Carboxílicos"],
+                        "Reações Orgânicas": ["Substituição", "Adição", "Eliminação", "Oxidação"]
                     }
                 },
                 "Física": {
                     "Mecânica": {
-                        "Cinemática": [],
-                        "Dinâmica": [],
-                        "Estática": []
+                        "Cinemática": ["Movimento Uniforme", "Movimento Uniformemente Variado", "Movimento Circular"],
+                        "Dinâmica": ["Leis de Newton", "Força e Movimento", "Trabalho e Energia"],
+                        "Estática": ["Equilíbrio de Forças", "Centro de Massa", "Momento Angular"]
                     },
-                    "Eletricidade": {
-                        "Eletrostática": [],
-                        "Eletrodinâmica": []
+                    "Termodinâmica": {
+                        "Temperatura e Calor": ["Escalas Termométricas", "Dilatação Térmica", "Calorimetria"],
+                        "Leis da Termodinâmica": ["Primeira Lei", "Segunda Lei", "Máquinas Térmicas"],
+                        "Gases": ["Lei dos Gases Ideais", "Transformações Gasosas", "Teoria Cinética"]
+                    },
+                    "Eletromagnetismo": {
+                        "Eletrostática": ["Carga Elétrica", "Campo Elétrico", "Potencial Elétrico"],
+                        "Eletrodinâmica": ["Corrente Elétrica", "Resistência", "Circuitos Elétricos"],
+                        "Magnetismo": ["Campo Magnético", "Indução Eletromagnética", "Ondas Eletromagnéticas"]
                     }
                 },
                 "Biologia": {
-                    "Citologia": {
-                        "Célula": [],
-                        "Organelas": []
+                    "Biologia Celular": {
+                        "Citologia": ["Membrana Plasmática", "Organelas", "Núcleo Celular"],
+                        "Metabolismo": ["Respiração Celular", "Fotossíntese", "Fermentação"],
+                        "Divisão Celular": ["Mitose", "Meiose", "Ciclo Celular"]
                     },
                     "Genética": {
-                        "DNA": [],
-                        "RNA": [],
-                        "Hereditariedade": []
+                        "Genética Clássica": ["Leis de Mendel", "Herança", "Linkage"],
+                        "Genética Molecular": ["DNA", "RNA", "Síntese Proteica"],
+                        "Biotecnologia": ["Engenharia Genética", "Clonagem", "Transgênicos"]
+                    },
+                    "Ecologia": {
+                        "Ecossistemas": ["Cadeias Alimentares", "Ciclos Biogeoquímicos", "Sucessão Ecológica"],
+                        "Populações": ["Dinâmica Populacional", "Interações", "Biodiversidade"],
+                        "Conservação": ["Impactos Ambientais", "Sustentabilidade", "Preservação"]
                     }
                 }
             },
             "Ciências Humanas": {
                 "História": {
-                    "História do Brasil": {
-                        "Brasil Colônia": [],
-                        "Brasil Império": [],
-                        "Brasil República": []
+                    "História Antiga": {
+                        "Civilizações Antigas": ["Egito", "Mesopotâmia", "Grécia", "Roma"],
+                        "Idade Média": ["Feudalismo", "Igreja", "Cruzadas", "Renascimento Comercial"],
+                        "Transição": ["Renascimento", "Reformas Religiosas", "Grandes Navegações"]
                     },
-                    "História Geral": {
-                        "Idade Antiga": [],
-                        "Idade Média": [],
-                        "Idade Moderna": [],
-                        "Idade Contemporânea": []
+                    "História Moderna": {
+                        "Absolutismo": ["Monarquias Absolutas", "Mercantilismo", "Colonialismo"],
+                        "Revoluções": ["Revolução Francesa", "Revolução Industrial", "Independências"],
+                        "Século XIX": ["Nacionalismo", "Imperialismo", "Liberalismo"]
+                    },
+                    "História Contemporânea": {
+                        "Guerras Mundiais": ["Primeira Guerra", "Segunda Guerra", "Guerra Fria"],
+                        "Brasil República": ["República Velha", "Era Vargas", "Ditadura Militar"],
+                        "Mundo Atual": ["Globalização", "Neoliberalismo", "Conflitos Contemporâneos"]
                     }
                 },
                 "Geografia": {
                     "Geografia Física": {
-                        "Relevo": [],
-                        "Clima": [],
-                        "Hidrografia": []
+                        "Geologia": ["Estrutura da Terra", "Rochas e Minerais", "Tectonismo"],
+                        "Climatologia": ["Fatores Climáticos", "Tipos de Clima", "Mudanças Climáticas"],
+                        "Hidrografia": ["Ciclo da Água", "Bacias Hidrográficas", "Recursos Hídricos"]
                     },
                     "Geografia Humana": {
-                        "População": [],
-                        "Urbanização": [],
-                        "Economia": []
+                        "Demografia": ["População Mundial", "Migração", "Urbanização"],
+                        "Economia": ["Globalização", "Blocos Econômicos", "Desenvolvimento"],
+                        "Geopolítica": ["Conflitos", "Fronteiras", "Organizações Internacionais"]
+                    },
+                    "Geografia do Brasil": {
+                        "Aspectos Físicos": ["Relevo", "Clima", "Vegetação", "Hidrografia"],
+                        "Aspectos Humanos": ["População", "Urbanização", "Migração Interna"],
+                        "Aspectos Econômicos": ["Agricultura", "Indústria", "Serviços", "Transportes"]
+                    }
+                },
+                "Filosofia": {
+                    "Filosofia Antiga": {
+                        "Pré-Socráticos": ["Tales", "Heráclito", "Parmênides"],
+                        "Filosofia Clássica": ["Sócrates", "Platão", "Aristóteles"],
+                        "Filosofia Helenística": ["Estoicismo", "Epicurismo", "Ceticismo"]
+                    },
+                    "Filosofia Medieval": {
+                        "Patrística": ["Santo Agostinho", "Filosofia Cristã"],
+                        "Escolástica": ["São Tomás de Aquino", "Razão e Fé"],
+                        "Nominalismo": ["Guilherme de Ockham", "Universais"]
+                    },
+                    "Filosofia Moderna": {
+                        "Racionalismo": ["Descartes", "Spinoza", "Leibniz"],
+                        "Empirismo": ["Locke", "Berkeley", "Hume"],
+                        "Iluminismo": ["Kant", "Voltaire", "Rousseau"]
+                    }
+                },
+                "Sociologia": {
+                    "Fundamentos": {
+                        "Clássicos": ["Durkheim", "Weber", "Marx"],
+                        "Conceitos": ["Sociedade", "Cultura", "Socialização"],
+                        "Métodos": ["Pesquisa Social", "Estatística", "Etnografia"]
+                    },
+                    "Instituições": {
+                        "Família": ["Tipos de Família", "Mudanças", "Funções"],
+                        "Educação": ["Sistema Educacional", "Desigualdades", "Políticas"],
+                        "Religião": ["Secularização", "Diversidade", "Fundamentalismo"]
+                    },
+                    "Problemas Sociais": {
+                        "Desigualdade": ["Classes Sociais", "Pobreza", "Mobilidade"],
+                        "Violência": ["Criminalidade", "Violência Urbana", "Direitos Humanos"],
+                        "Movimentos Sociais": ["Sindicalismo", "Feminismo", "Ambientalismo"]
                     }
                 }
             },
             "Linguagens": {
                 "Português": {
                     "Gramática": {
-                        "Morfologia": [],
-                        "Sintaxe": [],
-                        "Semântica": []
+                        "Morfologia": ["Classes de Palavras", "Formação de Palavras", "Flexões"],
+                        "Sintaxe": ["Análise Sintática", "Período Composto", "Concordância"],
+                        "Semântica": ["Significado", "Polissemia", "Figuras de Linguagem"]
                     },
                     "Literatura": {
-                        "Literatura Brasileira": [],
-                        "Literatura Portuguesa": []
+                        "Literatura Brasileira": ["Barroco", "Romantismo", "Realismo", "Modernismo"],
+                        "Literatura Portuguesa": ["Trovadorismo", "Classicismo", "Pessoa"],
+                        "Teoria Literária": ["Gêneros", "Escolas", "Análise Literária"]
+                    },
+                    "Redação": {
+                        "Tipos Textuais": ["Narrativo", "Descritivo", "Dissertativo"],
+                        "Gêneros Textuais": ["Artigo", "Editorial", "Crônica", "Ensaio"],
+                        "Técnicas": ["Coesão", "Coerência", "Argumentação"]
+                    }
+                },
+                "Literatura": {
+                    "Épocas Literárias": {
+                        "Medieval": ["Trovadorismo", "Humanismo"],
+                        "Clássica": ["Classicismo", "Barroco"],
+                        "Moderna": ["Romantismo", "Realismo", "Parnasianismo", "Simbolismo"]
+                    },
+                    "Literatura Brasileira": {
+                        "Colonial": ["Literatura de Informação", "Barroco"],
+                        "Nacional": ["Romantismo", "Realismo", "Pré-Modernismo"],
+                        "Contemporânea": ["Modernismo", "Pós-Modernismo"]
+                    },
+                    "Análise Literária": {
+                        "Elementos": ["Narrador", "Personagem", "Tempo", "Espaço"],
+                        "Figuras": ["Metáfora", "Metonímia", "Ironia", "Antítese"],
+                        "Versificação": ["Metro", "Rima", "Ritmo", "Estrofe"]
                     }
                 },
                 "Inglês": {
                     "Grammar": {
-                        "Tenses": [],
-                        "Modal verbs": []
+                        "Tenses": ["Present", "Past", "Future", "Perfect"],
+                        "Modal Verbs": ["Can", "Must", "Should", "Would"],
+                        "Passive Voice": ["Formation", "Usage", "Transformation"]
+                    },
+                    "Vocabulary": {
+                        "Everyday": ["Family", "Work", "Travel", "Food"],
+                        "Academic": ["Science", "Technology", "Environment"],
+                        "Business": ["Economics", "Marketing", "Management"]
                     },
                     "Reading": {
-                        "Comprehension": []
+                        "Comprehension": ["Main Ideas", "Details", "Inference"],
+                        "Text Types": ["Articles", "Essays", "Reports"],
+                        "Strategies": ["Skimming", "Scanning", "Critical Reading"]
+                    }
+                },
+                "Espanhol": {
+                    "Gramática": {
+                        "Verbos": ["Presente", "Pretérito", "Futuro", "Subjuntivo"],
+                        "Sustantivos": ["Género", "Número", "Artículos"],
+                        "Pronombres": ["Personales", "Posesivos", "Demostrativos"]
+                    },
+                    "Vocabulario": {
+                        "Cotidiano": ["Familia", "Trabajo", "Viajes", "Comida"],
+                        "Cultura": ["Tradiciones", "Fiestas", "Arte", "Historia"],
+                        "Sociedad": ["Educación", "Política", "Economía"]
+                    },
+                    "Comprensión": {
+                        "Lectura": ["Ideas Principales", "Detalles", "Inferencias"],
+                        "Tipos de Texto": ["Narrativo", "Descriptivo", "Argumentativo"],
+                        "Estrategias": ["Predicción", "Contextualización", "Síntesis"]
+                    }
+                }
+            },
+            "Matemática": {
+                "Álgebra": {
+                    "Álgebra Básica": {
+                        "Expressões": ["Monômios", "Polinômios", "Fatoração"],
+                        "Equações": ["1º Grau", "2º Grau", "Sistemas"],
+                        "Inequações": ["1º Grau", "2º Grau", "Modulares"]
+                    },
+                    "Funções": {
+                        "Função Afim": ["Definição", "Gráfico", "Aplicações"],
+                        "Função Quadrática": ["Parábola", "Vértice", "Raízes"],
+                        "Função Exponencial": ["Crescimento", "Decaimento", "Logaritmos"],
+                        "Função Logarítmica": ["Propriedades", "Equações", "Gráficos"]
+                    },
+                    "Progressões": {
+                        "PA": ["Termo Geral", "Soma", "Propriedades"],
+                        "PG": ["Termo Geral", "Soma", "Limite"],
+                        "Aplicações": ["Juros", "Crescimento", "Modelagem"]
+                    }
+                },
+                "Geometria": {
+                    "Geometria Plana": {
+                        "Figuras Básicas": ["Triângulos", "Quadriláteros", "Círculos"],
+                        "Áreas": ["Polígonos", "Círculo", "Figuras Compostas"],
+                        "Teoremas": ["Pitágoras", "Tales", "Trigonometria"]
+                    },
+                    "Geometria Espacial": {
+                        "Poliedros": ["Prismas", "Pirâmides", "Regulares"],
+                        "Corpos Redondos": ["Cilindro", "Cone", "Esfera"],
+                        "Volumes": ["Cálculo", "Aplicações", "Otimização"]
+                    },
+                    "Geometria Analítica": {
+                        "Ponto e Reta": ["Distância", "Equações", "Posições"],
+                        "Circunferência": ["Equação", "Posições", "Tangentes"],
+                        "Cônicas": ["Parábola", "Elipse", "Hipérbole"]
+                    }
+                },
+                "Estatística": {
+                    "Estatística Descritiva": {
+                        "Medidas": ["Tendência Central", "Dispersão", "Posição"],
+                        "Gráficos": ["Histograma", "Boxplot", "Dispersão"],
+                        "Distribuições": ["Frequência", "Probabilidade", "Normal"]
+                    },
+                    "Probabilidade": {
+                        "Conceitos": ["Espaço Amostral", "Eventos", "Probabilidade"],
+                        "Regras": ["Adição", "Multiplicação", "Condicional"],
+                        "Distribuições": ["Binomial", "Normal", "Poisson"]
+                    },
+                    "Análise Combinatória": {
+                        "Princípios": ["Fundamental", "Aditivo", "Multiplicativo"],
+                        "Arranjos": ["Simples", "Com Repetição"],
+                        "Combinações": ["Simples", "Com Repetição", "Binômio de Newton"]
                     }
                 }
             }
         };
         
-        // Variáveis globais
-        let linhas = [];
-        let nextLinhaId = 1;
+        // Variáveis para alternativas e arquivos
         let alternativas = [
             { letra: 'A', texto: '' },
             { letra: 'B', texto: '' },
@@ -1592,403 +1663,724 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             { letra: 'D', texto: '' },
             { letra: 'E', texto: '' }
         ];
-        let provas = [];
-        let pastas = [];
-        let provaSelecionada = null;
-        let pastaSelecionada = null;
-        let questoesPorProva = {};
-        let provasPorPasta = {};
-        let modoEdicao = false;
-        let questaoEditando = null;
-        let contextMenuTarget = null;
-        let acaoPendente = null; // Para armazenar a ação que precisa de senha
-        let pastasExpandidas = new Set(); // Para controlar quais pastas estão expandidas
-        let pastaOrigemProva = null;
-        let arquivosQuestao = []; // Para gerenciar arquivos da questão
-
-        // Inicializa o editor
-        document.addEventListener('DOMContentLoaded', () => {
-            // Carregar dados da API
-            carregarDados();
-            
-            // Inicializar selects hierárquicos
-            inicializarSelectsHierarquicos();
-            
-            renderizarAlternativas();
-            
-            // Event listeners para modais
+        
+        let arquivosQuestao = [];
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async function() {
+            await carregarDados();
             setupEventListeners();
-            
-            // Event listeners para context menu
             setupContextMenu();
-            
-            // Mostrar tela inicial
-            mostrarTelaInicial();
+            carregarDisciplinas();
+            renderizarAlternativas();
+            atualizarBreadcrumb();
         });
         
-        // Funções para selects hierárquicos
-        function inicializarSelectsHierarquicos() {
-            const disciplinaSelect = document.getElementById('disciplina');
+        // Função para carregar dados da API
+        async function carregarDados() {
+            try {
+                // Carregar pastas
+                const pastasResponse = await fetch(`${API_BASE}/api/pastas`);
+                if (pastasResponse.ok) {
+                    pastas = await pastasResponse.json();
+                }
+                
+                // Carregar provas
+                const provasResponse = await fetch(`${API_BASE}/api/provas`);
+                if (provasResponse.ok) {
+                    provas = await provasResponse.json();
+                    
+                    // Organizar provas por pasta
+                    provasPorPasta = {};
+                    provas.forEach(prova => {
+                        const pastaId = prova.pasta?._id || prova.pasta;
+                        if (!provasPorPasta[pastaId]) {
+                            provasPorPasta[pastaId] = [];
+                        }
+                        provasPorPasta[pastaId].push(prova);
+                    });
+                }
+                
+                atualizarListaProvas();
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+        
+        // Função para carregar questões de uma prova
+        async function carregarQuestoesDaProva(provaId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/provas/${provaId}?populate=questoes`);
+                if (response.ok) {
+                    const prova = await response.json();
+                    questoesPorProva[provaId] = prova.questoes || [];
+                }
+            } catch (error) {
+                console.error('Erro ao carregar questões:', error);
+                questoesPorProva[provaId] = [];
+            }
+        }
+        
+        // Função para carregar disciplinas no select
+        function carregarDisciplinas() {
+            const select = document.getElementById('disciplina');
+            select.innerHTML = '<option value="">Selecione uma ou mais disciplinas</option>';
             
-            // Limpar e popular disciplinas
-            disciplinaSelect.innerHTML = '<option value="">Selecione uma disciplina</option>';
-            
-            Object.keys(estruturaDados).forEach(disciplina => {
+            Object.keys(dadosHierarquicos).forEach(disciplina => {
                 const option = document.createElement('option');
                 option.value = disciplina;
                 option.textContent = disciplina;
-                disciplinaSelect.appendChild(option);
+                select.appendChild(option);
             });
         }
         
-        // Atualize as funções de atualização para trabalhar com múltiplas seleções
-// Função para atualizar matérias baseado nas disciplinas selecionadas
-// Função para atualizar matérias baseado nas disciplinas selecionadas
-// Sistema de Selects Hierárquicos Otimizado
-// Aplica a mesma lógica de disciplinas → matérias para toda a cadeia hierárquica
-
-class SelectsHierarquicos {
-    constructor() {
-        this.hierarquia = ['disciplina', 'materia', 'assunto', 'conteudo', 'topico'];
-        this.selects = {};
-        this.inicializar();
-    }
-    
-    inicializar() {
-        // Mapear todos os selects
-        this.hierarquia.forEach(nivel => {
-            this.selects[nivel] = document.getElementById(nivel);
-        });
-        
-        // Configurar event listeners
-        this.configurarEventListeners();
-    }
-    
-    configurarEventListeners() {
-        // Cada select atualiza o próximo na hierarquia
-        this.selects.disciplina?.addEventListener('change', () => this.atualizarProximoNivel('disciplina'));
-        this.selects.materia?.addEventListener('change', () => this.atualizarProximoNivel('materia'));
-        this.selects.assunto?.addEventListener('change', () => this.atualizarProximoNivel('assunto'));
-        this.selects.conteudo?.addEventListener('change', () => this.atualizarProximoNivel('conteudo'));
-    }
-    
-    obterSelecoes(nivel) {
-        const select = this.selects[nivel];
-        if (!select) return [];
-        
-        return Array.from(select.selectedOptions)
-            .map(option => option.value)
-            .filter(value => value !== "");
-    }
-    
-    obterTodasSelecoesPrevias(nivelAtual) {
-        const indiceAtual = this.hierarquia.indexOf(nivelAtual);
-        const selecoesPrevias = {};
-        
-        for (let i = 0; i < indiceAtual; i++) {
-            const nivel = this.hierarquia[i];
-            selecoesPrevias[nivel] = this.obterSelecoes(nivel);
+        // Função para atualizar matérias baseado nas disciplinas selecionadas
+        function atualizarMaterias() {
+            const disciplinaSelect = document.getElementById('disciplina');
+            const materiaSelect = document.getElementById('materia');
+            const assuntoSelect = document.getElementById('assunto');
+            const conteudoSelect = document.getElementById('conteudo');
+            const topicoSelect = document.getElementById('topico');
+            
+            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
+            
+            // Limpar selects dependentes
+            materiaSelect.innerHTML = '<option value="">Selecione uma ou mais matérias</option>';
+            assuntoSelect.innerHTML = '<option value="">Selecione um ou mais assuntos</option>';
+            conteudoSelect.innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
+            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
+            
+            // Desabilitar selects dependentes
+            materiaSelect.disabled = disciplinasSelecionadas.length === 0;
+            assuntoSelect.disabled = true;
+            conteudoSelect.disabled = true;
+            topicoSelect.disabled = true;
+            
+            if (disciplinasSelecionadas.length > 0) {
+                const materiasDisponiveis = new Set();
+                
+                disciplinasSelecionadas.forEach(disciplina => {
+                    if (dadosHierarquicos[disciplina]) {
+                        Object.keys(dadosHierarquicos[disciplina]).forEach(materia => {
+                            materiasDisponiveis.add(materia);
+                        });
+                    }
+                });
+                
+                Array.from(materiasDisponiveis).sort().forEach(materia => {
+                    const option = document.createElement('option');
+                    option.value = materia;
+                    option.textContent = materia;
+                    materiaSelect.appendChild(option);
+                });
+            }
         }
         
-        return selecoesPrevias;
-    }
-    
-    coletarOpcoesHierarquicas(nivelDestino, selecoesPrevias) {
-        const opcoes = new Set();
-        const indiceDestino = this.hierarquia.indexOf(nivelDestino);
+        // Função para atualizar assuntos baseado nas matérias selecionadas
+        function atualizarAssuntos() {
+            const disciplinaSelect = document.getElementById('disciplina');
+            const materiaSelect = document.getElementById('materia');
+            const assuntoSelect = document.getElementById('assunto');
+            const conteudoSelect = document.getElementById('conteudo');
+            const topicoSelect = document.getElementById('topico');
+            
+            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
+            const materiasSelecionadas = Array.from(materiaSelect.selectedOptions).map(option => option.value);
+            
+            // Limpar selects dependentes
+            assuntoSelect.innerHTML = '<option value="">Selecione um ou mais assuntos</option>';
+            conteudoSelect.innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
+            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
+            
+            // Desabilitar selects dependentes
+            assuntoSelect.disabled = materiasSelecionadas.length === 0;
+            conteudoSelect.disabled = true;
+            topicoSelect.disabled = true;
+            
+            if (materiasSelecionadas.length > 0) {
+                const assuntosDisponiveis = new Set();
+                
+                disciplinasSelecionadas.forEach(disciplina => {
+                    if (dadosHierarquicos[disciplina]) {
+                        materiasSelecionadas.forEach(materia => {
+                            if (dadosHierarquicos[disciplina][materia]) {
+                                Object.keys(dadosHierarquicos[disciplina][materia]).forEach(assunto => {
+                                    assuntosDisponiveis.add(assunto);
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                Array.from(assuntosDisponiveis).sort().forEach(assunto => {
+                    const option = document.createElement('option');
+                    option.value = assunto;
+                    option.textContent = assunto;
+                    assuntoSelect.appendChild(option);
+                });
+            }
+        }
         
-        // Função recursiva para navegar na estrutura
-        const navegar = (dados, nivelAtual = 0) => {
-            if (nivelAtual === indiceDestino) {
-                // Chegamos no nível desejado
-                if (typeof dados === 'object' && dados !== null) {
-                    Object.keys(dados).forEach(chave => opcoes.add(chave));
+        // Função para atualizar conteúdos baseado nos assuntos selecionados
+        function atualizarConteudos() {
+            const disciplinaSelect = document.getElementById('disciplina');
+            const materiaSelect = document.getElementById('materia');
+            const assuntoSelect = document.getElementById('assunto');
+            const conteudoSelect = document.getElementById('conteudo');
+            const topicoSelect = document.getElementById('topico');
+            
+            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
+            const materiasSelecionadas = Array.from(materiaSelect.selectedOptions).map(option => option.value);
+            const assuntosSelecionados = Array.from(assuntoSelect.selectedOptions).map(option => option.value);
+            
+            // Limpar selects dependentes
+            conteudoSelect.innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
+            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
+            
+            // Desabilitar selects dependentes
+            conteudoSelect.disabled = assuntosSelecionados.length === 0;
+            topicoSelect.disabled = true;
+            
+            if (assuntosSelecionados.length > 0) {
+                const conteudosDisponiveis = new Set();
+                
+                disciplinasSelecionadas.forEach(disciplina => {
+                    if (dadosHierarquicos[disciplina]) {
+                        materiasSelecionadas.forEach(materia => {
+                            if (dadosHierarquicos[disciplina][materia]) {
+                                assuntosSelecionados.forEach(assunto => {
+                                    if (dadosHierarquicos[disciplina][materia][assunto]) {
+                                        Object.keys(dadosHierarquicos[disciplina][materia][assunto]).forEach(conteudo => {
+                                            conteudosDisponiveis.add(conteudo);
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                Array.from(conteudosDisponiveis).sort().forEach(conteudo => {
+                    const option = document.createElement('option');
+                    option.value = conteudo;
+                    option.textContent = conteudo;
+                    conteudoSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Função para atualizar tópicos baseado nos conteúdos selecionados
+        function atualizarTopicos() {
+            const disciplinaSelect = document.getElementById('disciplina');
+            const materiaSelect = document.getElementById('materia');
+            const assuntoSelect = document.getElementById('assunto');
+            const conteudoSelect = document.getElementById('conteudo');
+            const topicoSelect = document.getElementById('topico');
+            
+            const disciplinasSelecionadas = Array.from(disciplinaSelect.selectedOptions).map(option => option.value);
+            const materiasSelecionadas = Array.from(materiaSelect.selectedOptions).map(option => option.value);
+            const assuntosSelecionados = Array.from(assuntoSelect.selectedOptions).map(option => option.value);
+            const conteudosSelecionados = Array.from(conteudoSelect.selectedOptions).map(option => option.value);
+            
+            // Limpar select de tópicos
+            topicoSelect.innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
+            
+            // Habilitar select de tópicos
+            topicoSelect.disabled = conteudosSelecionados.length === 0;
+            
+            if (conteudosSelecionados.length > 0) {
+                const topicosDisponiveis = new Set();
+                
+                disciplinasSelecionadas.forEach(disciplina => {
+                    if (dadosHierarquicos[disciplina]) {
+                        materiasSelecionadas.forEach(materia => {
+                            if (dadosHierarquicos[disciplina][materia]) {
+                                assuntosSelecionados.forEach(assunto => {
+                                    if (dadosHierarquicos[disciplina][materia][assunto]) {
+                                        conteudosSelecionados.forEach(conteudo => {
+                                            if (dadosHierarquicos[disciplina][materia][assunto][conteudo]) {
+                                                dadosHierarquicos[disciplina][materia][assunto][conteudo].forEach(topico => {
+                                                    topicosDisponiveis.add(topico);
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                Array.from(topicosDisponiveis).sort().forEach(topico => {
+                    const option = document.createElement('option');
+                    option.value = topico;
+                    option.textContent = topico;
+                    topicoSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Função para salvar questão
+        async function salvarQuestao() {
+            try {
+                // Coletar dados do formulário
+                const disciplinasSelecionadas = Array.from(document.getElementById('disciplina').selectedOptions).map(option => option.value).filter(v => v);
+                const materiasSelecionadas = Array.from(document.getElementById('materia').selectedOptions).map(option => option.value).filter(v => v);
+                const assuntosSelecionados = Array.from(document.getElementById('assunto').selectedOptions).map(option => option.value).filter(v => v);
+                const conteudosSelecionados = Array.from(document.getElementById('conteudo').selectedOptions).map(option => option.value).filter(v => v);
+                const topicosSelecionados = Array.from(document.getElementById('topico').selectedOptions).map(option => option.value).filter(v => v);
+                
+                const context = document.getElementById('context-textarea').value.trim();
+                const enunciado = document.getElementById('enunciado-textarea').value.trim();
+                const resposta = document.getElementById('resposta').value;
+                const ano = document.getElementById('ano').value;
+                const instituicao = document.getElementById('instituicao').value;
+                
+                // Validações
+                if (disciplinasSelecionadas.length === 0) {
+                    alert('Selecione pelo menos uma disciplina');
+                    return;
                 }
+                
+                if (materiasSelecionadas.length === 0) {
+                    alert('Selecione pelo menos uma matéria');
+                    return;
+                }
+                
+                if (!enunciado) {
+                    alert('Digite o enunciado da questão');
+                    return;
+                }
+                
+                if (!resposta) {
+                    alert('Selecione a resposta correta');
+                    return;
+                }
+                
+                // Validar alternativas
+                const alternativasValidas = alternativas.filter(alt => alt.texto.trim());
+                if (alternativasValidas.length < 2) {
+                    alert('Digite pelo menos 2 alternativas');
+                    return;
+                }
+                
+                // Preparar dados para envio - usando campos singulares
+                const questaoData = {
+                    disciplina: disciplinasSelecionadas,
+                    materia: materiasSelecionadas,
+                    assunto: assuntosSelecionados,
+                    conteudo: conteudosSelecionados,
+                    topico: topicosSelecionados,
+                    context: context || null,
+                    enunciado: enunciado,
+                    alternativas: alternativasValidas.map(alt => ({
+                        letter: alt.letra,
+                        text: alt.texto,
+                        isCorrect: alt.letra === resposta
+                    })),
+                    resposta: resposta,
+                    ano: ano ? parseInt(ano) : null,
+                    instituicao: instituicao || null,
+                    prova: provaSelecionada._id,
+                    img1: arquivosQuestao[0] || null,
+                    img2: arquivosQuestao[1] || null,
+                    img3: arquivosQuestao[2] || null,
+                    conhecimento1: document.getElementById('conhecimento1').value || null,
+                    conhecimento2: document.getElementById('conhecimento2').value || null,
+                    conhecimento3: document.getElementById('conhecimento3').value || null,
+                    conhecimento4: document.getElementById('conhecimento4').value || null
+                };
+                
+                let response;
+                if (questaoEditando) {
+                    // Atualizar questão existente
+                    response = await fetch(`${API_BASE}/api/questoes/${questaoEditando}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(questaoData)
+                    });
+                } else {
+                    // Criar nova questão
+                    response = await fetch(`${API_BASE}/api/questoes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(questaoData)
+                    });
+                }
+                
+                if (response.ok) {
+                    alert(questaoEditando ? 'Questão atualizada com sucesso!' : 'Questão criada com sucesso!');
+                    
+                    // Recarregar questões da prova
+                    await carregarQuestoesDaProva(provaSelecionada._id);
+                    
+                    // Limpar formulário
+                    limparFormulario();
+                    
+                    // Voltar para a tela da prova
+                    mostrarTelaProva();
+                } else {
+                    const erro = await response.json();
+                    alert(`Erro ao salvar questão: ${erro.error || 'Erro desconhecido'}`);
+                }
+                
+            } catch (error) {
+                console.error('Erro ao salvar questão:', error);
+                alert(`Erro ao salvar questão: ${error.message}`);
+            }
+        }
+        
+        // Função para limpar formulário
+        function limparFormulario() {
+            document.getElementById('disciplina').selectedIndex = 0;
+            document.getElementById('materia').innerHTML = '<option value="">Selecione uma ou mais matérias</option>';
+            document.getElementById('assunto').innerHTML = '<option value="">Selecione um ou mais assuntos</option>';
+            document.getElementById('conteudo').innerHTML = '<option value="">Selecione um ou mais conteúdos</option>';
+            document.getElementById('topico').innerHTML = '<option value="">Selecione um ou mais tópicos</option>';
+            
+            document.getElementById('materia').disabled = true;
+            document.getElementById('assunto').disabled = true;
+            document.getElementById('conteudo').disabled = true;
+            document.getElementById('topico').disabled = true;
+            
+            document.getElementById('context-textarea').value = '';
+            document.getElementById('enunciado-textarea').value = '';
+            document.getElementById('resposta').selectedIndex = 0;
+            document.getElementById('ano').selectedIndex = 0;
+            document.getElementById('instituicao').selectedIndex = 0;
+            
+            document.getElementById('conhecimento1').selectedIndex = 0;
+            document.getElementById('conhecimento2').selectedIndex = 0;
+            document.getElementById('conhecimento3').selectedIndex = 0;
+            document.getElementById('conhecimento4').selectedIndex = 0;
+            
+            // Resetar alternativas
+            alternativas = [
+                { letra: 'A', texto: '' },
+                { letra: 'B', texto: '' },
+                { letra: 'C', texto: '' },
+                { letra: 'D', texto: '' },
+                { letra: 'E', texto: '' }
+            ];
+            
+            // Resetar arquivos
+            arquivosQuestao = [];
+            
+            // Re-renderizar
+            renderizarAlternativas();
+            
+            questaoEditando = null;
+            document.getElementById('titulo-questao').textContent = 'Adicionar Questão';
+            document.getElementById('btn-salvar-questao').textContent = 'Salvar Questão';
+        }
+        
+        // Função para editar questão
+        async function editarQuestao(questaoId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/questoes/${questaoId}`);
+                if (!response.ok) {
+                    throw new Error('Questão não encontrada');
+                }
+                
+                const questao = await response.json();
+                questaoEditando = questaoId;
+                
+                // Preencher formulário com dados da questão
+                document.getElementById('titulo-questao').textContent = 'Editar Questão';
+                document.getElementById('btn-salvar-questao').textContent = 'Atualizar Questão';
+                
+                // Preencher selects hierárquicos - usando campos singulares
+                if (questao.disciplina && questao.disciplina.length > 0) {
+                    const disciplinaSelect = document.getElementById('disciplina');
+                    questao.disciplina.forEach(disc => {
+                        Array.from(disciplinaSelect.options).forEach(option => {
+                            if (option.value === disc) option.selected = true;
+                        });
+                    });
+                    atualizarMaterias();
+                    
+                    setTimeout(() => {
+                        if (questao.materia && questao.materia.length > 0) {
+                            const materiaSelect = document.getElementById('materia');
+                            questao.materia.forEach(mat => {
+                                Array.from(materiaSelect.options).forEach(option => {
+                                    if (option.value === mat) option.selected = true;
+                                });
+                            });
+                            atualizarAssuntos();
+                            
+                            setTimeout(() => {
+                                if (questao.assunto && questao.assunto.length > 0) {
+                                    const assuntoSelect = document.getElementById('assunto');
+                                    questao.assunto.forEach(ass => {
+                                        Array.from(assuntoSelect.options).forEach(option => {
+                                            if (option.value === ass) option.selected = true;
+                                        });
+                                    });
+                                    atualizarConteudos();
+                                    
+                                    setTimeout(() => {
+                                        if (questao.conteudo && questao.conteudo.length > 0) {
+                                            const conteudoSelect = document.getElementById('conteudo');
+                                            questao.conteudo.forEach(cont => {
+                                                Array.from(conteudoSelect.options).forEach(option => {
+                                                    if (option.value === cont) option.selected = true;
+                                                });
+                                            });
+                                            atualizarTopicos();
+                                            
+                                            setTimeout(() => {
+                                                if (questao.topico && questao.topico.length > 0) {
+                                                    const topicoSelect = document.getElementById('topico');
+                                                    questao.topico.forEach(top => {
+                                                        Array.from(topicoSelect.options).forEach(option => {
+                                                            if (option.value === top) option.selected = true;
+                                                        });
+                                                    });
+                                                }
+                                            }, 100);
+                                        }
+                                    }, 100);
+                                }
+                            }, 100);
+                        }
+                    }, 100);
+                }
+                
+                // Preencher outros campos
+                document.getElementById('context-textarea').value = questao.context || '';
+                document.getElementById('enunciado-textarea').value = questao.enunciado || '';
+                document.getElementById('resposta').value = questao.resposta || 'A';
+                document.getElementById('ano').value = questao.ano || '';
+                document.getElementById('instituicao').value = questao.instituicao || '';
+                
+                document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
+                document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
+                document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
+                document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
+                
+                // Preencher alternativas
+                if (questao.alternativas && questao.alternativas.length > 0) {
+                    alternativas = questao.alternativas.map(alt => ({
+                        letra: alt.letter,
+                        texto: alt.text
+                    }));
+                    
+                    // Adicionar alternativas vazias se necessário
+                    const letras = ['A', 'B', 'C', 'D', 'E'];
+                    letras.forEach(letra => {
+                        if (!alternativas.find(alt => alt.letra === letra)) {
+                            alternativas.push({ letra: letra, texto: '' });
+                        }
+                    });
+                    
+                    // Ordenar por letra
+                    alternativas.sort((a, b) => a.letra.localeCompare(b.letra));
+                }
+                
+                // Preencher arquivos
+                arquivosQuestao = [];
+                if (questao.img1) arquivosQuestao.push(questao.img1);
+                if (questao.img2) arquivosQuestao.push(questao.img2);
+                if (questao.img3) arquivosQuestao.push(questao.img3);
+                
+                // Re-renderizar
+                renderizarAlternativas();
+                
+                // Mostrar tela de questão
+                mostrarTelaQuestao();
+                
+            } catch (error) {
+                console.error('Erro ao carregar questão para edição:', error);
+                alert(`Erro ao carregar questão: ${error.message}`);
+            }
+        }
+        
+        // Função para excluir questão
+        async function excluirQuestao(questaoId) {
+            if (!confirm('Tem certeza que deseja excluir esta questão?')) {
                 return;
             }
             
-            if (nivelAtual < indiceDestino && typeof dados === 'object' && dados !== null) {
-                const nomeNivelAtual = this.hierarquia[nivelAtual];
-                const selecoesNivel = selecoesPrevias[nomeNivelAtual] || [];
+            try {
+                const response = await fetch(`${API_BASE}/api/questoes/${questaoId}`, {
+                    method: 'DELETE'
+                });
                 
-                if (selecoesNivel.length > 0) {
-                    // Há seleções específicas para este nível
-                    selecoesNivel.forEach(selecao => {
-                        if (dados[selecao]) {
-                            navegar(dados[selecao], nivelAtual + 1);
-                        }
-                    });
+                if (response.ok) {
+                    alert('Questão excluída com sucesso!');
+                    await carregarQuestoesDaProva(provaSelecionada._id);
+                    mostrarTelaProva();
                 } else {
-                    // Não há seleções, navegar por todas as opções
-                    Object.keys(dados).forEach(chave => {
-                        navegar(dados[chave], nivelAtual + 1);
-                    });
+                    const erro = await response.json();
+                    alert(`Erro ao excluir questão: ${erro.error || 'Erro desconhecido'}`);
                 }
+            } catch (error) {
+                console.error('Erro ao excluir questão:', error);
+                alert(`Erro ao excluir questão: ${error.message}`);
             }
-        };
+        }
         
-        navegar(estruturaDados);
-        return Array.from(opcoes).sort();
-    }
-    
-    limparSelectsPosteriores(nivelAtual) {
-        const indiceAtual = this.hierarquia.indexOf(nivelAtual);
-        
-        for (let i = indiceAtual + 1; i < this.hierarquia.length; i++) {
-            const nivel = this.hierarquia[i];
-            const select = this.selects[nivel];
+        // Função para criar pasta
+        async function criarPasta() {
+            const nome = document.getElementById('pasta-nome').value.trim();
+            const descricao = document.getElementById('pasta-descricao').value.trim();
             
-            if (select) {
-                const nomeFormatado = nivel.charAt(0).toUpperCase() + nivel.slice(1);
-                select.innerHTML = `<option value="">Selecione um ou mais ${nomeFormatado.toLowerCase()}s</option>`;
-                select.disabled = true;
+            if (!nome) {
+                alert('Digite o nome da pasta');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/pastas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome: nome,
+                        descricao: descricao
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Pasta criada com sucesso!');
+                    document.getElementById('criar-pasta-modal').style.display = 'none';
+                    document.getElementById('pasta-nome').value = '';
+                    document.getElementById('pasta-descricao').value = '';
+                    await carregarDados();
+                } else {
+                    const erro = await response.json();
+                    alert(`Erro ao criar pasta: ${erro.error || 'Erro desconhecido'}`);
+                }
+            } catch (error) {
+                console.error('Erro ao criar pasta:', error);
+                alert(`Erro ao criar pasta: ${error.message}`);
             }
         }
-    }
-    
-    atualizarProximoNivel(nivelAtual) {
-        const indiceAtual = this.hierarquia.indexOf(nivelAtual);
-        const proximoNivel = this.hierarquia[indiceAtual + 1];
         
-        if (!proximoNivel) return; // Último nível da hierarquia
-        
-        const selectProximo = this.selects[proximoNivel];
-        if (!selectProximo) return;
-        
-        console.log(`Atualizando ${proximoNivel} baseado em ${nivelAtual}`);
-        
-        // Limpar todos os selects posteriores
-        this.limparSelectsPosteriores(nivelAtual);
-        
-        // Obter seleções atuais
-        const selecoesAtuais = this.obterSelecoes(nivelAtual);
-        
-        if (selecoesAtuais.length === 0) {
-            // Não há seleções, manter próximo select desabilitado
-            selectProximo.disabled = true;
-            return;
+        // Função para criar prova
+        async function criarProva() {
+            const titulo = document.getElementById('prova-titulo').value.trim();
+            const descricao = document.getElementById('prova-descricao-modal').value.trim();
+            
+            if (!titulo) {
+                alert('Digite o título da prova');
+                return;
+            }
+            
+            if (!pastaSelecionada) {
+                alert('Selecione uma pasta primeiro');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/provas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        titulo: titulo,
+                        descricao: descricao,
+                        pasta: pastaSelecionada._id
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Prova criada com sucesso!');
+                    document.getElementById('criar-prova-modal').style.display = 'none';
+                    document.getElementById('prova-titulo').value = '';
+                    document.getElementById('prova-descricao-modal').value = '';
+                    await carregarDados();
+                    mostrarTelaPasta(pastaSelecionada);
+                } else {
+                    const erro = await response.json();
+                    alert(`Erro ao criar prova: ${erro.error || 'Erro desconhecido'}`);
+                }
+            } catch (error) {
+                console.error('Erro ao criar prova:', error);
+                alert(`Erro ao criar prova: ${error.message}`);
+            }
         }
         
-        // Obter todas as seleções prévias
-        const selecoesPrevias = this.obterTodasSelecoesPrevias(proximoNivel);
-        
-        // Incluir seleções do nível atual
-        selecoesPrevias[nivelAtual] = selecoesAtuais;
-        
-        console.log('Seleções prévias:', selecoesPrevias);
-        
-        // Coletar TODAS as opções do próximo nível
-        const opcoes = this.coletarOpcoesHierarquicas(proximoNivel, selecoesPrevias);
-        
-        console.log(`Opções para ${proximoNivel}:`, opcoes);
-        
-        // Habilitar e popular o próximo select
-        selectProximo.disabled = false;
-        
-        opcoes.forEach(opcao => {
-            const option = document.createElement('option');
-            option.value = opcao;
-            option.textContent = opcao;
-            selectProximo.appendChild(option);
-        });
-        
-        // Atualizar contadores se a função existir
-        if (typeof atualizarContadoresSelect === 'function') {
-            atualizarContadoresSelect();
+        // Função para excluir prova
+        async function excluirProva(provaId) {
+            if (!confirm('Tem certeza que deseja excluir esta prova e todas as suas questões?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/provas/${provaId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    alert('Prova excluída com sucesso!');
+                    await carregarDados();
+                    mostrarTelaPasta(pastaSelecionada);
+                } else {
+                    const erro = await response.json();
+                    alert(`Erro ao excluir prova: ${erro.error || 'Erro desconhecido'}`);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir prova:', error);
+                alert(`Erro ao excluir prova: ${error.message}`);
+            }
         }
-    }
-    
-    // Métodos públicos para compatibilidade com código existente
-    atualizarMaterias() {
-        this.atualizarProximoNivel('disciplina');
-    }
-    
-    atualizarAssuntos() {
-        this.atualizarProximoNivel('materia');
-    }
-    
-    atualizarConteudos() {
-        this.atualizarProximoNivel('assunto');
-    }
-    
-    atualizarTopicos() {
-        this.atualizarProximoNivel('conteudo');
-    }
-}
-
-// Instância global
-let sistemaSelects;
-
-// Funções globais para compatibilidade
-function atualizarMaterias() {
-    sistemaSelects?.atualizarMaterias();
-}
-
-function atualizarAssuntos() {
-    sistemaSelects?.atualizarAssuntos();
-}
-
-function atualizarConteudos() {
-    sistemaSelects?.atualizarConteudos();
-}
-
-function atualizarTopicos() {
-    sistemaSelects?.atualizarTopicos();
-}
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', () => {
-    sistemaSelects = new SelectsHierarquicos();
-    console.log('Sistema de selects hierárquicos inicializado');
-});
-
-// Exportar para uso em módulos se necessário
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SelectsHierarquicos;
-}
-
-
         
-        // Função para atualizar o breadcrumb
+        // Função para atualizar breadcrumb
         function atualizarBreadcrumb() {
-            let breadcrumb;
-            let html = '';
+            const breadcrumbPasta = document.getElementById('breadcrumb-pasta');
+            const breadcrumbProva = document.getElementById('breadcrumb-prova');
+            const breadcrumbQuestao = document.getElementById('breadcrumb-questao');
             
-            if (pastaSelecionada) {
-                html += `<a onclick="mostrarTelaInicial()">Pastas</a> > `;
-                html += `<span>${pastaSelecionada.nome}</span>`;
-                
-                if (provaSelecionada) {
-                    html += ` > <span>${provaSelecionada.titulo}</span>`;
-                    breadcrumb = document.getElementById('breadcrumb-prova');
+            if (breadcrumbPasta) {
+                if (pastaSelecionada) {
+                    breadcrumbPasta.innerHTML = `<a onclick="mostrarTelaInicial()">Início</a> > <span>${pastaSelecionada.nome}</span>`;
                 } else {
-                    breadcrumb = document.getElementById('breadcrumb-pasta');
+                    breadcrumbPasta.innerHTML = '<span>Início</span>';
                 }
-            } else {
-                html += '<span>Pastas</span>';
-                breadcrumb = document.getElementById('breadcrumb-questao');
             }
             
-            if (breadcrumb) {
-                breadcrumb.innerHTML = html;
-            }
-        }
-
-        // Funções de carregamento de dados da API
-        async function carregarDados() {
-            try {
-                await Promise.all([
-                    carregarPastas(),
-                    carregarProvas()
-                ]);
-                questoesPorProva = {}; // Inicializa vazio
-                atualizarListaProvas();
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                alert('Erro ao carregar dados do servidor');
-            }
-        }
-
-        async function carregarPastas() {
-            const response = await fetch(`${API_URL}/api/pastas`);
-            if (!response.ok) throw new Error('Erro ao carregar pastas');
-            pastas = await response.json();
-        }
-
-        async function carregarProvas() {
-            const response = await fetch(`${API_URL}/api/provas`);
-            if (!response.ok) throw new Error('Erro ao carregar provas');
-            provas = await response.json();
-            
-            // Organizar provas por pasta
-            provasPorPasta = {};
-            provas.forEach(prova => {
-                const pastaId = prova.pasta ? prova.pasta._id || prova.pasta : 'sem-pasta';
-                if (!provasPorPasta[pastaId]) {
-                    provasPorPasta[pastaId] = [];
+            if (breadcrumbProva) {
+                if (pastaSelecionada && provaSelecionada) {
+                    breadcrumbProva.innerHTML = `<a onclick="mostrarTelaInicial()">Início</a> > <a onclick="mostrarTelaPasta(${JSON.stringify(pastaSelecionada).replace(/"/g, '&quot;')})">${pastaSelecionada.nome}</a> > <span>${provaSelecionada.titulo}</span>`;
+                } else {
+                    breadcrumbProva.innerHTML = '<span>Início</span>';
                 }
-                provasPorPasta[pastaId].push(prova);
-            });
-        }
-
-        async function carregarQuestoesDaProva(provaId) {
-            if (questoesPorProva[provaId]) {
-                return questoesPorProva[provaId];
             }
             
-            try {
-                const response = await fetch(`${API_URL}/api/provas/${provaId}?populate=questoes`);
-                if (!response.ok) throw new Error('Erro ao carregar questões');
-                const prova = await response.json();
-                questoesPorProva[provaId] = prova.questoes || [];
-                return questoesPorProva[provaId];
-            } catch (error) {
-                console.error('Erro ao carregar questões:', error);
-                return [];
+            if (breadcrumbQuestao) {
+                if (pastaSelecionada && provaSelecionada) {
+                    breadcrumbQuestao.innerHTML = `<a onclick="mostrarTelaInicial()">Início</a> > <a onclick="mostrarTelaPasta(${JSON.stringify(pastaSelecionada).replace(/"/g, '&quot;')})">${pastaSelecionada.nome}</a> > <a onclick="mostrarTelaProva()">${provaSelecionada.titulo}</a> > <span>${questaoEditando ? 'Editar Questão' : 'Nova Questão'}</span>`;
+                } else {
+                    breadcrumbQuestao.innerHTML = '<span>Início > Nova Questão</span>';
+                }
             }
         }
-
-        // Função para inserir questão via SQL direto (ATUALIZADA)
+        
+        // Função para inserir questão via SQL/JSON
         async function inserirQuestaoSQL() {
             const jsonText = document.getElementById('json-questao').value.trim();
             const resultadoDiv = document.getElementById('resultado-insercao');
             
             if (!jsonText) {
-                alert('Por favor, cole o JSON das questões.');
+                alert('Cole o JSON das questões no campo de texto');
                 return;
             }
             
             try {
-                // Tentar parsear como array primeiro, depois como objetos separados
-                let questoes = [];
+                // Tentar fazer parse do JSON
+                const questoes = JSON.parse(jsonText);
                 
-                // Verificar se é um array JSON válido
-                if (jsonText.startsWith('[') && jsonText.endsWith(']')) {
-                    questoes = JSON.parse(jsonText);
-                } else {
-                    // Tentar dividir por objetos separados
-                    const objetosTexto = jsonText.split('\n\n').filter(obj => obj.trim());
-                    
-                    if (objetosTexto.length === 1) {
-                        // Um único objeto
-                        questoes = [JSON.parse(objetosTexto[0])];
-                    } else {
-                        // Múltiplos objetos
-                        questoes = objetosTexto.map(obj => JSON.parse(obj.trim()));
-                    }
-                }
-                
-                if (!Array.isArray(questoes) || questoes.length === 0) {
-                    alert('Nenhuma questão válida encontrada no JSON.');
-                    return;
-                }
-                
-                // Validar campos obrigatórios para cada questão
-                for (let i = 0; i < questoes.length; i++) {
-                    const questao = questoes[i];
-                    const camposObrigatorios = ['index', 'year', 'correctAlternative', 'alternatives'];
-                    const camposFaltando = camposObrigatorios.filter(campo => !questao[campo]);
-                    
-                    if (camposFaltando.length > 0) {
-                        alert(`Questão ${i + 1}: Campos obrigatórios faltando: ${camposFaltando.join(', ')}`);
-                        return;
-                    }
-                    
-                    // Validar alternativas
-                    if (!Array.isArray(questao.alternatives) || questao.alternatives.length === 0) {
-                        alert(`Questão ${i + 1}: O campo alternatives deve ser um array com pelo menos uma alternativa.`);
-                        return;
-                    }
-                    
-                    // Validar correctAlternative
-                    if (!['A', 'B', 'C', 'D', 'E'].includes(questao.correctAlternative)) {
-                        alert(`Questão ${i + 1}: correctAlternative deve ser A, B, C, D ou E.`);
-                        return;
-                    }
-                }
-                
-                // Fazer requisição para o servidor usando a nova rota bulk
-                const response = await fetch(`${API_URL}/api/questoes/bulk`, {
+                // Fazer requisição para a API
+                const response = await fetch(`${API_BASE}/api/questoes/bulk`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2209,9 +2601,9 @@ if (typeof module !== 'undefined' && module.exports) {
                 tbody.innerHTML = questoes.map((questao, index) => `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${questao.disciplina || 'N/A'}</td>
-                        <td>${questao.materia || 'N/A'}</td>
-                        <td>${questao.assunto || 'N/A'}</td>
+                        <td>${Array.isArray(questao.disciplina) ? questao.disciplina.join(', ') : (questao.disciplina || 'N/A')}</td>
+                        <td>${Array.isArray(questao.materia) ? questao.materia.join(', ') : (questao.materia || 'N/A')}</td>
+                        <td>${Array.isArray(questao.assunto) ? questao.assunto.join(', ') : (questao.assunto || 'N/A')}</td>
                         <td><strong>${questao.resposta}</strong></td>
                         <td>
                             <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
@@ -2301,28 +2693,16 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         function renderizarAlternativas() {
-            const container = document.getElementById('linhas-container');
+            const container = document.getElementById('alternativas-lista');
             
-            // Verificar se já existe a seção de alternativas
-            let alternativasDiv = container.querySelector('.alternativas-container');
-            if (!alternativasDiv) {
-                alternativasDiv = document.createElement('div');
-                alternativasDiv.className = 'alternativas-container';
-                container.appendChild(alternativasDiv);
-            }
-            
-            alternativasDiv.innerHTML = `
-                <h3>Alternativas</h3>
-                ${alternativas.map(alt => `
-                    <div class="alternativa-item">
-                        <span class="alternativa-letra">${alt.letra})</span>
-                        <input type="text" class="alternativa-input" placeholder="Digite a alternativa ${alt.letra}" 
-                               value="${alt.texto}" onchange="atualizarAlternativa('${alt.letra}', this.value)">
-                        ${alternativas.length > 2 ? `<button class="btn-remover-alternativa" onclick="removerAlternativa('${alt.letra}')" title="Remover">×</button>` : ''}
-                    </div>
-                `).join('')}
-                <button class="btn-add-bloco" onclick="adicionarAlternativa()" style="margin-top: 10px;">+ Adicionar Alternativa</button>
-            `;
+            container.innerHTML = alternativas.map(alt => `
+                <div class="alternativa-item">
+                    <span class="alternativa-letra">${alt.letra})</span>
+                    <input type="text" class="alternativa-input" placeholder="Digite a alternativa ${alt.letra}" 
+                           value="${alt.texto}" onchange="atualizarAlternativa('${alt.letra}', this.value)">
+                    ${alternativas.length > 2 ? `<button class="btn-remover-alternativa" onclick="removerAlternativa('${alt.letra}')" title="Remover">×</button>` : ''}
+                </div>
+            `).join('');
             
             // Renderizar arquivos
             renderizarArquivos();
@@ -2351,12 +2731,12 @@ if (typeof module !== 'undefined' && module.exports) {
             const url = input.value.trim();
             
             if (!url) {
-                alert('Por favor, digite uma URL válida');
+                alert('Digite a URL do arquivo');
                 return;
             }
             
-            if (arquivosQuestao.includes(url)) {
-                alert('Este arquivo já foi adicionado');
+            if (arquivosQuestao.length >= 3) {
+                alert('Máximo de 3 arquivos por questão');
                 return;
             }
             
@@ -2378,19 +2758,21 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         function adicionarAlternativa() {
-            const proximaLetra = String.fromCharCode(65 + alternativas.length);
-            if (proximaLetra <= 'Z') {
-                alternativas.push({
-                    letra: proximaLetra,
-                    texto: ''
-                });
-                renderizarAlternativas();
+            if (alternativas.length >= 5) {
+                alert('Máximo de 5 alternativas');
+                return;
             }
+            
+            const letras = ['A', 'B', 'C', 'D', 'E'];
+            const proximaLetra = letras[alternativas.length];
+            
+            alternativas.push({ letra: proximaLetra, texto: '' });
+            renderizarAlternativas();
         }
 
         function removerAlternativa(letra) {
             if (alternativas.length <= 2) {
-                alert('Deve haver pelo menos duas alternativas.');
+                alert('Mínimo de 2 alternativas');
                 return;
             }
             
@@ -2398,431 +2780,36 @@ if (typeof module !== 'undefined' && module.exports) {
             renderizarAlternativas();
         }
 
-        function construirEnunciado() {
-            return document.getElementById('enunciado-textarea').value.trim();
-        }
-        
-        function construirContext() {
-            return document.getElementById('context-textarea').value.trim();
-        }
-
-        async function salvarQuestao() {
-    // Validação dos campos obrigatórios
-    const disciplinas = Array.from(document.getElementById('disciplina').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
-    
-    const materias = Array.from(document.getElementById('materia').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
-    
-    const resposta = document.getElementById('resposta').value;
-
-    if (!resposta) {
-        alert('Por favor, selecione a resposta correta (A, B, C, D ou E)');
-        return;
-    }
-
-    if (disciplinas.length === 0) {
-        alert('Por favor, selecione pelo menos uma disciplina');
-        return;
-    }
-
-    if (materias.length === 0) {
-        alert('Por favor, selecione pelo menos uma matéria');
-        return;
-    }
-
-    // Construir enunciado e context
-    const enunciado = construirEnunciado();
-    const context = construirContext();
-    
-    if (!enunciado.trim()) {
-        alert('Por favor, adicione o enunciado da questão');
-        return;
-    }
-
-    // Obter outros arrays de seleção múltipla
-    const assuntos = Array.from(document.getElementById('assunto').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
-    
-    const conteudos = Array.from(document.getElementById('conteudo').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
-    
-    const topicos = Array.from(document.getElementById('topico').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
-
-    let alternativasArray = alternativas
-        .filter(alt => alt.texto.trim() !== "")
-        .map(alt => ({
-            letter: alt.letra,
-            text: alt.texto.trim(),
-            isCorrect: alt.letra === resposta // Definir como true apenas para a alternativa correta
-        }));
-
-    if (alternativasArray.length < 2) {
-        alert('Por favor, preencha pelo menos duas alternativas');
-        return;
-    }
-
-    // Extrair imagens dos arquivos
-    const imagens = arquivosQuestao.filter(arquivo => 
-        arquivo.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)
-    );
-
-    const questao = {
-        disciplinas: disciplinas,
-        materias: materias,
-        assuntos: assuntos,
-        conteudos: conteudos,
-        topicos: topicos,
-        resposta: resposta,
-        context: context || null,
-        enunciado: enunciado,
-        alternativas: alternativasArray,
-        prova: provaSelecionada._id,
-        ano: document.getElementById('ano').value ? parseInt(document.getElementById('ano').value) : null,
-        instituicao: document.getElementById('instituicao').value.trim() || null,
-        img1: imagens[0] || null,
-        img2: imagens[1] || null,
-        img3: imagens[2] || null,
-        conhecimento1: document.getElementById('conhecimento1').value.trim().toLowerCase() || null,
-        conhecimento2: document.getElementById('conhecimento2').value.trim().toLowerCase() || null,
-        conhecimento3: document.getElementById('conhecimento3').value.trim().toLowerCase() || null,
-        conhecimento4: document.getElementById('conhecimento4').value.trim().toLowerCase() || null,
-        files: arquivosQuestao.length > 0 ? arquivosQuestao : null
-    };
-
-    try {
-        const method = modoEdicao ? 'PUT' : 'POST';
-        const url = modoEdicao ? 
-            `${API_URL}/api/questoes/${questaoEditando._id}` : 
-            `${API_URL}/api/questoes`;
-
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(questao)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Erro detalhado:', errorData);
-            throw new Error(errorData.error || 'Erro ao salvar questão');
-        }
-
-        const questaoSalva = await response.json();
-        console.log('Questão salva com sucesso:', questaoSalva);
-        
-        if (modoEdicao) {
-            const index = questoesPorProva[provaSelecionada._id].findIndex(q => q._id === questaoEditando._id);
-            if (index !== -1) {
-                questoesPorProva[provaSelecionada._id][index] = questaoSalva;
-            }
-        } else {
-            if (!questoesPorProva[provaSelecionada._id]) {
-                questoesPorProva[provaSelecionada._id] = [];
-            }
-            questoesPorProva[provaSelecionada._id].push(questaoSalva);
-        }
-
-        limparFormulario();
-        
-        // Redirecionar para a prova após salvar
-        mostrarTelaProva();
-        
-    } catch (error) {
-        console.error('Erro ao salvar questão:', error);
-        alert(`Erro ao salvar questão: ${error.message}`);
-    }
-}
-
-        function processarEnunciadoParaEdicao(enunciado, context) {
-            // Preencher os campos de texto separados
-            document.getElementById('context-textarea').value = context || '';
-            document.getElementById('enunciado-textarea').value = enunciado || '';
-        }
-
-        function processarAlternativasParaEdicao(alternativasArray) {
-            // Mapear as alternativas do formato do banco para o formato do editor
-            alternativas = alternativasArray.map(alt => ({
-                letra: alt.letter,
-                texto: alt.text,
-                isCorrect: alt.isCorrect
-            }));
-            
-            // Se não há alternativas suficientes, completar com as padrão
-            const letrasDisponiveis = ['A', 'B', 'C', 'D', 'E'];
-            const letrasExistentes = alternativas.map(alt => alt.letra);
-            
-            letrasDisponiveis.forEach(letra => {
-                if (!letrasExistentes.includes(letra)) {
-                    alternativas.push({
-                        letra: letra,
-                        texto: '',
-                        isCorrect: false
-                    });
-                }
-            });
-            
-            // Ordenar por letra
-            alternativas.sort((a, b) => a.letra.localeCompare(b.letra));
-            
-            // Renderizar as alternativas na interface
-            renderizarAlternativas();
-        }
-
-        function processarArquivosParaEdicao(questao) {
-            // Limpar array de arquivos
-            arquivosQuestao = [];
-            
-            // Adicionar imagens se existirem
-            if (questao.img1) arquivosQuestao.push(questao.img1);
-            if (questao.img2) arquivosQuestao.push(questao.img2);
-            if (questao.img3) arquivosQuestao.push(questao.img3);
-            
-            // Adicionar outros arquivos se existirem no campo files
-            if (questao.files && Array.isArray(questao.files)) {
-                questao.files.forEach(arquivo => {
-                    if (!arquivosQuestao.includes(arquivo)) {
-                        arquivosQuestao.push(arquivo);
-                    }
-                });
-            }
-            
-            // Renderizar arquivos na interface
-            renderizarArquivos();
-        }
-
-        function limparFormulario() {
-            // Limpar todos os campos do formulário
-            document.getElementById('disciplina').value = '';
-            document.getElementById('materia').value = '';
-            document.getElementById('assunto').value = '';
-            document.getElementById('conteudo').value = '';
-            document.getElementById('topico').value = '';
-            document.getElementById('ano').value = '';
-            document.getElementById('instituicao').value = '';
-            document.getElementById('resposta').value = 'A';
-            document.getElementById('conhecimento1').value = '';
-            document.getElementById('conhecimento2').value = '';
-            document.getElementById('conhecimento3').value = '';
-            document.getElementById('conhecimento4').value = '';
-            
-            // Limpar campos de texto
-            document.getElementById('context-textarea').value = '';
-            document.getElementById('enunciado-textarea').value = '';
-            
-            // Resetar selects dependentes
-            atualizarMaterias();
-            
-            // Limpar alternativas
-            alternativas = [
-                { letra: 'A', texto: '' },
-                { letra: 'B', texto: '' },
-                { letra: 'C', texto: '' },
-                { letra: 'D', texto: '' },
-                { letra: 'E', texto: '' }
-            ];
-            
-            modoEdicao = false;
-            questaoEditando = null;
-            arquivosQuestao = [];
-            
-            // CORREÇÃO: Remover as linhas que causam erro (elementos não existentes)
-            // document.getElementById('titulo-questao').textContent = 'Nova Questão';
-            // document.getElementById('btn-salvar').textContent = 'Salvar Questão';
-            
-            // Renderizar alternativas
-            renderizarAlternativas();
-        }
-
-        async function editarQuestao(questaoId) {
-    try {
-        // Buscar dados da questão
-        const response = await fetch(`${API_URL}/api/questoes/${questaoId}`);
-        if (!response.ok) {
-            throw new Error('Erro ao carregar questão');
-        }
-        
-        const questao = await response.json();
-        
-        // Definir modo de edição
-        modoEdicao = true;
-        questaoEditando = questao;
-        
-        // Mostrar tela de questão
-        mostrarTelaQuestao();
-        
-        // Preencher campos básicos
-        document.getElementById('ano').value = questao.ano || '';
-        document.getElementById('instituicao').value = questao.instituicao || '';
-        document.getElementById('resposta').value = questao.resposta || '';
-        document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
-        document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
-        document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
-        document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
-        
-        // Preencher selects múltiplos
-        if (questao.disciplinas && Array.isArray(questao.disciplinas)) {
-            questao.disciplinas.forEach(disciplina => {
-                const option = document.querySelector(`#disciplina option[value="${disciplina}"]`);
-                if (option) option.selected = true;
-            });
-        }
-        
-        // Atualizar dropdowns em cascata
-        inicializarSelectsHierarquicos();
-        
-        // Aguardar um pouco para garantir que os selects foram carregados
-        setTimeout(() => {
-            // Preencher matérias
-            if (questao.materias && Array.isArray(questao.materias)) {
-                questao.materias.forEach(materia => {
-                    const option = document.querySelector(`#materia option[value="${materia}"]`);
-                    if (option) option.selected = true;
-                });
-            }
-            
-            // Disparar evento para carregar assuntos
-            document.getElementById('disciplina').dispatchEvent(new Event('change'));
-            
-            setTimeout(() => {
-                // Preencher assuntos
-                if (questao.assuntos && Array.isArray(questao.assuntos)) {
-                    questao.assuntos.forEach(assunto => {
-                        const option = document.querySelector(`#assunto option[value="${assunto}"]`);
-                        if (option) option.selected = true;
-                    });
-                }
-                
-                // Disparar evento para carregar conteúdos
-                document.getElementById('materia').dispatchEvent(new Event('change'));
-                
-                setTimeout(() => {
-                    // Preencher conteúdos
-                    if (questao.conteudos && Array.isArray(questao.conteudos)) {
-                        questao.conteudos.forEach(conteudo => {
-                            const option = document.querySelector(`#conteudo option[value="${conteudo}"]`);
-                            if (option) option.selected = true;
-                        });
-                    }
-                    
-                    // Disparar evento para carregar tópicos
-                    document.getElementById('assunto').dispatchEvent(new Event('change'));
-                    
-                    setTimeout(() => {
-                        // Preencher tópicos
-                        if (questao.topicos && Array.isArray(questao.topicos)) {
-                            questao.topicos.forEach(topico => {
-                                const option = document.querySelector(`#topico option[value="${topico}"]`);
-                                if (option) option.selected = true;
-                            });
-                        }
-                    }, 100);
-                }, 100);
-            }, 100);
-        }, 100);
-        
-        // Processar enunciado e context para campos separados
-        processarEnunciadoParaEdicao(questao.enunciado || '', questao.context || '');
-        
-        // Processar alternativas
-        processarAlternativasParaEdicao(questao.alternativas || []);
-        
-        // Processar arquivos (files)
-        processarArquivosParaEdicao(questao);
-        
-        // Atualizar título da tela
-        document.getElementById('titulo-questao').textContent = 'Editar Questão';
-        document.getElementById('btn-salvar-questao').textContent = 'Atualizar Questão';
-        
-    } catch (error) {
-        console.error('Erro ao carregar questão para edição:', error);
-        alert('Erro ao carregar questão para edição. Tente novamente.');
-    }
-}
-
-        async function excluirQuestao(questaoId) {
-            try {
-                const response = await fetch(`${API_URL}/api/questoes/${questaoId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    // Remover da lista local
-                    if (questoesPorProva[provaSelecionada._id]) {
-                        questoesPorProva[provaSelecionada._id] = questoesPorProva[provaSelecionada._id].filter(q => q._id !== questaoId);
-                    }
-                    
-                    // Atualizar a tela
-                    mostrarTelaProva();
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao excluir questão: ${erro.error || 'Erro desconhecido'}`);
-                }
-            } catch (error) {
-                console.error('Erro ao excluir questão:', error);
-                alert('Erro ao excluir questão. Tente novamente.');
-            }
-        }
-
         function mostrarSQLQuestao(questaoId) {
-            console.log('Mostrar SQL da questão:', questaoId);
+            // Implementar visualização de SQL para questão específica
+            alert('Funcionalidade em desenvolvimento');
         }
 
         function mostrarSQLProva() {
-            console.log('Mostrar SQL da prova');
+            // Implementar visualização de SQL para toda a prova
+            alert('Funcionalidade em desenvolvimento');
         }
 
-        async function excluirProva(provaId) {
-            try {
-                const response = await fetch(`${API_URL}/api/provas/${provaId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    // Remover da lista local
-                    provas = provas.filter(p => p._id !== provaId);
-                    
-                    // Atualizar provasPorPasta
-                    Object.keys(provasPorPasta).forEach(pastaId => {
-                        provasPorPasta[pastaId] = provasPorPasta[pastaId].filter(p => p._id !== provaId);
-                    });
-                    
-                    // Remover questões da prova da cache
-                    delete questoesPorProva[provaId];
-                    
-                    // Atualizar a tela
-                    if (pastaSelecionada) {
-                        mostrarTelaPasta(pastaSelecionada);
-                    } else {
-                        mostrarTelaInicial();
-                    }
-                } else {
-                    const erro = await response.json();
-                    alert(`Erro ao excluir prova: ${erro.error || 'Erro desconhecido'}`);
-                }
-            } catch (error) {
-                console.error('Erro ao excluir prova:', error);
-                alert('Erro ao excluir prova. Tente novamente.');
-            }
+        function copiarSQL() {
+            // Implementar cópia do SQL
+            alert('Funcionalidade em desenvolvimento');
         }
 
         function moverPasta() {
-            console.log('Mover pasta');
+            // Implementar movimentação de pasta
+            alert('Funcionalidade em desenvolvimento');
         }
 
         function removerPasta() {
-            if (confirm('Tem certeza que deseja remover esta pasta?')) {
-                console.log('Remover pasta');
-            }
+            // Implementar remoção de pasta
+            alert('Funcionalidade em desenvolvimento');
+        }
+
+        function removerProva() {
+            // Implementar remoção de prova
+            alert('Funcionalidade em desenvolvimento');
         }
     </script>
 </body>
 </html>
+
