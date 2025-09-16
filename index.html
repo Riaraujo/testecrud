@@ -2378,14 +2378,14 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro desconhecido ao salvar questão');
+                    console.error('Erro detalhado:', errorData);
+                    throw new Error(errorData.error || 'Erro ao salvar questão');
                 }
 
-                // Se a questão foi salva com sucesso, atualiza a lista de questões da prova
-                await carregarQuestoesDaProva(provaSelecionada._id);
-                await atualizarListaProvas(); // Adicionado para atualizar o contador no sidebar
-                limparFormulario();
-                mostrarTelaProva(); {
+                const questaoSalva = await response.json();
+                console.log('Questão salva com sucesso:', questaoSalva);
+                
+                if (modoEdicao) {
                     const index = questoesPorProva[provaSelecionada._id].findIndex(q => q._id === questaoEditando._id);
                     if (index !== -1) {
                         questoesPorProva[provaSelecionada._id][index] = questaoSalva;
@@ -2400,8 +2400,8 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 limparFormulario();
                 mostrarTelaProva();
             } catch (error) {
-                console.error("Erro ao salvar questão:", error);
-                // alert("Erro ao salvar questão: " + error.message);
+                console.error('Erro ao salvar questão:', error);
+                alert(`Erro ao salvar questão: ${error.message}`);
             }
         }
 
@@ -2591,7 +2591,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 
             } catch (error) {
                 console.error('Erro ao carregar questão para edição:', error);
-                // alert('Erro ao carregar questão para edição. Tente novamente.');
+                alert('Erro ao carregar questão para edição. Tente novamente.');
             }
         }
 
@@ -2602,10 +2602,13 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 });
                 
                 if (response.ok) {
-                    // Remover a questão da lista local
-                    questoesPorProva[provaSelecionada._id] = questoesPorProva[provaSelecionada._id].filter(q => q._id !== id);
+                    // Remover da lista local
+                    if (questoesPorProva[provaSelecionada._id]) {
+                        questoesPorProva[provaSelecionada._id] = questoesPorProva[provaSelecionada._id].filter(q => q._id !== questaoId);
+                    }
+                    
+                    // Atualizar a tela
                     mostrarTelaProva();
-                    await atualizarListaProvas();
                 } else {
                     const erro = await response.json();
                     alert(`Erro ao excluir questão: ${erro.error || 'Erro desconhecido'}`);
