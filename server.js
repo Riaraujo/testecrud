@@ -23,7 +23,7 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// Conexão com MongoDB
+// Conexão com MongoDB (mantida a configuração original do usuário)
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/editor-questoes';
 
 mongoose.connect(MONGODB_URI, {
@@ -38,7 +38,7 @@ mongoose.connect(MONGODB_URI, {
     process.exit(1);
 });
 
-// Schema corrigido - usando apenas campos singulares mas como arrays
+// Schemas corrigidos - usando apenas campos singulares mas como arrays
 const questaoSchema = new mongoose.Schema({
     disciplina: [{
         type: String,
@@ -642,19 +642,19 @@ app.post('/api/questoes', async (req, res) => {
         }
 
         // Validar arrays - aceitar tanto arrays quanto strings únicas
-        let disciplinas = Array.isArray(req.body.disciplina) ? req.body.disciplina : [req.body.disciplina];
-        let materias = Array.isArray(req.body.materia) ? req.body.materia : [req.body.materia];
-        let assuntos = req.body.assunto ? (Array.isArray(req.body.assunto) ? req.body.assunto : [req.body.assunto]) : [];
-        let conteudos = req.body.conteudo ? (Array.isArray(req.body.conteudo) ? req.body.conteudo : [req.body.conteudo]) : [];
-        let topicos = req.body.topico ? (Array.isArray(req.body.topico) ? req.body.topico : [req.body.topico]) : [];
+        let disciplina = Array.isArray(req.body.disciplina) ? req.body.disciplina : [req.body.disciplina];
+        let materia = Array.isArray(req.body.materia) ? req.body.materia : [req.body.materia];
+        let assunto = req.body.assunto ? (Array.isArray(req.body.assunto) ? req.body.assunto : [req.body.assunto]) : [];
+        let conteudo = req.body.conteudo ? (Array.isArray(req.body.conteudo) ? req.body.conteudo : [req.body.conteudo]) : [];
+        let topico = req.body.topico ? (Array.isArray(req.body.topico) ? req.body.topico : [req.body.topico]) : [];
 
-        if (disciplinas.length === 0) {
+        if (disciplina.length === 0) {
             return res.status(400).json({
                 error: 'Pelo menos uma disciplina deve ser fornecida'
             });
         }
 
-        if (materias.length === 0) {
+        if (materia.length === 0) {
             return res.status(400).json({
                 error: 'Pelo menos uma matéria deve ser fornecida'
             });
@@ -795,11 +795,11 @@ app.post('/api/questoes', async (req, res) => {
 
         // Criar a questão - usando campos singulares
         const questaoData = {
-            disciplina: disciplinas,
-            materia: materias,
-            assunto: assuntos,
-            conteudo: conteudos,
-            topico: topicos,
+            disciplina: disciplina,
+            materia: materia,
+            assunto: assunto,
+            conteudo: conteudo,
+            topico: topico,
             ano: ano,
             instituicao: req.body.instituicao || 'ENEM',
             context: req.body.context || null,
