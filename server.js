@@ -40,29 +40,28 @@ mongoose.connect(MONGODB_URI, {
 
 // Schemas atualizados
 const questaoSchema = new mongoose.Schema({
-    disciplina: {
+    disciplinas: [{
         type: String,
-        required: [true, 'O campo disciplina é obrigatório'],
+        required: [true, 'O campo disciplinas é obrigatório'],
         trim: true
-    },
-    materia: {
+    }],
+    materias: [{
         type: String,
-        required: [true, 'O campo matéria é obrigatório'],
+        required: [true, 'O campo matérias é obrigatório'],
         trim: true
-    },
-    assunto: {
-        type: String,
-        required: false, // Tornando opcional
-        trim: true
-    },
-    conteudo: {
+    }],
+    assuntos: [{
         type: String,
         trim: true
-    },
-    topico: {
+    }],
+    conteudos: [{
         type: String,
         trim: true
-    },
+    }],
+    topicos: [{
+        type: String,
+        trim: true
+    }],
     ano: {
         type: Number
     },
@@ -336,9 +335,9 @@ app.post('/api/questoes/bulk', async (req, res) => {
 
                 // Criar a questão
                 const novaQuestao = new Questao({
-                    disciplina: mapearDisciplina(questaoData.discipline),
-                    materia: mapearMateria(questaoData.discipline),
-                    assunto: questaoData.title || 'ENEM',
+                    disciplinas: [mapearDisciplina(questaoData.discipline)], // Mantido como array
+            materias: [mapearMateria(questaoData.discipline)],       // Mantido como array
+            assuntos: questaoData.title ? [questaoData.title] : ['ENEM'],
                     ano: ano,
                     instituicao: 'ENEM',
                     context: context,
@@ -628,7 +627,7 @@ app.post('/api/questoes', async (req, res) => {
         console.log('Recebendo requisição para criar questão:', req.body);
 
         const requiredFields = [
-            'disciplina', 'materia',
+            'disciplinas', 'materias',
             'enunciado', 'alternativas',
             'resposta'
         ];
@@ -642,10 +641,30 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
+        // Validar arrays
+        if (!Array.isArray(req.body.disciplinas) || req.body.disciplinas.length === 0) {
+            return res.status(400).json({
+                error: 'Pelo menos uma disciplina deve ser fornecida'
+            });
+        }
+
+        if (!Array.isArray(req.body.materias) || req.body.materias.length === 0) {
+            return res.status(400).json({
+                error: 'Pelo menos uma matéria deve ser fornecida'
+            });
+        }
+
         if (!['A', 'B', 'C', 'D', 'E'].includes(req.body.resposta)) {
             return res.status(400).json({
                 error: 'Resposta inválida',
                 details: 'A resposta deve ser A, B, C, D ou E'
+            });
+        }
+
+        // Validar alternativas
+        if (!Array.isArray(req.body.alternativas) || req.body.alternativas.length < 2) {
+            return res.status(400).json({
+                error: 'Pelo menos duas alternativas devem ser fornecidas'
             });
         }
 
@@ -736,33 +755,50 @@ app.post('/api/questoes', async (req, res) => {
             provaId = prova._id;
         }
 
+        // Processar alternativas
+        const alternativasProcessadas = req.body.alternativas.map(alt => {
+            if (typeof alt === 'string') {
+                const match = alt.match(/^([A-E])\)\s*(.*)$/);
+                if (match) {
+                    return { 
+                        letter: match[1], 
+                        text: match[2], 
+                        isCorrect: match[1] === req.body.resposta 
+                    };
+                } else {
+                    return { 
+                        letter: 'A', 
+                        text: alt, 
+                        isCorrect: 'A' === req.body.resposta 
+                    };
+                }
+            } else if (typeof alt === 'object' && alt.letter && alt.text) {
+                return {
+                    letter: alt.letter,
+                    text: alt.text,
+                    isCorrect: alt.letter === req.body.resposta
+                };
+            } else {
+                return { 
+                    letter: 'A', 
+                    text: String(alt), 
+                    isCorrect: 'A' === req.body.resposta 
+                };
+            }
+        });
+
         // Criar a questão
         const questaoData = {
-            disciplina: req.body.disciplina,
-            materia: req.body.materia,
-            assunto: req.body.assunto,
-            conteudo: req.body.conteudo || null,
-            topico: req.body.topico || null,
-            ano: ano, // Já convertido para número
-            instituicao: 'ENEM',
+            disciplinas: req.body.disciplinas,
+            materias: req.body.materias,
+            assuntos: req.body.assuntos || [],
+            conteudos: req.body.conteudos || [],
+            topicos: req.body.topicos || [],
+            ano: ano,
+            instituicao: req.body.instituicao || 'ENEM',
             context: req.body.context || null,
             enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas.map(alt => {
-                if (typeof alt === 'string') {
-                    const match = alt.match(/^([A-E])\)\s*(.*)$/);
-                    if (match) {
-                        return { letter: match[1], text: match[2], isCorrect: false };
-                    } else {
-                        // Fallback if no specific format, use A as letter
-                        return { letter: 'A', text: alt, isCorrect: false };
-                    }
-                } else if (typeof alt === 'object' && alt.letter && alt.text) {
-                    return alt;
-                } else {
-                    // Fallback for unexpected formats
-                    return { letter: 'A', text: String(alt), isCorrect: false };
-                }
-            }) : [],
+            alternativas: alternativasProcessadas,
             resposta: req.body.resposta,
             prova: provaId,
             img1: req.body.img1 || null,
@@ -774,7 +810,7 @@ app.post('/api/questoes', async (req, res) => {
             conhecimento4: req.body.conhecimento4 ? req.body.conhecimento4.toLowerCase() : null
         };
 
-        // Adicionar index da questão se fornecido (já convertido para número)
+        // Adicionar index da questão se fornecido
         if (index !== undefined && index !== null) {
             questaoData.index = index;
         }
@@ -888,4 +924,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
