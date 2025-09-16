@@ -38,27 +38,27 @@ mongoose.connect(MONGODB_URI, {
     process.exit(1);
 });
 
-// Schemas atualizados
+// Schema corrigido - usando apenas campos singulares mas como arrays
 const questaoSchema = new mongoose.Schema({
-    disciplinas: [{
+    disciplina: [{
         type: String,
-        required: [true, 'O campo disciplinas é obrigatório'],
+        required: [true, 'O campo disciplina é obrigatório'],
         trim: true
     }],
-    materias: [{
+    materia: [{
         type: String,
-        required: [true, 'O campo matérias é obrigatório'],
+        required: [true, 'O campo matéria é obrigatório'],
         trim: true
     }],
-    assuntos: [{
-        type: String,
-        trim: true
-    }],
-    conteudos: [{
+    assunto: [{
         type: String,
         trim: true
     }],
-    topicos: [{
+    conteudo: [{
+        type: String,
+        trim: true
+    }],
+    topico: [{
         type: String,
         trim: true
     }],
@@ -333,11 +333,11 @@ app.post('/api/questoes/bulk', async (req, res) => {
                     img1 = questaoData.files[0];
                 }
 
-                // Criar a questão
+                // Criar a questão - usando campos singulares como arrays
                 const novaQuestao = new Questao({
-                    disciplinas: [mapearDisciplina(questaoData.discipline)], // Mantido como array
-            materias: [mapearMateria(questaoData.discipline)],       // Mantido como array
-            assuntos: questaoData.title ? [questaoData.title] : ['ENEM'],
+                    disciplina: [mapearDisciplina(questaoData.discipline)],
+                    materia: [mapearMateria(questaoData.discipline)],
+                    assunto: questaoData.title ? [questaoData.title] : ['ENEM'],
                     ano: ano,
                     instituicao: 'ENEM',
                     context: context,
@@ -627,7 +627,7 @@ app.post('/api/questoes', async (req, res) => {
         console.log('Recebendo requisição para criar questão:', req.body);
 
         const requiredFields = [
-            'disciplinas', 'materias',
+            'disciplina', 'materia',
             'enunciado', 'alternativas',
             'resposta'
         ];
@@ -641,14 +641,20 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-        // Validar arrays
-        if (!Array.isArray(req.body.disciplinas) || req.body.disciplinas.length === 0) {
+        // Validar arrays - aceitar tanto arrays quanto strings únicas
+        let disciplinas = Array.isArray(req.body.disciplina) ? req.body.disciplina : [req.body.disciplina];
+        let materias = Array.isArray(req.body.materia) ? req.body.materia : [req.body.materia];
+        let assuntos = req.body.assunto ? (Array.isArray(req.body.assunto) ? req.body.assunto : [req.body.assunto]) : [];
+        let conteudos = req.body.conteudo ? (Array.isArray(req.body.conteudo) ? req.body.conteudo : [req.body.conteudo]) : [];
+        let topicos = req.body.topico ? (Array.isArray(req.body.topico) ? req.body.topico : [req.body.topico]) : [];
+
+        if (disciplinas.length === 0) {
             return res.status(400).json({
                 error: 'Pelo menos uma disciplina deve ser fornecida'
             });
         }
 
-        if (!Array.isArray(req.body.materias) || req.body.materias.length === 0) {
+        if (materias.length === 0) {
             return res.status(400).json({
                 error: 'Pelo menos uma matéria deve ser fornecida'
             });
@@ -787,13 +793,13 @@ app.post('/api/questoes', async (req, res) => {
             }
         });
 
-        // Criar a questão
+        // Criar a questão - usando campos singulares
         const questaoData = {
-            disciplinas: req.body.disciplinas,
-            materias: req.body.materias,
-            assuntos: req.body.assuntos || [],
-            conteudos: req.body.conteudos || [],
-            topicos: req.body.topicos || [],
+            disciplina: disciplinas,
+            materia: materias,
+            assunto: assuntos,
+            conteudo: conteudos,
+            topico: topicos,
             ano: ano,
             instituicao: req.body.instituicao || 'ENEM',
             context: req.body.context || null,
@@ -864,9 +870,28 @@ app.get('/api/questoes/:id', async (req, res) => {
 
 app.put('/api/questoes/:id', async (req, res) => {
     try {
+        // Processar campos que podem vir como string ou array
+        const updateData = { ...req.body };
+        
+        if (updateData.disciplina && !Array.isArray(updateData.disciplina)) {
+            updateData.disciplina = [updateData.disciplina];
+        }
+        if (updateData.materia && !Array.isArray(updateData.materia)) {
+            updateData.materia = [updateData.materia];
+        }
+        if (updateData.assunto && !Array.isArray(updateData.assunto)) {
+            updateData.assunto = [updateData.assunto];
+        }
+        if (updateData.conteudo && !Array.isArray(updateData.conteudo)) {
+            updateData.conteudo = [updateData.conteudo];
+        }
+        if (updateData.topico && !Array.isArray(updateData.topico)) {
+            updateData.topico = [updateData.topico];
+        }
+
         const questao = await Questao.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
         if (!questao) {
@@ -924,3 +949,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
+
