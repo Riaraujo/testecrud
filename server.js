@@ -70,17 +70,19 @@ const questaoSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    context: {
+        type: String,
+        required: false // Texto de apoio/contexto
+    },
     enunciado: {
         type: String,
-        required: [true, 'O campo enunciado é obrigatório']
+        required: [true, 'O campo enunciado é obrigatório'] // alternativesIntroduction
     },
-    alternativas: {
-        type: [String],
-        required: [true, 'O campo alternativas é obrigatório'],
-        set: function(val) {
-            return Array.isArray(val) ? val : [val];
-        }
-    },
+    alternativas: [{
+        letter: { type: String, required: true },
+        text: { type: String, required: true },
+        isCorrect: { type: Boolean, default: false }
+    }],
     resposta: {
         type: String,
         required: [true, 'O campo resposta é obrigatório'],
@@ -297,18 +299,33 @@ app.post('/api/questoes/bulk', async (req, res) => {
                 // Extrair alternativas do formato JSON
                 let alternativasTexto = [];
                 if (Array.isArray(questaoData.alternatives)) {
-                    alternativasTexto = questaoData.alternatives.map(alt => alt.text || alt);
+                    alternativasTexto = questaoData.alternatives.map(alt => {
+                        // Se é um objeto com as propriedades letter, text e isCorrect, usar o objeto completo
+                        if (typeof alt === 'object' && alt.letter && alt.text) {
+                            return { letter: alt.letter, text: alt.text, isCorrect: alt.isCorrect || false };
+                        }
+                        // Senão, tentar inferir a letra e usar o valor diretamente como texto
+                        const letterMatch = String(alt).match(/^([A-E])\)\s*(.*)$/);
+                        if (letterMatch) {
+                            return { letter: letterMatch[1], text: letterMatch[2], isCorrect: false };
+                        } else {
+                            return { letter: 'A', text: String(alt), isCorrect: false }; // Fallback
+                        }
+                    });
                 }
 
-                // Construir enunciado
+                // Construir context e enunciado separadamente
+                let context = '';
                 let enunciado = '';
+                
                 if (questaoData.context) {
-                    enunciado += questaoData.context + '\n\n';
+                    context = questaoData.context;
                 }
+                
                 if (questaoData.alternativesIntroduction) {
-                    enunciado += questaoData.alternativesIntroduction;
+                    enunciado = questaoData.alternativesIntroduction;
                 } else if (questaoData.title) {
-                    enunciado += questaoData.title;
+                    enunciado = questaoData.title;
                 }
 
                 // Extrair imagens se existirem
@@ -324,8 +341,13 @@ app.post('/api/questoes/bulk', async (req, res) => {
                     assunto: questaoData.title || 'ENEM',
                     ano: ano,
                     instituicao: 'ENEM',
+                    context: context,
                     enunciado: enunciado,
-                    alternativas: alternativasTexto,
+                    alternativas: questaoData.alternatives.map(alt => ({
+                        letter: alt.letter,
+                        text: alt.text,
+                        isCorrect: alt.isCorrect || false
+                    })),
                     resposta: questaoData.correctAlternative,
                     prova: prova._id,
                     index: index,
@@ -723,8 +745,24 @@ app.post('/api/questoes', async (req, res) => {
             topico: req.body.topico || null,
             ano: ano, // Já convertido para número
             instituicao: 'ENEM',
+            context: req.body.context || null,
             enunciado: req.body.enunciado,
-            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas : [req.body.alternativas],
+            alternativas: Array.isArray(req.body.alternativas) ? req.body.alternativas.map(alt => {
+                if (typeof alt === 'string') {
+                    const match = alt.match(/^([A-E])\)\s*(.*)$/);
+                    if (match) {
+                        return { letter: match[1], text: match[2], isCorrect: false };
+                    } else {
+                        // Fallback if no specific format, use A as letter
+                        return { letter: 'A', text: alt, isCorrect: false };
+                    }
+                } else if (typeof alt === 'object' && alt.letter && alt.text) {
+                    return alt;
+                } else {
+                    // Fallback for unexpected formats
+                    return { letter: 'A', text: String(alt), isCorrect: false };
+                }
+            }) : [],
             resposta: req.body.resposta,
             prova: provaId,
             img1: req.body.img1 || null,
