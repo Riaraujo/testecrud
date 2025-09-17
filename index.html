@@ -2209,9 +2209,9 @@ if (typeof module !== 'undefined' && module.exports) {
                 tbody.innerHTML = questoes.map((questao, index) => `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${questao.disciplina || 'N/A'}</td>
-                        <td>${questao.materia || 'N/A'}</td>
-                        <td>${questao.assunto || 'N/A'}</td>
+                        <td>${questao.disciplinas || 'N/A'}</td>
+                        <td>${questao.materias || 'N/A'}</td>
+                        <td>${questao.assuntos || 'N/A'}</td>
                         <td><strong>${questao.resposta}</strong></td>
                         <td>
                             <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
