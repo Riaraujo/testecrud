@@ -1030,7 +1030,7 @@ select[multiple] option {
             <table class="questoes-table">
                 <thead>
                     <tr>
-                        <th width="3%">#</th>
+                        <th width="3%">index</th>
                         <th width="17%">Disciplina</th>
                         <th width="18%">Matéria</th>
                         <th width="20%">Assunto</th>
@@ -2209,7 +2209,7 @@ if (typeof module !== 'undefined' && module.exports) {
                 semQuestoes.style.display = 'none';
                 tbody.innerHTML = questoes.map((questao, index) => `
                     <tr>
-                        <td>${index + 1}</td>
+                        <td>${questao.index}</td>
                         <td>${questao.disciplinas || 'N/A'}</td>
                         <td>${questao.materias || 'N/A'}</td>
                         <td>${questao.assuntos || 'N/A'}</td>
