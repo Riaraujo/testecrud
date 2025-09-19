@@ -9277,6 +9277,8 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         async function salvarQuestao() {
+
+             const API_URL = 'https://api.repositoriodequestoes.com';
     // Validação dos campos obrigatórios
     const disciplinas = Array.from(document.getElementById('disciplina').selectedOptions)
         .map(option => option.value)
@@ -9513,33 +9515,33 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         async function editarQuestao(questaoId) {
-    try {
-        // Buscar dados da questão
-        const response = await fetch(`${API_URL}/api/questoes/${questaoId}`);
-        if (!response.ok) {
+                  try {
+          // Buscar dados da questão
+           const response = await fetch(`${API_URL}/api/questoes/${questaoId}`);
+             if (!response.ok) {
             throw new Error('Erro ao carregar questão');
-        }
+          }
         
-        const questao = await response.json();
+           const questao = await response.json();
         
-        // Definir modo de edição
-        modoEdicao = true;
-        questaoEditando = questao;
+                 // Definir modo de edição
+             modoEdicao = true;
+              questaoEditando = questao;
         
-        // Mostrar tela de questão
-        mostrarTelaQuestao();
+               // Mostrar tela de questão
+                 mostrarTelaQuestao();
         
-        // Preencher campos básicos
-        document.getElementById('ano').value = questao.ano || '';
-        document.getElementById('instituicao').value = questao.instituicao || '';
-        document.getElementById('resposta').value = questao.resposta || '';
-        document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
-        document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
-        document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
-        document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
+              // Preencher campos básicos
+          document.getElementById('ano').value = questao.ano || '';
+               document.getElementById('instituicao').value = questao.instituicao || '';
+           document.getElementById('resposta').value = questao.resposta || '';
+          document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
+           document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
+           document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
+           document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
         
-        // Preencher selects múltiplos
-        if (questao.disciplinas && Array.isArray(questao.disciplinas)) {
+          // Preencher selects múltiplos
+           if (questao.disciplinas && Array.isArray(questao.disciplinas)) {
             questao.disciplinas.forEach(disciplina => {
                 const option = document.querySelector(`#disciplina option[value="${disciplina}"]`);
                 if (option) option.selected = true;
