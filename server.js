@@ -13,7 +13,8 @@ const corsOptions = {
         'http://localhost:3000',
         'https://repositoriodequestoes.com',
         'https://www.repositoriodequestoes.com',
-        'http://www.repositoriodequestoes.com' // Adicionado para permitir requisições HTTP
+        'https://vestibular-quest-assist.lovable.app/', // Adicionado para permitir requisições HTTP
+        'https://lovable.dev/projects/b613635c-02c1-417b-8120-bf30776194ac' // Adicionado para permitir requisições HTTP
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -924,3 +925,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
+
