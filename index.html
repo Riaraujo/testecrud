@@ -24,9 +24,8 @@
 /* Sidebar */
 		        .sidebar {
 		            width: 250px;
-		            transition: width 0.3s ease;
-		            overflow-x: hidden;
-		            white-space: nowrap;
+		            transition: width 0.3s ease, padding 0.3s ease;
+		            overflow: hidden; /* Garante que o conteúdo quebra */
 		            flex-shrink: 0;
 		            background-color: #2c3e50;
 		            color: white;
@@ -37,17 +36,20 @@
 		        }
 		        
 		        .sidebar-closed {
-		            width: 50px; /* Largura mínima para o botão de toggle */
+		            width: 50px;
+		            padding: 15px 5px; /* Ajuste de padding para o botão */
 		        }
 		        
-		        .sidebar-closed .sidebar-header,
+		        .sidebar-closed .sidebar-header .sidebar-title,
+		        .sidebar-closed .sidebar-header .sidebar-subtitle,
 		        .sidebar-closed .sidebar-menu,
 		        .sidebar-closed .prova-list {
-		            display: none;
+		            opacity: 0;
+		            transition: opacity 0.1s;
+		            display: none; /* Adicionado para garantir que os elementos não ocupem espaço */
 		        }
 		        
 		        .sidebar-closed #toggle-sidebar {
-		            display: block !important;
 		            width: 100% !important;
 		            text-align: center !important;
 		            padding: 10px 0 !important;
@@ -55,8 +57,10 @@
 		            border: none !important;
 		        }
 		        
-		        .sidebar-closed + .main-content {
-		            margin-left: 0;
+		        .sidebar-closed .sidebar-header {
+		            padding-bottom: 0;
+		            border-bottom: none;
+		            margin-bottom: 0;
 		        }
 		        
 		        .main-content {
@@ -1123,7 +1127,7 @@ select[multiple] option {
             <table class="questoes-table">
                 <thead>
                     <tr>
-                        <th width="3%                        <th width="3%">Index</th>
+                        <th width="3%">Index</th>
                         <th width="15%">Disciplina</th>
                         <th width="16%">Matéria</th>
                         <th width="18%">Assunto</th>
@@ -9177,15 +9181,16 @@ if (typeof module !== 'undefined' && module.exports) {
             } else {
                 semQuestoes.style.display = 'none';
 tbody.innerHTML = questoes.map((questao, index) => {
-	                  // Formatação para responsividade (usando data-label)
+		                    // Formatação para responsividade (usando data-label)
 		                    return `
-		                        <tr>Index">${questao.index || '-'}</td>
-	                            <td data-label="Disciplina">${questao.disciplinas.join(', ')}</td>
-	                            <td data-label="Matéria">${questao.materias.join(', ')}</td>
+		                        <tr>
+		                            <td data-label="Index">${questao.index || '-'}</td>
+		                            <td data-label="Disciplina">${questao.disciplinas.join(', ')}</td>
+		                            <td data-label="Matéria">${questao.materias.join(', ')}</td>
 	                            <td data-label="Assunto">${questao.assuntos.join(', ') || '-'}</td>
-	                            <td data-label="Conteúdo">${questao.conteudos.join(', ') || '-'}</td>
-	                            <td data-label="Resposta"><strong>${questao.resposta}</strong></td>
-	                            <td data-label="Ações">
+<td data-label="Conteúdo">${questao.conteudos.join(', ') || '-'}</td>
+		                            <td data-label="Resposta"><strong>${questao.resposta}</strong></td>
+		                            <td data-label="Ações">
 	                                <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
 	                                <button class="btn-table btn-ver-sql" onclick="mostrarSQLQuestao('${questao._id}')">Ver SQL</button>
 	                                <button class="btn-table btn-excluir" onclick="excluirQuestao('${questao._id}')">Excluir</button>
