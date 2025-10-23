@@ -21,9 +21,50 @@
             min-height: 100vh;
         }
         
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
+/* Sidebar */
+		        .sidebar {
+		            width: 250px;
+		            transition: width 0.3s ease;
+		            overflow-x: hidden;
+		            white-space: nowrap;
+		            flex-shrink: 0;
+		            background-color: #2c3e50;
+		            color: white;
+		            padding: 15px;
+		            display: flex;
+		            flex-direction: column;
+		            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+		        }
+		        
+		        .sidebar-closed {
+		            width: 50px; /* Largura mínima para o botão de toggle */
+		        }
+		        
+		        .sidebar-closed .sidebar-header,
+		        .sidebar-closed .sidebar-menu,
+		        .sidebar-closed .prova-list {
+		            display: none;
+		        }
+		        
+		        .sidebar-closed #toggle-sidebar {
+		            display: block !important;
+		            width: 100% !important;
+		            text-align: center !important;
+		            padding: 10px 0 !important;
+		            background-color: #2c3e50 !important;
+		            border: none !important;
+		        }
+		        
+		        .sidebar-closed + .main-content {
+		            margin-left: 0;
+		        }
+		        
+		        .main-content {
+		            flex: 1;
+		            padding: 15px;
+		            overflow-y: auto;
+		            transition: margin-left 0.3s ease;
+		        }
             background-color: #2c3e50;
             color: white;
             padding: 15px;
@@ -32,13 +73,16 @@
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
         
-        .sidebar-header {
-            padding-bottom: 10px;
+.sidebar-header {
+		            padding-bottom: 10px;
+		            display: flex;
+		            flex-direction: column;
             border-bottom: 1px solid #3d5166;
             margin-bottom: 15px;
         }
         
         .sidebar-title {
+		            margin-top: 10px;
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 5px;
@@ -106,19 +150,7 @@
 	            background-color: #3498db;
 	        }
 	        
-	        /* Estilo para a bolinha de alerta */
-	        .alerta-bolinha {
-	            height: 10px;
-	            width: 10px;
-	            background-color: red;
-	            border-radius: 50%;
-	            display: inline-block;
-	            margin: 0 auto; /* Centraliza na célula da tabela */
-	        }
-	        
-	        .alerta-container {
-	            text-align: center;
-	        }
+
         
         .prova-item-count {
             background-color: rgba(255,255,255,0.2);
@@ -969,7 +1001,7 @@
 	                margin-right: 10px;
 	            }
 	            
-	            .questoes-table td[data-label="Alerta"]::before,
+	            
 	            .questoes-table td[data-label="Index"]::before {
 	                content: none;
 	            }
@@ -1019,6 +1051,7 @@ select[multiple] option {
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
+		            <button id="toggle-sidebar" class="sidebar-button" style="background-color: #2c3e50; border: 1px solid #3d5166; margin-bottom: 5px;">☰ Fechar</button>
             <div class="sidebar-title">Editor de Questões</div>
             <div class="sidebar-subtitle">Banco de Dados</div>
         </div>
@@ -1090,8 +1123,7 @@ select[multiple] option {
             <table class="questoes-table">
                 <thead>
                     <tr>
-                        <th width="3%">Alerta</th>
-	                        <th width="3%">Index</th>
+                        <th width="3%                        <th width="3%">Index</th>
                         <th width="15%">Disciplina</th>
                         <th width="16%">Matéria</th>
                         <th width="18%">Assunto</th>
@@ -8553,7 +8585,15 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
         });
         
         // Funções para selects hierárquicos
-        function inicializarSelectsHierarquicos() {
+        function inicializar() {
+		            // Lógica do Sidebar Toggle
+		            document.getElementById('toggle-sidebar').addEventListener('click', () => {
+		                const sidebar = document.querySelector('.sidebar');
+		                const isClosed = sidebar.classList.toggle('sidebar-closed');
+		                document.getElementById('toggle-sidebar').innerHTML = isClosed ? '☰ Abrir' : '☰ Fechar';
+		            });
+
+		            // O restante da função inicializar...ctsHierarquicos() {
             const disciplinaSelect = document.getElementById('disciplina');
             
             // Limpar e popular disciplinas
@@ -9137,14 +9177,9 @@ if (typeof module !== 'undefined' && module.exports) {
             } else {
                 semQuestoes.style.display = 'none';
 tbody.innerHTML = questoes.map((questao, index) => {
-	                    // Bolinha vermelha de alerta se o index for nulo ou indefinido
-	                    const alertaHtml = questao.index ? '' : '<div class="alerta-container"><span class="alerta-bolinha"></span></div>';
-	                    
-	                    // Formatação para responsividade (usando data-label)
-	                    return `
-	                        <tr>
-	                            <td data-label="Alerta">${alertaHtml}</td>
-	                            <td data-label="Index">${questao.index || '-'}</td>
+	                  // Formatação para responsividade (usando data-label)
+		                    return `
+		                        <tr>Index">${questao.index || '-'}</td>
 	                            <td data-label="Disciplina">${questao.disciplinas.join(', ')}</td>
 	                            <td data-label="Matéria">${questao.materias.join(', ')}</td>
 	                            <td data-label="Assunto">${questao.assuntos.join(', ') || '-'}</td>
