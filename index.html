@@ -21,54 +21,9 @@
             min-height: 100vh;
         }
         
-/* Sidebar */
-		        .sidebar {
-		            width: 250px;
-		            transition: width 0.3s ease, padding 0.3s ease;
-		            overflow: hidden; /* Garante que o conteúdo quebra */
-		            flex-shrink: 0;
-		            background-color: #2c3e50;
-		            color: white;
-		            padding: 15px;
-		            display: flex;
-		            flex-direction: column;
-		            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-		        }
-		        
-		        .sidebar-closed {
-		            width: 50px;
-		            padding: 15px 5px; /* Ajuste de padding para o botão */
-		        }
-		        
-		        .sidebar-closed .sidebar-header .sidebar-title,
-		        .sidebar-closed .sidebar-header .sidebar-subtitle,
-		        .sidebar-closed .sidebar-menu,
-		        .sidebar-closed .prova-list {
-		            opacity: 0;
-		            transition: opacity 0.1s;
-		            display: none; /* Adicionado para garantir que os elementos não ocupem espaço */
-		        }
-		        
-		        .sidebar-closed #toggle-sidebar {
-		            width: 100% !important;
-		            text-align: center !important;
-		            padding: 10px 0 !important;
-		            background-color: #2c3e50 !important;
-		            border: none !important;
-		        }
-		        
-		        .sidebar-closed .sidebar-header {
-		            padding-bottom: 0;
-		            border-bottom: none;
-		            margin-bottom: 0;
-		        }
-		        
-		        .main-content {
-		            flex: 1;
-		            padding: 15px;
-		            overflow-y: auto;
-		            transition: margin-left 0.3s ease;
-		        }
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
             background-color: #2c3e50;
             color: white;
             padding: 15px;
@@ -77,16 +32,13 @@
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
         
-.sidebar-header {
-		            padding-bottom: 10px;
-		            display: flex;
-		            flex-direction: column;
+        .sidebar-header {
+            padding-bottom: 10px;
             border-bottom: 1px solid #3d5166;
             margin-bottom: 15px;
         }
         
         .sidebar-title {
-		            margin-top: 10px;
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 5px;
@@ -150,11 +102,9 @@
             background-color: #3d5166;
         }
         
-.prova-item.active {
-	            background-color: #3498db;
-	        }
-	        
-
+        .prova-item.active {
+            background-color: #3498db;
+        }
         
         .prova-item-count {
             background-color: rgba(255,255,255,0.2);
@@ -946,11 +896,6 @@
         
         /* Responsividade */
         @media (max-width: 768px) {
-	            
-	            /* Responsividade da Tabela de Questões */
-	            .questoes-table {
-	                border: 0;
-	            }
             body {
                 flex-direction: column;
             }
@@ -974,51 +919,10 @@
                 min-width: 100% !important;
             }
             
-.questoes-table {
-	                /* Nada aqui, o CSS da responsividade será condicional */
-	            }
-	            
-	            .questoes-table thead {
-	                display: none;
-	            }
-	            
-	            .questoes-table tr {
-	                display: block;
-	                margin-bottom: 10px;
-	                border: 1px solid #ddd;
-	                border-radius: 4px;
-	                padding: 10px;
-	            }
-	            
-	            .questoes-table td {
-	                display: block;
-	                text-align: right;
-	                padding: 5px 0;
-	                border-bottom: none;
-	            }
-	            
-	            .questoes-table td::before {
-	                content: attr(data-label);
-	                float: left;
-	                font-weight: bold;
-	                text-transform: uppercase;
-	                margin-right: 10px;
-	            }
-	            
-	            
-	            .questoes-table td[data-label="Index"]::before {
-	                content: none;
-	            }
-	            
-	            .questoes-table td:last-child {
-	                border-bottom: 0;
-	            }
-	            
-	            .questoes-table td[data-label="Ações"] {
-	                text-align: left;
-	                padding-top: 10px;
-	                border-top: 1px solid #eee;
-	            }
+            .questoes-table {
+                display: block;
+                overflow-x: auto;
+            }
         }
 
 
@@ -1055,7 +959,6 @@ select[multiple] option {
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-		            <button id="toggle-sidebar" class="sidebar-button" style="background-color: #2c3e50; border: 1px solid #3d5166; margin-bottom: 5px;">☰ Fechar</button>
             <div class="sidebar-title">Editor de Questões</div>
             <div class="sidebar-subtitle">Banco de Dados</div>
         </div>
@@ -1127,11 +1030,11 @@ select[multiple] option {
             <table class="questoes-table">
                 <thead>
                     <tr>
-                        <th width="3%">Index</th>
-                        <th width="15%">Disciplina</th>
-                        <th width="16%">Matéria</th>
-                        <th width="18%">Assunto</th>
-                        <th width="18%">Conteúdo</th>
+                        <th width="3%">index</th>
+                        <th width="17%">Disciplina</th>
+                        <th width="18%">Matéria</th>
+                        <th width="20%">Assunto</th>
+                        <th width="20%">conteúdo</th>
                         <th width="7%">Resposta</th>
                         <th width="15%">Ações</th>
                     </tr>
@@ -8589,15 +8492,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
         });
         
         // Funções para selects hierárquicos
-        function inicializar() {
-		            // Lógica do Sidebar Toggle
-		            document.getElementById('toggle-sidebar').addEventListener('click', () => {
-		                const sidebar = document.querySelector('.sidebar');
-		                const isClosed = sidebar.classList.toggle('sidebar-closed');
-		                document.getElementById('toggle-sidebar').innerHTML = isClosed ? '☰ Abrir' : '☰ Fechar';
-		            });
-
-		            // O restante da função inicializar...ctsHierarquicos() {
+        function inicializarSelectsHierarquicos() {
             const disciplinaSelect = document.getElementById('disciplina');
             
             // Limpar e popular disciplinas
@@ -9180,24 +9075,21 @@ if (typeof module !== 'undefined' && module.exports) {
                 semQuestoes.style.display = 'block';
             } else {
                 semQuestoes.style.display = 'none';
-tbody.innerHTML = questoes.map((questao, index) => {
-		                    // Formatação para responsividade (usando data-label)
-		                    return `
-		                        <tr>
-		                            <td data-label="Index">${questao.index || '-'}</td>
-		                            <td data-label="Disciplina">${questao.disciplinas.join(', ')}</td>
-		                            <td data-label="Matéria">${questao.materias.join(', ')}</td>
-	                            <td data-label="Assunto">${questao.assuntos.join(', ') || '-'}</td>
-<td data-label="Conteúdo">${questao.conteudos.join(', ') || '-'}</td>
-		                            <td data-label="Resposta"><strong>${questao.resposta}</strong></td>
-		                            <td data-label="Ações">
-	                                <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
-	                                <button class="btn-table btn-ver-sql" onclick="mostrarSQLQuestao('${questao._id}')">Ver SQL</button>
-	                                <button class="btn-table btn-excluir" onclick="excluirQuestao('${questao._id}')">Excluir</button>
-	                            </td>
-	                        </tr>
-	                    `;
-	                }).join('');
+                tbody.innerHTML = questoes.map((questao, index) => `
+                    <tr>
+                        <td>${questao.index}</td>
+                        <td>${questao.disciplinas || 'N/A'}</td>
+                        <td>${questao.materias || 'N/A'}</td>
+                        <td>${questao.assuntos || 'N/A'}</td>
+                        <td>${questao.conteudos || 'N/A'}</td>
+                        <td><strong>${questao.resposta}</strong></td>
+                        <td>
+                            <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
+                            <button class="btn-table btn-ver-sql" onclick="mostrarSQLQuestao('${questao._id}')">Ver SQL</button>
+                            <button class="btn-table btn-excluir" onclick="excluirQuestao('${questao._id}')">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
             }
             
             atualizarBreadcrumb();
