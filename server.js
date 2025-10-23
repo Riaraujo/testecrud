@@ -261,7 +261,7 @@ app.post('/api/questoes/bulk', async (req, res) => {
                 }
 
                 // Determinar o dia com base no index da questão
-                let dia = index <= 95 ? 'Primeiro Dia' : 'Segundo Dia';
+                let dia = index <= 90 ? 'Primeiro Dia' : 'Segundo Dia';
 
                 // Verificar/Criar pasta
                 const pastaNome = `Enem ${ano}`;
@@ -701,7 +701,7 @@ app.post('/api/questoes', async (req, res) => {
 
             // Determinar o dia com base no index da questão
             let dia = 'Primeiro Dia';
-            if (index !== undefined && index !== null && index > 95) {
+            if (index !== undefined && index !== null && index > 90) {
                 dia = 'Segundo Dia';
             }
 
@@ -925,4 +925,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
