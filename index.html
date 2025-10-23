@@ -1130,8 +1130,8 @@ select[multiple] option {
                     <tr>
                         <th width="3%">Index</th>
                         <th width="15%">Disciplina</th>
-                        <th width="16<th>Matéria</th>
-                                <th>Tópico</th>                        <th width="18%">Assunto</th>
+                        <th width="16%">Matéria</th>
+                        <th width="18%">Assunto</th>
                         <th width="18%">Conteúdo</th>
                         <th width="7%">Resposta</th>
                         <th width="15%">Ações</th>
@@ -9188,12 +9188,11 @@ tbody.innerHTML = questoes.map((questao, index) => {
 		                            <td data-label="Index">${questao.index || '-'}</td>
 		                            <td data-label="Disciplina">${questao.disciplinas.join(', ')}</td>
 		                            <td data-label="Matéria">${questao.materias.join(', ')}</td>
-                                <td data-label="Tópico">${(questao.topicos && questao.topicos.length > 0) ? questao.topicos.join(', ') : '-'}</td>
 	                            <td data-label="Assunto">${questao.assuntos.join(', ') || '-'}</td>
 <td data-label="Conteúdo">${questao.conteudos.join(', ') || '-'}</td>
 		                            <td data-label="Resposta"><strong>${questao.resposta}</strong></td>
 		                            <td data-label="Ações">
-	                                <button class="btn-table btn-editar" onclick="editQuestion('${questao._id}')"${questao._id}')">Editar</button>
+	                                <button class="btn-table btn-editar" onclick="editarQuestao('${questao._id}')">Editar</button>
 	                                <button class="btn-table btn-ver-sql" onclick="mostrarSQLQuestao('${questao._id}')">Ver SQL</button>
 	                                <button class="btn-table btn-excluir" onclick="excluirQuestao('${questao._id}')">Excluir</button>
 	                            </td>
@@ -9624,7 +9623,7 @@ tbody.innerHTML = questoes.map((questao, index) => {
             renderizarAlternativas();
         }
 
-        async function editQuestion(questaoId) {
+        async function editarQuestao(questaoId) {
                   try {
           // Buscar dados da questão
            const response = await fetch(`${API_URL}/api/questoes/${questaoId}`);
