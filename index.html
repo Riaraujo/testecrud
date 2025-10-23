@@ -1715,7 +1715,8 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
         const API_URL = 'https://api.repositoriodequestoes.com';
 
 
-          // Estrutura de dados hierárquica para os selects dinâmicos
+
+           // Estrutura de dados hierárquica para os selects dinâmicos
         const estruturaDados = {
             "Matemática": {
                 "Álgebra": {
@@ -8690,7 +8691,7 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
                 }
             }
         };
-  
+         
         
         // Variáveis globais
         let linhas = [];
@@ -8983,8 +8984,557 @@ Campos obrigatórios: index, year, correctAlternative, alternatives' style="widt
             }
         }
 
-        // [Todas as outras funções JavaScript permanecem iguais...]
-        // Funções de carregamento de dados, salvamento, etc.
+          function mostrarTelaQuestao() {
+            document.getElementById('tela-pasta').style.display = 'none';
+            document.getElementById('tela-prova').style.display = 'none';
+            document.getElementById('tela-questao').style.display = 'block';
+            
+            atualizarBreadcrumb();
+            
+            // Event listener para voltar à prova
+            document.getElementById('btn-voltar-prova').onclick = mostrarTelaProva;
+        }
+
+        function setupContextMenu() {
+            // Context menu para pastas
+            document.addEventListener('click', () => {
+                document.getElementById('context-menu-pasta').style.display = 'none';
+                document.getElementById('context-menu').style.display = 'none';
+            });
+        }
+
+        function mostrarContextMenuPasta(x, y) {
+            const menu = document.getElementById('context-menu-pasta');
+            menu.style.display = 'block';
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+        }
+
+        function renderizarAlternativas() {
+            const container = document.getElementById('linhas-container');
+            
+            // Verificar se já existe a seção de alternativas
+            let alternativasDiv = container.querySelector('.alternativas-container');
+            if (!alternativasDiv) {
+                alternativasDiv = document.createElement('div');
+                alternativasDiv.className = 'alternativas-container';
+                container.appendChild(alternativasDiv);
+            }
+            
+            alternativasDiv.innerHTML = `
+                <h3>Alternativas</h3>
+                ${alternativas.map(alt => `
+                    <div class="alternativa-item">
+                        <span class="alternativa-letra">${alt.letra})</span>
+                        <input type="text" class="alternativa-input" placeholder="Digite a alternativa ${alt.letra}" 
+                               value="${alt.texto}" onchange="atualizarAlternativa('${alt.letra}', this.value)">
+                        ${alternativas.length > 2 ? `<button class="btn-remover-alternativa" onclick="removerAlternativa('${alt.letra}')" title="Remover">×</button>` : ''}
+                    </div>
+                `).join('')}
+                <button class="btn-add-bloco" onclick="adicionarAlternativa()" style="margin-top: 10px;">+ Adicionar Alternativa</button>
+            `;
+            
+            // Renderizar arquivos
+            renderizarArquivos();
+        }
+
+        function renderizarArquivos() {
+            const container = document.getElementById('arquivos-lista');
+            
+            if (arquivosQuestao.length === 0) {
+                container.innerHTML = '<div class="arquivos-vazio">Nenhum arquivo adicionado</div>';
+                return;
+            }
+            
+            container.innerHTML = arquivosQuestao.map((arquivo, index) => `
+                <div class="arquivo-item">
+                    <div class="arquivo-url">${arquivo}</div>
+                    <div class="arquivo-acoes">
+                        <button class="btn-remover-arquivo" onclick="removerArquivo(${index})" title="Remover">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function adicionarArquivo() {
+            const input = document.getElementById('novo-arquivo-url');
+            const url = input.value.trim();
+            
+            if (!url) {
+                alert('Por favor, digite uma URL válida');
+                return;
+            }
+            
+            if (arquivosQuestao.includes(url)) {
+                alert('Este arquivo já foi adicionado');
+                return;
+            }
+            
+            arquivosQuestao.push(url);
+            input.value = '';
+            renderizarArquivos();
+        }
+
+        function removerArquivo(index) {
+            arquivosQuestao.splice(index, 1);
+            renderizarArquivos();
+        }
+
+        function atualizarAlternativa(letra, texto) {
+            const alternativa = alternativas.find(alt => alt.letra === letra);
+            if (alternativa) {
+                alternativa.texto = texto;
+            }
+        }
+
+        function adicionarAlternativa() {
+            const proximaLetra = String.fromCharCode(65 + alternativas.length);
+            if (proximaLetra <= 'Z') {
+                alternativas.push({
+                    letra: proximaLetra,
+                    texto: ''
+                });
+                renderizarAlternativas();
+            }
+        }
+
+        function removerAlternativa(letra) {
+            if (alternativas.length <= 2) {
+                alert('Deve haver pelo menos duas alternativas.');
+                return;
+            }
+            
+            alternativas = alternativas.filter(alt => alt.letra !== letra);
+            renderizarAlternativas();
+        }
+
+        function construirEnunciado() {
+            return document.getElementById('enunciado-textarea').value.trim();
+        }
+        
+        function construirContext() {
+            return document.getElementById('context-textarea').value.trim();
+        }
+
+        async function salvarQuestao() {
+
+             const API_URL = 'https://api.repositoriodequestoes.com';
+    // Validação dos campos obrigatórios
+    const disciplinas = Array.from(document.getElementById('disciplina').selectedOptions)
+        .map(option => option.value)
+        .filter(value => value !== "");
+    
+    const materias = Array.from(document.getElementById('materia').selectedOptions)
+        .map(option => option.value)
+        .filter(value => value !== "");
+    
+    const resposta = document.getElementById('resposta').value;
+
+    if (!resposta) {
+        alert('Por favor, selecione a resposta correta (A, B, C, D ou E)');
+        return;
+    }
+
+    if (disciplinas.length === 0) {
+        alert('Por favor, selecione pelo menos uma disciplina');
+        return;
+    }
+
+    if (materias.length === 0) {
+        alert('Por favor, selecione pelo menos uma matéria');
+        return;
+    }
+
+    // Construir enunciado e context
+    const enunciado = construirEnunciado();
+    const context = construirContext();
+    
+    if (!enunciado.trim()) {
+        alert('Por favor, adicione o enunciado da questão');
+        return;
+    }
+
+    // Obter outros arrays de seleção múltipla
+    const assuntos = Array.from(document.getElementById('assunto').selectedOptions)
+        .map(option => option.value)
+        .filter(value => value !== "");
+    
+    const conteudos = Array.from(document.getElementById('conteudo').selectedOptions)
+        .map(option => option.value)
+        .filter(value => value !== "");
+    
+    const topicos = Array.from(document.getElementById('topico').selectedOptions)
+        .map(option => option.value)
+        .filter(value => value !== "");
+
+    let alternativasArray = alternativas
+        .filter(alt => alt.texto.trim() !== "")
+        .map(alt => ({
+            letter: alt.letra,
+            text: alt.texto.trim(),
+            isCorrect: alt.letra === resposta // Definir como true apenas para a alternativa correta
+        }));
+
+    if (alternativasArray.length < 2) {
+        alert('Por favor, preencha pelo menos duas alternativas');
+        return;
+    }
+
+    // Extrair imagens dos arquivos
+    const imagens = arquivosQuestao.filter(arquivo => 
+        arquivo.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)
+    );
+
+    const questao = {
+        disciplinas: disciplinas,
+        materias: materias,
+        assuntos: assuntos,
+        conteudos: conteudos,
+        topicos: topicos,
+        resposta: resposta,
+        context: context || null,
+        enunciado: enunciado,
+        alternativas: alternativasArray,
+        prova: provaSelecionada._id,
+        ano: document.getElementById('ano').value ? parseInt(document.getElementById('ano').value) : null,
+        instituicao: document.getElementById('instituicao').value.trim() || null,
+        img1: imagens[0] || null,
+        img2: imagens[1] || null,
+        img3: imagens[2] || null,
+        conhecimento1: document.getElementById('conhecimento1').value.trim().toLowerCase() || null,
+        conhecimento2: document.getElementById('conhecimento2').value.trim().toLowerCase() || null,
+        conhecimento3: document.getElementById('conhecimento3').value.trim().toLowerCase() || null,
+        conhecimento4: document.getElementById('conhecimento4').value.trim().toLowerCase() || null,
+        files: arquivosQuestao.length > 0 ? arquivosQuestao : null
+    };
+
+    try {
+        const method = modoEdicao ? 'PUT' : 'POST';
+        const url = modoEdicao ? 
+            `${API_URL}/api/questoes/${questaoEditando._id}` : 
+            `${API_URL}/api/questoes`;
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(questao)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Erro detalhado:', errorData);
+            throw new Error(errorData.error || 'Erro ao salvar questão');
+        }
+
+        const questaoSalva = await response.json();
+        console.log('Questão salva com sucesso:', questaoSalva);
+        
+        if (modoEdicao) {
+            const index = questoesPorProva[provaSelecionada._id].findIndex(q => q._id === questaoEditando._id);
+            if (index !== -1) {
+                questoesPorProva[provaSelecionada._id][index] = questaoSalva;
+            }
+        } else {
+            if (!questoesPorProva[provaSelecionada._id]) {
+                questoesPorProva[provaSelecionada._id] = [];
+            }
+            questoesPorProva[provaSelecionada._id].push(questaoSalva);
+        }
+
+        limparFormulario();
+        
+        // Redirecionar para a prova após salvar
+        mostrarTelaProva();
+        
+    } catch (error) {
+        console.error('Erro ao salvar questão:', error);
+        alert(`Erro ao salvar questão: ${error.message}`);
+    }
+}
+
+        function processarEnunciadoParaEdicao(enunciado, context) {
+            // Preencher os campos de texto separados
+            document.getElementById('context-textarea').value = context || '';
+            document.getElementById('enunciado-textarea').value = enunciado || '';
+        }
+
+        function processarAlternativasParaEdicao(alternativasArray) {
+            // Mapear as alternativas do formato do banco para o formato do editor
+            alternativas = alternativasArray.map(alt => ({
+                letra: alt.letter,
+                texto: alt.text,
+                isCorrect: alt.isCorrect
+            }));
+            
+            // Se não há alternativas suficientes, completar com as padrão
+            const letrasDisponiveis = ['A', 'B', 'C', 'D', 'E'];
+            const letrasExistentes = alternativas.map(alt => alt.letra);
+            
+            letrasDisponiveis.forEach(letra => {
+                if (!letrasExistentes.includes(letra)) {
+                    alternativas.push({
+                        letra: letra,
+                        texto: '',
+                        isCorrect: false
+                    });
+                }
+            });
+            
+            // Ordenar por letra
+            alternativas.sort((a, b) => a.letra.localeCompare(b.letra));
+            
+            // Renderizar as alternativas na interface
+            renderizarAlternativas();
+        }
+
+        function processarArquivosParaEdicao(questao) {
+            // Limpar array de arquivos
+            arquivosQuestao = [];
+            
+            // Adicionar imagens se existirem
+            if (questao.img1) arquivosQuestao.push(questao.img1);
+            if (questao.img2) arquivosQuestao.push(questao.img2);
+            if (questao.img3) arquivosQuestao.push(questao.img3);
+            
+            // Adicionar outros arquivos se existirem no campo files
+            if (questao.files && Array.isArray(questao.files)) {
+                questao.files.forEach(arquivo => {
+                    if (!arquivosQuestao.includes(arquivo)) {
+                        arquivosQuestao.push(arquivo);
+                    }
+                });
+            }
+            
+            // Renderizar arquivos na interface
+            renderizarArquivos();
+        }
+
+        function limparFormulario() {
+            // Limpar todos os campos do formulário
+            document.getElementById('disciplina').value = '';
+            document.getElementById('materia').value = '';
+            document.getElementById('assunto').value = '';
+            document.getElementById('conteudo').value = '';
+            document.getElementById('topico').value = '';
+            document.getElementById('ano').value = '';
+            document.getElementById('instituicao').value = '';
+            document.getElementById('resposta').value = 'A';
+            document.getElementById('conhecimento1').value = '';
+            document.getElementById('conhecimento2').value = '';
+            document.getElementById('conhecimento3').value = '';
+            document.getElementById('conhecimento4').value = '';
+            
+            // Limpar campos de texto
+            document.getElementById('context-textarea').value = '';
+            document.getElementById('enunciado-textarea').value = '';
+            
+            // Resetar selects dependentes
+            atualizarMaterias();
+            
+            // Limpar alternativas
+            alternativas = [
+                { letra: 'A', texto: '' },
+                { letra: 'B', texto: '' },
+                { letra: 'C', texto: '' },
+                { letra: 'D', texto: '' },
+                { letra: 'E', texto: '' }
+            ];
+            
+            modoEdicao = false;
+            questaoEditando = null;
+            arquivosQuestao = [];
+            
+            // CORREÇÃO: Remover as linhas que causam erro (elementos não existentes)
+            // document.getElementById('titulo-questao').textContent = 'Nova Questão';
+            // document.getElementById('btn-salvar').textContent = 'Salvar Questão';
+            
+            // Renderizar alternativas
+            renderizarAlternativas();
+        }
+
+        async function editarQuestao(questaoId) {
+                  try {
+          // Buscar dados da questão
+           const response = await fetch(`${API_URL}/api/questoes/${questaoId}`);
+             if (!response.ok) {
+            throw new Error('Erro ao carregar questão');
+          }
+        
+           const questao = await response.json();
+        
+                 // Definir modo de edição
+             modoEdicao = true;
+              questaoEditando = questao;
+        
+               // Mostrar tela de questão
+                 mostrarTelaQuestao();
+        
+              // Preencher campos básicos
+          document.getElementById('ano').value = questao.ano || '';
+               document.getElementById('instituicao').value = questao.instituicao || '';
+           document.getElementById('resposta').value = questao.resposta || '';
+          document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
+           document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
+           document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
+           document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
+        
+          // Preencher selects múltiplos
+           if (questao.disciplinas && Array.isArray(questao.disciplinas)) {
+            questao.disciplinas.forEach(disciplina => {
+                const option = document.querySelector(`#disciplina option[value="${disciplina}"]`);
+                if (option) option.selected = true;
+            });
+        }
+        
+        // Atualizar dropdowns em cascata
+        inicializarSelectsHierarquicos();
+        
+        // Aguardar um pouco para garantir que os selects foram carregados
+        setTimeout(() => {
+            // Preencher matérias
+            if (questao.materias && Array.isArray(questao.materias)) {
+                questao.materias.forEach(materia => {
+                    const option = document.querySelector(`#materia option[value="${materia}"]`);
+                    if (option) option.selected = true;
+                });
+            }
+            
+            // Disparar evento para carregar assuntos
+            document.getElementById('disciplina').dispatchEvent(new Event('change'));
+            
+            setTimeout(() => {
+                // Preencher assuntos
+                if (questao.assuntos && Array.isArray(questao.assuntos)) {
+                    questao.assuntos.forEach(assunto => {
+                        const option = document.querySelector(`#assunto option[value="${assunto}"]`);
+                        if (option) option.selected = true;
+                    });
+                }
+                
+                // Disparar evento para carregar conteúdos
+                document.getElementById('materia').dispatchEvent(new Event('change'));
+                
+                setTimeout(() => {
+                    // Preencher conteúdos
+                    if (questao.conteudos && Array.isArray(questao.conteudos)) {
+                        questao.conteudos.forEach(conteudo => {
+                            const option = document.querySelector(`#conteudo option[value="${conteudo}"]`);
+                            if (option) option.selected = true;
+                        });
+                    }
+                    
+                    // Disparar evento para carregar tópicos
+                    document.getElementById('assunto').dispatchEvent(new Event('change'));
+                    
+                    setTimeout(() => {
+                        // Preencher tópicos
+                        if (questao.topicos && Array.isArray(questao.topicos)) {
+                            questao.topicos.forEach(topico => {
+                                const option = document.querySelector(`#topico option[value="${topico}"]`);
+                                if (option) option.selected = true;
+                            });
+                        }
+                    }, 100);
+                }, 100);
+            }, 100);
+        }, 100);
+        
+        // Processar enunciado e context para campos separados
+        processarEnunciadoParaEdicao(questao.enunciado || '', questao.context || '');
+        
+        // Processar alternativas
+        processarAlternativasParaEdicao(questao.alternativas || []);
+        
+        // Processar arquivos (files)
+        processarArquivosParaEdicao(questao);
+        
+        // Atualizar título da tela
+        document.getElementById('titulo-questao').textContent = 'Editar Questão';
+        document.getElementById('btn-salvar-questao').textContent = 'Atualizar Questão';
+        
+    } catch (error) {
+        console.error('Erro ao carregar questão para edição:', error);
+        alert('Erro ao carregar questão para edição. Tente novamente.');
+    }
+}
+
+        async function excluirQuestao(questaoId) {
+            try {
+                const response = await fetch(`${API_URL}/api/questoes/${questaoId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Remover da lista local
+                    if (questoesPorProva[provaSelecionada._id]) {
+                        questoesPorProva[provaSelecionada._id] = questoesPorProva[provaSelecionada._id].filter(q => q._id !== questaoId);
+                    }
+                    
+                    // Atualizar a tela
+                    mostrarTelaProva();
+                } else {
+                    const erro = await response.json();
+                    alert(`Erro ao excluir questão: ${erro.error || 'Erro desconhecido'}`);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir questão:', error);
+                alert('Erro ao excluir questão. Tente novamente.');
+            }
+        }
+
+        function mostrarSQLQuestao(questaoId) {
+            console.log('Mostrar SQL da questão:', questaoId);
+        }
+
+        function mostrarSQLProva() {
+            console.log('Mostrar SQL da prova');
+        }
+
+        async function excluirProva(provaId) {
+            try {
+                const response = await fetch(`${API_URL}/api/provas/${provaId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Remover da lista local
+                    provas = provas.filter(p => p._id !== provaId);
+                    
+                    // Atualizar provasPorPasta
+                    Object.keys(provasPorPasta).forEach(pastaId => {
+                        provasPorPasta[pastaId] = provasPorPasta[pastaId].filter(p => p._id !== provaId);
+                    });
+                    
+                    // Remover questões da prova da cache
+                    delete questoesPorProva[provaId];
+                    
+                    // Atualizar a tela
+                    if (pastaSelecionada) {
+                        mostrarTelaPasta(pastaSelecionada);
+                    } else {
+                        mostrarTelaInicial();
+                    }
+                } else {
+                    const erro = await response.json();
+                    alert(`Erro ao excluir prova: ${erro.error || 'Erro desconhecido'}`);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir prova:', error);
+                alert('Erro ao excluir prova. Tente novamente.');
+            }
+        }
+
+        function moverPasta() {
+            console.log('Mover pasta');
+        }
+
+        function removerPasta() {
+            if (confirm('Tem certeza que deseja remover esta pasta?')) {
+                console.log('Remover pasta');
+            }
+        }
 
     </script>
 </body>
