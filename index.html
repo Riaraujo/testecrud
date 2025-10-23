@@ -68,7 +68,7 @@
 		            padding: 15px;
 		            overflow-y: auto;
 		            transition: margin-left 0.3s ease;
-		        }
+		        
             background-color: #2c3e50;
             color: white;
             padding: 15px;
@@ -1191,18 +1191,14 @@ select[multiple] option {
             <div class="form-row">
                 <div class="form-col">
                     <div class="form-group">
-                        <label for="conteudo">Conteúdo (opcional):</label>
-                        <select id="conteudo" class="form-control" multiple onchange="atualizarTopicos()" disabled>
-    <option value="">Selecione um ou mais conteúdos</option>
-</select>
+                        <label for="conteudos">Conteúdos (separados por vírgula):</label>
+                        <input type="text" id="conteudos" class="form-control" placeholder="Ex: Eletrostática, Carga Elétrica">
                     </div>
                 </div>
                 <div class="form-col">
                     <div class="form-group">
-                        <label for="topico">Tópico (opcional):</label>
-                        <select id="topico" class="form-control" multiple disabled>
-    <option value="">Selecione um ou mais tópicos</option>
-</select>
+                        <label for="topicos">Tópicos (separados por vírgula):</label>
+                        <input type="text" id="topicos" class="form-control" placeholder="Ex: Lei de Coulomb, Eletrização">
                     </div>
                 </div>
             </div>
@@ -9388,13 +9384,9 @@ tbody.innerHTML = questoes.map((questao, index) => {
 
              const API_URL = 'https://api.repositoriodequestoes.com';
     // Validação dos campos obrigatórios
-    const disciplinas = Array.from(document.getElementById('disciplina').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
+    const disciplinas = document.getElementById('disciplinas').value.split(',').map(d => d.trim()).filter(d => d);
     
-    const materias = Array.from(document.getElementById('materia').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
+    const materias = document.getElementById('materias').value.split(',').map(m => m.trim()).filter(m => m);
     
     const resposta = document.getElementById('resposta').value;
 
@@ -9423,17 +9415,11 @@ tbody.innerHTML = questoes.map((questao, index) => {
     }
 
     // Obter outros arrays de seleção múltipla
-    const assuntos = Array.from(document.getElementById('assunto').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
+    const assuntos = document.getElementById('assuntos').value.split(',').map(a => a.trim()).filter(a => a);
     
-    const conteudos = Array.from(document.getElementById('conteudo').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
+    const conteudos = document.getElementById('conteudos').value.split(',').map(c => c.trim()).filter(c => c);
     
-    const topicos = Array.from(document.getElementById('topico').selectedOptions)
-        .map(option => option.value)
-        .filter(value => value !== "");
+    const topicos = document.getElementById('topicos').value.split(',').map(t => t.trim()).filter(t => t);
 
     let alternativasArray = alternativas
         .filter(alt => alt.texto.trim() !== "")
@@ -9581,11 +9567,11 @@ tbody.innerHTML = questoes.map((questao, index) => {
 
         function limparFormulario() {
             // Limpar todos os campos do formulário
-            document.getElementById('disciplina').value = '';
-            document.getElementById('materia').value = '';
-            document.getElementById('assunto').value = '';
-            document.getElementById('conteudo').value = '';
-            document.getElementById('topico').value = '';
+            document.getElementById('disciplinas').value = '';
+            document.getElementById('materias').value = '';
+            document.getElementById('assuntos').value = '';
+            document.getElementById('conteudos').value = '';
+            document.getElementById('topicos').value = '';
             document.getElementById('ano').value = '';
             document.getElementById('instituicao').value = '';
             document.getElementById('resposta').value = 'A';
@@ -9648,66 +9634,21 @@ tbody.innerHTML = questoes.map((questao, index) => {
            document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
            document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
         
-          // Preencher selects múltiplos
-           if (questao.disciplinas && Array.isArray(questao.disciplinas)) {
-            questao.disciplinas.forEach(disciplina => {
-                const option = document.querySelector(`#disciplina option[value="${disciplina}"]`);
-                if (option) option.selected = true;
-            });
-        }
+          // Preencher campos de texto (simulando selects múltiplos)
+        document.getElementById('disciplinas').value = questao.disciplinas ? questao.disciplinas.join(', ') : '';
+        document.getElementById('materias').value = questao.materias ? questao.materias.join(', ') : '';
+        document.getElementById('assuntos').value = questao.assuntos ? questao.assuntos.join(', ') : '';
+        document.getElementById('conteudos').value = questao.conteudos ? questao.conteudos.join(', ') : '';
+        document.getElementById('topicos').value = questao.topicos ? questao.topicos.join(', ') : ''; // Adicionado o campo topicos
         
-        // Atualizar dropdowns em cascata
-        inicializarSelectsHierarquicos();
-        
-        // Aguardar um pouco para garantir que os selects foram carregados
-        setTimeout(() => {
-            // Preencher matérias
-            if (questao.materias && Array.isArray(questao.materias)) {
-                questao.materias.forEach(materia => {
-                    const option = document.querySelector(`#materia option[value="${materia}"]`);
-                    if (option) option.selected = true;
-                });
-            }
-            
-            // Disparar evento para carregar assuntos
-            document.getElementById('disciplina').dispatchEvent(new Event('change'));
-            
-            setTimeout(() => {
-                // Preencher assuntos
-                if (questao.assuntos && Array.isArray(questao.assuntos)) {
-                    questao.assuntos.forEach(assunto => {
-                        const option = document.querySelector(`#assunto option[value="${assunto}"]`);
-                        if (option) option.selected = true;
-                    });
-                }
-                
-                // Disparar evento para carregar conteúdos
-                document.getElementById('materia').dispatchEvent(new Event('change'));
-                
-                setTimeout(() => {
-                    // Preencher conteúdos
-                    if (questao.conteudos && Array.isArray(questao.conteudos)) {
-                        questao.conteudos.forEach(conteudo => {
-                            const option = document.querySelector(`#conteudo option[value="${conteudo}"]`);
-                            if (option) option.selected = true;
-                        });
-                    }
-                    
-                    // Disparar evento para carregar tópicos
-                    document.getElementById('assunto').dispatchEvent(new Event('change'));
-                    
-                    setTimeout(() => {
-                        // Preencher tópicos
-                        if (questao.topicos && Array.isArray(questao.topicos)) {
-                            questao.topicos.forEach(topico => {
-                                const option = document.querySelector(`#topico option[value="${topico}"]`);
-                                if (option) option.selected = true;
-                            });
-                        }
-                    }, 100);
-                }, 100);
-            }, 100);
-        }, 100);
+        // Preencher selects normais
+        document.getElementById('ano').value = questao.ano || '';
+        document.getElementById('instituicao').value = questao.instituicao || '';
+        document.getElementById('resposta').value = questao.resposta || '';
+        document.getElementById('conhecimento1').value = questao.conhecimento1 || '';
+        document.getElementById('conhecimento2').value = questao.conhecimento2 || '';
+        document.getElementById('conhecimento3').value = questao.conhecimento3 || '';
+        document.getElementById('conhecimento4').value = questao.conhecimento4 || '';
         
         // Processar enunciado e context para campos separados
         processarEnunciadoParaEdicao(questao.enunciado || '', questao.context || '');
