@@ -575,7 +575,7 @@ app.get('/api/provas', async (req, res) => {
 app.get('/api/provas/:id', async (req, res) => {
     try {
         const populateQuery = req.query.populate === 'questoes' ?
-            {path: 'questoes', options: {sort: {createdAt: -1}}} :
+            {path: 'questoes', options: {sort: {index: 1}}} :
             'questoes';
 
         const prova = await Prova.findById(req.params.id)
