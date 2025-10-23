@@ -623,6 +623,19 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
+// Rota GET para Questão por ID
+app.get('/api/questoes/:id', async (req, res) => {
+    try {
+        const questao = await Questao.findById(req.params.id);
+        if (!questao) {
+            return res.status(404).json({ error: 'Questão não encontrada' });
+        }
+        res.json(questao);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 app.post('/api/questoes', async (req, res) => {
     try {
@@ -819,7 +832,7 @@ app.post('/api/questoes', async (req, res) => {
             assuntos: req.body.assuntos || [],
             conteudos: req.body.conteudos || [],
             topicos: req.body.topicos || [],
-ano: ano,
+            ano: ano,
             instituicao: req.body.instituicao || 'ENEM',
             context: req.body.context || null,
             enunciado: req.body.enunciado,
