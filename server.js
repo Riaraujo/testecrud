@@ -80,8 +80,7 @@ const questaoSchema = new mongoose.Schema({
     },
     alternativas: [{
         letter: { type: String, required: true },
-        text: { type: String, required: false },
-        file: { type: String, required: false },
+        text: { type: String, required: true },
         isCorrect: { type: Boolean, default: false }
     }],
     resposta: {
@@ -575,7 +574,7 @@ app.get('/api/provas', async (req, res) => {
 app.get('/api/provas/:id', async (req, res) => {
     try {
         const populateQuery = req.query.populate === 'questoes' ?
-            {path: 'questoes', options: {sort: {index: 1}}} :
+            {path: 'questoes', options: {sort: {createdAt: -1}}} :
             'questoes';
 
         const prova = await Prova.findById(req.params.id)
@@ -623,19 +622,6 @@ app.delete('/api/provas/:id', async (req, res) => {
     }
 });
 
-// Rota GET para Questão por ID
-app.get('/api/questoes/:id', async (req, res) => {
-    try {
-        const questao = await Questao.findById(req.params.id);
-        if (!questao) {
-            return res.status(404).json({ error: 'Questão não encontrada' });
-        }
-        res.json(questao);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
 // Rota POST para Questões (com verificação automática de pasta/prova baseada no index)
 app.post('/api/questoes', async (req, res) => {
     try {
@@ -676,8 +662,12 @@ app.post('/api/questoes', async (req, res) => {
             });
         }
 
-// A validação de alternativas é feita após o processamento para garantir que pelo menos 2 alternativas válidas (com texto ou file) existam.
-	        // Ver linha 812-817.
+        // Validar alternativas
+        if (!Array.isArray(req.body.alternativas) || req.body.alternativas.length < 2) {
+            return res.status(400).json({
+                error: 'Pelo menos duas alternativas devem ser fornecidas'
+            });
+        }
 
         let provaId = req.body.prova;
         let ano = req.body.ano;
@@ -766,64 +756,37 @@ app.post('/api/questoes', async (req, res) => {
             provaId = prova._id;
         }
 
-// Processar alternativas
-	        const alternativasProcessadas = req.body.alternativas.map(alt => {
-	            let processedAlt = {};
-	
-	            if (typeof alt === 'string') {
-	                const match = alt.match(/^([A-E])\)\s*(.*)$/);
-	                if (match) {
-	                    processedAlt = { 
-	                        letter: match[1], 
-	                        text: match[2], 
-	                        isCorrect: match[1] === req.body.resposta 
-	                    };
-	                } else {
-	                    processedAlt = { 
-	                        letter: 'A', 
-	                        text: alt, 
-	                        isCorrect: 'A' === req.body.resposta 
-	                    };
-	                }
-	            } else if (typeof alt === 'object' && alt.letter) {
-	                // Lógica para permitir 'text' vazio se 'file' estiver presente
-	                const text = alt.text || null;
-	                const file = alt.file || null;
-	
-	                if (!text && !file) {
-	                    // Ignorar alternativa se ambos estiverem vazios (ou tratar como erro, mas por enquanto ignorar)
-	                    return null; 
-	                }
-	
-	                processedAlt = {
-	                    letter: alt.letter,
-	                    text: text,
-	                    file: file,
-	                    isCorrect: alt.letter === req.body.resposta
-	                };
-	            } else {
-	                // Fallback para caso não seja um objeto válido
-	                processedAlt = { 
-	                    letter: 'A', 
-	                    text: String(alt), 
-	                    isCorrect: 'A' === req.body.resposta 
-	                };
-	            }
-	            
-	            // Garantir que a alternativa tenha pelo menos um conteúdo (texto ou arquivo)
-	            if (!processedAlt.text && !processedAlt.file) {
-	                return null;
-	            }
-	
-	            return processedAlt;
-	        }).filter(alt => alt !== null); // Remover alternativas nulas/inválidas
-	
-	        // Revalidar se ainda existem alternativas suficientes
-	        if (alternativasProcessadas.length < 2) {
-	            return res.status(400).json({
-	                error: 'Pelo menos duas alternativas válidas (com texto ou arquivo) devem ser fornecidas'
-	            });
-	        }
+        // Processar alternativas
+        const alternativasProcessadas = req.body.alternativas.map(alt => {
+            if (typeof alt === 'string') {
+                const match = alt.match(/^([A-E])\)\s*(.*)$/);
+                if (match) {
+                    return { 
+                        letter: match[1], 
+                        text: match[2], 
+                        isCorrect: match[1] === req.body.resposta 
+                    };
+                } else {
+                    return { 
+                        letter: 'A', 
+                        text: alt, 
+                        isCorrect: 'A' === req.body.resposta 
+                    };
+                }
+            } else if (typeof alt === 'object' && alt.letter && alt.text) {
+                return {
+                    letter: alt.letter,
+                    text: alt.text,
+                    isCorrect: alt.letter === req.body.resposta
+                };
+            } else {
+                return { 
+                    letter: 'A', 
+                    text: String(alt), 
+                    isCorrect: 'A' === req.body.resposta 
+                };
+            }
+        });
 
         // Criar a questão
         const questaoData = {
@@ -881,7 +844,7 @@ app.post('/api/questoes', async (req, res) => {
 
 app.get('/api/questoes', async (req, res) => {
     try {
-        const questoes = await Questao.find().populate('prova').sort({ index: 1 });
+        const questoes = await Questao.find().populate('prova').sort({ createdAt: -1 });
         res.json(questoes);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -962,4 +925,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Conectado ao MongoDB em: ${MONGODB_URI}`);
 });
-
